@@ -8,8 +8,6 @@ import { useAuth } from "@/contexts/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { EmailDialog } from "@/components/EmailDialog";
-import { useSendDiveLogEmail } from "@/hooks/useEmailMutations";
 import { DiveLogsPagination } from "@/components/DiveLogsPagination";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useDeleteDiveLog } from "@/hooks/useDiveLogMutations";
@@ -24,8 +22,6 @@ export const DiveLogsList = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [centerFilter, setCenterFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
-  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState<{ id: string; signatureUrl?: string | null } | null>(null);
   
@@ -38,13 +34,7 @@ export const DiveLogsList = () => {
     centerName: centerFilter
   });
 
-  const sendEmailMutation = useSendDiveLogEmail();
   const deleteLogMutation = useDeleteDiveLog();
-
-  const handleSendEmail = (logId: string) => {
-    setSelectedLogId(logId);
-    setEmailDialogOpen(true);
-  };
 
   const handleDeleteClick = (logId: string, signatureUrl?: string | null) => {
     setLogToDelete({ id: logId, signatureUrl });
@@ -72,21 +62,6 @@ export const DiveLogsList = () => {
             variant: "destructive"
           });
         }
-      });
-    }
-  };
-
-  const handleEmailSend = (email: string, name?: string) => {
-    if (selectedLogId) {
-      sendEmailMutation.mutate({
-        diveLogId: selectedLogId,
-        recipientEmail: email,
-        recipientName: name,
-      }, {
-        onSuccess: () => {
-          setEmailDialogOpen(false);
-          setSelectedLogId(null);
-        },
       });
     }
   };
@@ -181,11 +156,9 @@ export const DiveLogsList = () => {
             diveLogs={diveLogs}
             hasActiveFilters={hasActiveFilters}
             search={search}
-            onSendEmail={handleSendEmail}
             onDelete={handleDeleteClick}
           />
 
-          {/* Paginación */}
           {pagination && (
             <div className="mt-6">
               <DiveLogsPagination
@@ -199,13 +172,6 @@ export const DiveLogsList = () => {
           )}
         </CardContent>
       </Card>
-
-      <EmailDialog
-        open={emailDialogOpen}
-        onOpenChange={setEmailDialogOpen}
-        onSend={handleEmailSend}
-        isLoading={sendEmailMutation.isPending}
-      />
 
       <ConfirmDialog
         open={deleteDialogOpen}

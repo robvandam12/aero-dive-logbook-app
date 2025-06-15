@@ -12,14 +12,13 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
-import { DiveLogsActions } from "@/components/DiveLogsActions";
+import { Eye, Edit, Trash2 } from "lucide-react";
 import { DiveLogForTable } from "@/hooks/useDiveLogs";
 
 interface DiveLogsTableContentProps {
   diveLogs: DiveLogForTable[];
   hasActiveFilters: boolean;
   search: string;
-  onSendEmail: (logId: string) => void;
   onDelete: (logId: string, signatureUrl?: string | null) => void;
 }
 
@@ -36,7 +35,6 @@ export const DiveLogsTableContent = ({
   diveLogs,
   hasActiveFilters,
   search,
-  onSendEmail,
   onDelete,
 }: DiveLogsTableContentProps) => {
   const navigate = useNavigate();
@@ -90,13 +88,35 @@ export const DiveLogsTableContent = ({
                 </Badge>
               </TableCell>
               <TableCell>
-                <DiveLogsActions
-                  logId={log.id}
-                  status={log.status}
-                  signatureUrl={log.signature_url}
-                  onSendEmail={onSendEmail}
-                  onDelete={onDelete}
-                />
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-ocean-300 hover:text-white"
+                    onClick={() => navigate(`/dive-logs/${log.id}`)}
+                    title="Ver detalles"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-ocean-300 hover:text-white"
+                    onClick={() => navigate(`/dive-logs/${log.id}/edit`)}
+                    title="Editar / Firmar"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-red-400 hover:text-red-300"
+                    onClick={() => onDelete(log.id, log.signature_url)}
+                    title="Eliminar bitácora"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           );
