@@ -38,7 +38,11 @@ export const useDiveSiteMutations = ({ onSuccess, onError }: UseDiveSiteMutation
 
   const updateMutation = useMutation<Tables<'dive_sites'>, Error, { id: string; values: DiveSiteFormValues }>({
     mutationFn: async ({ id, values }) => {
-      const { data, error } = await supabase.from('dive_sites').update(values).eq('id', id).select().single();
+      // Explicitly create the object for Supabase to avoid type inference issues.
+      const { name, location } = values;
+      const valuesForUpdate = { name, location: location || null };
+      
+      const { data, error } = await supabase.from('dive_sites').update(valuesForUpdate).eq('id', id).select().single();
       if (error) throw error;
       if (!data) throw new Error("Punto de buceo no encontrado tras la actualización.");
       return data;
