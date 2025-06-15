@@ -10,13 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileText, Eye, Edit, FileSignature } from "lucide-react";
+import { FileText, Eye, Edit, FileSignature, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDiveLogs } from "@/hooks/useDiveLogs";
 import { useAuth } from "@/contexts/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 const getStatusBadge = (status: 'draft' | 'signed') => {
   const variants = {
@@ -30,11 +31,24 @@ const getStatusBadge = (status: 'draft' | 'signed') => {
 export const DiveLogTable = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const { data: diveLogsData, isLoading } = useDiveLogs({ 
     userId: user?.id,
     page: 1,
     perPage: 5 
   });
+
+  const handleSign = (logId: string) => {
+    navigate(`/dive-logs/${logId}/edit`);
+  };
+
+  const handleSendEmail = (logId: string) => {
+    // Placeholder para envío de correo - implementaremos después
+    toast({
+      title: "Función en desarrollo",
+      description: "La función de envío por correo estará disponible próximamente.",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -112,6 +126,7 @@ export const DiveLogTable = () => {
                           size="sm" 
                           className="text-ocean-300 hover:text-white"
                           onClick={() => navigate(`/dive-logs/${log.id}`)}
+                          title="Ver detalles"
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -120,6 +135,7 @@ export const DiveLogTable = () => {
                           size="sm" 
                           className="text-ocean-300 hover:text-white"
                           onClick={() => navigate(`/dive-logs/${log.id}/edit`)}
+                          title="Editar"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -128,10 +144,21 @@ export const DiveLogTable = () => {
                             variant="ghost" 
                             size="sm" 
                             className="text-gold-400 hover:text-gold-300"
-                            onClick={() => navigate(`/dive-logs/${log.id}/edit`)}
+                            onClick={() => handleSign(log.id)}
                             title="Firmar bitácora"
                           >
                             <FileSignature className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {log.status === 'signed' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-green-400 hover:text-green-300"
+                            onClick={() => handleSendEmail(log.id)}
+                            title="Enviar por correo"
+                          >
+                            <Mail className="w-4 h-4" />
                           </Button>
                         )}
                       </div>
