@@ -81,6 +81,10 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
     });
   };
 
+  const handleSign = () => {
+    navigate(`/dive-logs/${diveLog.id}/sign`);
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -114,7 +118,7 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
             )}
             {status === 'draft' && (
               <Button 
-                onClick={onEdit}
+                onClick={handleSign}
                 className="bg-gold-600 hover:bg-gold-700"
               >
                 <FileSignature className="w-4 h-4 mr-2" />
