@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { diveLogSchema, DiveLogFormValues } from "@/lib/schemas";
@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from "react-router-dom";
+import { useUpdateDiveLog } from "@/hooks/useDiveLogMutations";
+import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 
 import { Step1GeneralData } from './dive-log-wizard/Step1GeneralData';
 import { Step2Conditions } from './dive-log-wizard/Step2Conditions';
@@ -42,24 +44,79 @@ function dataURLtoBlob(dataurl: string) {
     return new Blob([u8arr], {type:mime});
 }
 
-export const DiveLogWizard = () => {
+interface DiveLogWizardProps {
+  diveLog?: DiveLogWithFullDetails;
+  isEditMode?: boolean;
+}
+
+export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const updateDiveLogMutation = useUpdateDiveLog();
 
-  const methods = useForm<DiveLogFormValues>({
-    resolver: zodResolver(diveLogSchema),
-    defaultValues: {
+  // Parse weather conditions for edit mode
+  const parseWeatherConditions = (conditions: string | null) => {
+    if (!conditions) return { weather_condition: undefined, wind_knots: undefined, wave_height_meters: undefined };
+    
+    const windMatch = conditions.match(/Viento:\s*(\d+)/);
+    const waveMatch = conditions.match(/Oleaje:\s*(\d+\.?\d*)/);
+    const weatherMatch = conditions.split(',')[0].trim();
+    
+    return {
+      weather_condition: weatherMatch !== 'N/A' ? weatherMatch : undefined,
+      wind_knots: windMatch ? parseInt(windMatch[1]) : undefined,
+      wave_height_meters: waveMatch ? parseFloat(waveMatch[1]) : undefined
+    };
+  };
+
+  const getDefaultValues = (): Partial<DiveLogFormValues> => {
+    if (isEditMode && diveLog) {
+      const weather = parseWeatherConditions(diveLog.weather_conditions);
+      const diversManifest = Array.isArray(diveLog.divers_manifest) 
+        ? diveLog.divers_manifest as any[]
+        : [];
+
+      return {
+        log_date: diveLog.log_date,
+        center_id: diveLog.center_id,
+        supervisor_name: diveLog.profiles?.username || '',
+        dive_site_id: diveLog.dive_site_id,
+        boat_id: diveLog.boat_id || '',
+        weather_condition: weather.weather_condition as any,
+        wind_knots: weather.wind_knots,
+        wave_height_meters: weather.wave_height_meters,
+        divers_manifest: diversManifest.length > 0 ? diversManifest : [{ name: '', license: '', role: 'buzo', working_depth: 0 }],
+        observations: diveLog.observations || '',
+        departure_time: diveLog.departure_time || '',
+        arrival_time: diveLog.arrival_time || '',
+        signature_data: diveLog.signature_url || undefined
+      };
+    }
+
+    return {
       divers_manifest: [{ name: '', license: '', role: 'buzo', working_depth: 0 }],
       log_date: new Date().toISOString().split('T')[0],
       center_id: '',
       dive_site_id: '',
-    }
+    };
+  };
+
+  const methods = useForm<DiveLogFormValues>({
+    resolver: zodResolver(diveLogSchema),
+    defaultValues: getDefaultValues()
   });
 
-  const { handleSubmit, trigger, formState, watch, getValues } = methods;
+  const { handleSubmit, trigger, formState, watch, reset } = methods;
+
+  // Reset form when diveLog changes (edit mode)
+  useEffect(() => {
+    if (isEditMode && diveLog) {
+      reset(getDefaultValues());
+    }
+  }, [diveLog, isEditMode, reset]);
 
   // Observa si la firma existe (para activar el botón de finalizar)
   const signatureData = watch("signature_data");
@@ -81,6 +138,21 @@ export const DiveLogWizard = () => {
       toast({ title: "Error", description: "Debe iniciar sesión para guardar.", variant: "destructive" });
       return;
     }
+
+    if (isEditMode && diveLog) {
+      // Update existing dive log
+      updateDiveLogMutation.mutate(
+        { id: diveLog.id, data, userId: user.id },
+        {
+          onSuccess: () => {
+            navigate(`/dive-logs/${diveLog.id}`);
+          }
+        }
+      );
+      return;
+    }
+
+    // Create new dive log (existing logic)
     setIsLoading(true);
 
     let signatureUrl: string | null = null;
@@ -109,15 +181,15 @@ export const DiveLogWizard = () => {
       log_date: data.log_date,
       center_id: data.center_id,
       supervisor_id: user.id,
-      supervisor_name: data.supervisor_name, // Se agrega para no perder el dato
+      supervisor_name: data.supervisor_name,
       dive_site_id: data.dive_site_id,
       boat_id: data.boat_id || null,
       weather_conditions: `${data.weather_condition || 'N/A'}, Viento: ${data.wind_knots || 'N/A'} nudos, Oleaje: ${data.wave_height_meters || 'N/A'} m`,
       divers_manifest: data.divers_manifest,
-      work_type: data.work_type || null,
-      work_details: data.work_details,
       observations: data.observations || "",
       signature_url: signatureUrl,
+      departure_time: data.departure_time || null,
+      arrival_time: data.arrival_time || null,
     };
 
     const { error } = await supabase.from('dive_logs').insert(diveLogData);
@@ -142,6 +214,8 @@ export const DiveLogWizard = () => {
       default: return null;
     }
   };
+
+  const isSubmitting = isEditMode ? updateDiveLogMutation.isPending : isLoading;
 
   return (
     <FormProvider {...methods}>
@@ -172,6 +246,7 @@ export const DiveLogWizard = () => {
           </CardHeader>
           <CardContent>{renderStepContent()}</CardContent>
         </Card>
+
         {/* Navigation */}
         <div className="flex items-center justify-between">
           <Button type="button" variant="outline" onClick={prevStep} disabled={currentStep === 1} className="border-ocean-600 text-ocean-300 hover:bg-ocean-800">
@@ -191,12 +266,12 @@ export const DiveLogWizard = () => {
             ) : (
               <Button
                 type="submit"
-                disabled={isLoading || !formState.isValid || !signatureData}
-                className={`${(!formState.isValid || !signatureData) ? 'opacity-60 cursor-not-allowed' : 'bg-gold-gradient hover:opacity-90'}`}
+                disabled={isSubmitting || !formState.isValid || (!isEditMode && !signatureData)}
+                className={`${(!formState.isValid || (!isEditMode && !signatureData)) ? 'opacity-60 cursor-not-allowed' : 'bg-gold-gradient hover:opacity-90'}`}
               >
-                {isLoading ? "Finalizando..." : <>
+                {isSubmitting ? (isEditMode ? "Actualizando..." : "Finalizando...") : <>
                   <FileSignature className="w-4 h-4 mr-2" />
-                  Finalizar Bitácora
+                  {isEditMode ? 'Actualizar Bitácora' : 'Finalizar Bitácora'}
                 </>}
               </Button>
             )}

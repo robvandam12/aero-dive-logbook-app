@@ -24,7 +24,9 @@ export const diveLogSchema = z.object({
 
   work_type: z.string().optional(),
   boat_id: z.string().optional(),
-  work_details: z.string().min(1, "Detalle de trabajos es requerido."),
+  work_details: z.string().optional(),
+  departure_time: z.string().optional(),
+  arrival_time: z.string().optional(),
   
   observations: z.string().optional(),
   signature_data: z.string().optional(),
