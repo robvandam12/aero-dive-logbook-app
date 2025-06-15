@@ -1,5 +1,5 @@
 
-import { Waves, Bell, User, Settings } from "lucide-react";
+import { Waves, Bell, User, Settings, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -13,10 +13,12 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthProvider";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 export const Header = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: userProfile } = useUserProfile();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -53,6 +55,12 @@ export const Header = () => {
               <a href="#" className="text-ocean-300 hover:text-white transition-colors opacity-50 cursor-not-allowed">
                 Reportes
               </a>
+              {userProfile?.role === 'admin' && (
+                 <Link to="/admin" className="text-gold-300 hover:text-white transition-colors font-semibold flex items-center">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Administración
+                </Link>
+              )}
             </nav>
           )}
 

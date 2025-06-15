@@ -11,6 +11,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NewDiveLogPage from "./pages/NewDiveLog";
 import AllDiveLogsPage from "./pages/AllDiveLogs";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import AdminPage from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -29,9 +31,17 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={!session ? <Auth /> : <Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
-      <Route path="/new-dive-log" element={session ? <NewDiveLogPage /> : <Navigate to="/auth" replace />} />
-      <Route path="/dive-logs" element={session ? <AllDiveLogsPage /> : <Navigate to="/auth" replace />} />
+      
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/new-dive-log" element={<NewDiveLogPage />} />
+        <Route path="/dive-logs" element={<AllDiveLogsPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute requiredRole="admin" />}>
+        <Route path="/admin" element={<AdminPage />} />
+      </Route>
+
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
