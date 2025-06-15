@@ -53,13 +53,16 @@ export const DiveLogWizard = () => {
     resolver: zodResolver(diveLogSchema),
     defaultValues: {
       divers_manifest: [{ name: '', license: '', role: 'buzo', working_depth: 0 }],
-      log_date: new Date().toISOString().split('T')[0], // Today's date
+      log_date: new Date().toISOString().split('T')[0],
       center_id: '',
       dive_site_id: '',
     }
   });
 
-  const { handleSubmit, trigger, formState } = methods;
+  const { handleSubmit, trigger, formState, watch, getValues } = methods;
+
+  // Observa si la firma existe (para activar el botón de finalizar)
+  const signatureData = watch("signature_data");
 
   const nextStep = async () => {
     const fieldsToValidate = steps[currentStep - 1].fields;
@@ -72,7 +75,7 @@ export const DiveLogWizard = () => {
   const prevStep = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
-  
+
   const onSubmit = async (data: DiveLogFormValues) => {
     if (!user) {
       toast({ title: "Error", description: "Debe iniciar sesión para guardar.", variant: "destructive" });
@@ -80,7 +83,7 @@ export const DiveLogWizard = () => {
     }
     setIsLoading(true);
 
-    let signatureUrl = null;
+    let signatureUrl: string | null = null;
     if (data.signature_data) {
       try {
         const blob = dataURLtoBlob(data.signature_data);
@@ -91,9 +94,7 @@ export const DiveLogWizard = () => {
             contentType: 'image/png',
             upsert: false,
           });
-
         if (uploadError) throw uploadError;
-        
         const { data: urlData } = supabase.storage.from('signatures').getPublicUrl(fileData.path);
         signatureUrl = urlData.publicUrl;
       } catch (error: any) {
@@ -102,16 +103,20 @@ export const DiveLogWizard = () => {
         return;
       }
     }
-    
+
+    // Construir datos finales para la bitácora
     const diveLogData = {
       log_date: data.log_date,
       center_id: data.center_id,
       supervisor_id: user.id,
+      supervisor_name: data.supervisor_name, // Se agrega para no perder el dato
       dive_site_id: data.dive_site_id,
       boat_id: data.boat_id || null,
       weather_conditions: `${data.weather_condition || 'N/A'}, Viento: ${data.wind_knots || 'N/A'} nudos, Oleaje: ${data.wave_height_meters || 'N/A'} m`,
       divers_manifest: data.divers_manifest,
-      observations: data.observations,
+      work_type: data.work_type || null,
+      work_details: data.work_details,
+      observations: data.observations || "",
       signature_url: signatureUrl,
     };
 
@@ -167,27 +172,28 @@ export const DiveLogWizard = () => {
           </CardHeader>
           <CardContent>{renderStepContent()}</CardContent>
         </Card>
-
         {/* Navigation */}
         <div className="flex items-center justify-between">
           <Button type="button" variant="outline" onClick={prevStep} disabled={currentStep === 1} className="border-ocean-600 text-ocean-300 hover:bg-ocean-800">
             <ChevronLeft className="w-4 h-4 mr-2" />
             Anterior
           </Button>
-
           <div className="flex space-x-2">
             <Button type="button" variant="outline" className="border-ocean-600 text-ocean-300 hover:bg-ocean-800">
               <Save className="w-4 h-4 mr-2" />
               Guardar Borrador
             </Button>
-
             {currentStep < 5 ? (
               <Button type="button" onClick={nextStep} className="bg-ocean-gradient hover:opacity-90">
                 Siguiente
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
-              <Button type="submit" disabled={isLoading || !formState.isValid} className="bg-gold-gradient hover:opacity-90">
+              <Button
+                type="submit"
+                disabled={isLoading || !formState.isValid || !signatureData}
+                className={`${(!formState.isValid || !signatureData) ? 'opacity-60 cursor-not-allowed' : 'bg-gold-gradient hover:opacity-90'}`}
+              >
                 {isLoading ? "Finalizando..." : <>
                   <FileSignature className="w-4 h-4 mr-2" />
                   Finalizar Bitácora
