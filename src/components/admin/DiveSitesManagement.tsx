@@ -26,33 +26,37 @@ export const DiveSitesManagement = () => {
   const [selectedDiveSite, setSelectedDiveSite] = useState<Tables<'dive_sites'> | null>(null);
   const [diveSiteToDelete, setDiveSiteToDelete] = useState<Tables<'dive_sites'> | null>(null);
 
-  const upsertMutation = useMutation<
-    Tables<'dive_sites'>,
-    Error,
-    { id?: string; values: DiveSiteFormValues }
-  >({
+  const mutationSuccessHandler = () => {
+    toast({ title: "Éxito", description: `Punto de buceo ${selectedDiveSite ? 'actualizado' : 'creado'} con éxito.` });
+    queryClient.invalidateQueries({ queryKey: ['dive_sites'] });
+    setIsDialogOpen(false);
+    setSelectedDiveSite(null);
+  };
+  
+  const mutationErrorHandler = (error: Error) => {
+    toast({ title: "Error", description: error.message, variant: "destructive" });
+  };
+
+  const createMutation = useMutation<Tables<'dive_sites'>, Error, { values: DiveSiteFormValues }>({
+    mutationFn: async ({ values }) => {
+      const { data, error } = await supabase.from('dive_sites').insert(values).select().single();
+      if (error) throw error;
+      if (!data) throw new Error("No se pudo crear el punto de buceo.");
+      return data;
+    },
+    onSuccess: mutationSuccessHandler,
+    onError: mutationErrorHandler,
+  });
+
+  const updateMutation = useMutation<Tables<'dive_sites'>, Error, { id: string; values: DiveSiteFormValues }>({
     mutationFn: async ({ id, values }) => {
-      if (id) {
-        const { data, error } = await supabase.from('dive_sites').update(values).eq('id', id).select().single();
-        if (error) throw error;
-        if (!data) throw new Error("Punto de buceo no encontrado tras la actualización.");
-        return data;
-      } else {
-        const { data, error } = await supabase.from('dive_sites').insert(values).select().single();
-        if (error) throw error;
-        if (!data) throw new Error("No se pudo crear el punto de buceo.");
-        return data;
-      }
+      const { data, error } = await supabase.from('dive_sites').update(values).eq('id', id).select().single();
+      if (error) throw error;
+      if (!data) throw new Error("Punto de buceo no encontrado tras la actualización.");
+      return data;
     },
-    onSuccess: () => {
-      toast({ title: "Éxito", description: `Punto de buceo ${selectedDiveSite ? 'actualizado' : 'creado'} con éxito.` });
-      queryClient.invalidateQueries({ queryKey: ['dive_sites'] });
-      setIsDialogOpen(false);
-      setSelectedDiveSite(null);
-    },
-    onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+    onSuccess: mutationSuccessHandler,
+    onError: mutationErrorHandler,
   });
 
   const deleteMutation = useMutation({
@@ -84,7 +88,11 @@ export const DiveSitesManagement = () => {
   };
   
   const handleSubmit = (values: DiveSiteFormValues) => {
-    upsertMutation.mutate({ id: selectedDiveSite?.id, values });
+    if (selectedDiveSite) {
+      updateMutation.mutate({ id: selectedDiveSite.id, values });
+    } else {
+      createMutation.mutate({ values });
+    }
   };
   
   const handleDelete = () => {
@@ -149,7 +157,7 @@ export const DiveSitesManagement = () => {
               </DialogHeader>
               <DiveSiteForm
                 onSubmit={handleSubmit}
-                isSubmitting={upsertMutation.isPending}
+                isSubmitting={createMutation.isPending || updateMutation.isPending}
                 initialData={selectedDiveSite}
               />
             </DialogContent>
