@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 
-function dataURLtoBlob(dataurl: string) {
+export function dataURLtoBlob(dataurl: string) {
     const arr = dataurl.split(',');
     const mimeMatch = arr[0].match(/:(.*?);/);
     if (!mimeMatch) {
