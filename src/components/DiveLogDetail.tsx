@@ -30,6 +30,9 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
   const sendEmailMutation = useSendDiveLogEmail();
   const deleteLogMutation = useDeleteDiveLog();
 
+  // Derive status from signature_url
+  const status = diveLog.signature_url ? 'signed' : 'draft';
+
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
   };
@@ -92,7 +95,7 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
               diveLogId={diveLog.id} 
               hasSignature={!!diveLog.signature_url} 
             />
-            {diveLog.status === 'signed' && (
+            {status === 'signed' && (
               <Button 
                 onClick={handleSendEmail}
                 variant="outline" 
@@ -109,7 +112,7 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
                 Editar
               </Button>
             )}
-            {diveLog.status === 'draft' && (
+            {status === 'draft' && (
               <Button 
                 onClick={onEdit}
                 className="bg-gold-600 hover:bg-gold-700"
