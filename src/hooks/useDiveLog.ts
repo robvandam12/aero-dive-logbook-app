@@ -7,6 +7,7 @@ export type DiveLogWithFullDetails = Tables<'dive_logs'> & {
   centers: { name: string } | null;
   dive_sites: { name: string; location?: string } | null;
   boats: { name: string; registration_number: string } | null;
+  profiles: { username: string } | null;
 };
 
 const fetchDiveLog = async (id: string) => {
@@ -16,7 +17,8 @@ const fetchDiveLog = async (id: string) => {
       *,
       centers (name),
       dive_sites (name, location),
-      boats (name, registration_number)
+      boats (name, registration_number),
+      profiles (username)
     `)
     .eq('id', id)
     .single();

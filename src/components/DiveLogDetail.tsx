@@ -18,6 +18,10 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
     return format(new Date(dateString), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
   };
 
+  // Parse divers manifest from JSON
+  const diversManifest = diveLog.divers_manifest ? 
+    (Array.isArray(diveLog.divers_manifest) ? diveLog.divers_manifest : []) as any[] : [];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -58,7 +62,7 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
             </div>
             <div>
               <p className="text-ocean-300 text-sm">Supervisor</p>
-              <p className="text-white font-medium">{diveLog.supervisor_name}</p>
+              <p className="text-white font-medium">{diveLog.profiles?.username || 'N/A'}</p>
             </div>
             <div>
               <p className="text-ocean-300 text-sm">Punto de Buceo</p>
@@ -72,6 +76,20 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
                 <p className="text-ocean-300 text-sm">Embarcación</p>
                 <p className="text-white font-medium">{diveLog.boats.name}</p>
                 <p className="text-ocean-400 text-sm">{diveLog.boats.registration_number}</p>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {diveLog.departure_time && (
+              <div>
+                <p className="text-ocean-300 text-sm">Hora de Salida</p>
+                <p className="text-white font-medium">{diveLog.departure_time}</p>
+              </div>
+            )}
+            {diveLog.arrival_time && (
+              <div>
+                <p className="text-ocean-300 text-sm">Hora de Llegada</p>
+                <p className="text-white font-medium">{diveLog.arrival_time}</p>
               </div>
             )}
           </div>
@@ -94,56 +112,38 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
       )}
 
       {/* Dive Team */}
-      <Card className="glass">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Users className="w-5 h-5 mr-2" />
-            Equipo de Buceo
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {diveLog.divers_manifest?.map((diver: any, index: number) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-ocean-950/50 rounded-lg">
-                <div>
-                  <p className="text-white font-medium">{diver.name}</p>
-                  <p className="text-ocean-400 text-sm">Matrícula: {diver.license}</p>
+      {diversManifest.length > 0 && (
+        <Card className="glass">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Equipo de Buceo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {diversManifest.map((diver: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-ocean-950/50 rounded-lg">
+                  <div>
+                    <p className="text-white font-medium">{diver.name || 'N/A'}</p>
+                    <p className="text-ocean-400 text-sm">Matrícula: {diver.license || 'N/A'}</p>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant="outline" className="text-ocean-300 border-ocean-600">
+                      {diver.role === 'buzo' ? 'Buzo' : 
+                       diver.role === 'buzo-emergencia' ? 'Buzo de Emergencia' : 
+                       diver.role === 'supervisor' ? 'Supervisor' : 'N/A'}
+                    </Badge>
+                    {diver.working_depth && (
+                      <p className="text-ocean-400 text-sm mt-1">Prof. máx: {diver.working_depth}m</p>
+                    )}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <Badge variant="outline" className="text-ocean-300 border-ocean-600">
-                    {diver.role === 'buzo' ? 'Buzo' : 
-                     diver.role === 'buzo-emergencia' ? 'Buzo de Emergencia' : 'Supervisor'}
-                  </Badge>
-                  <p className="text-ocean-400 text-sm mt-1">Prof. máx: {diver.working_depth}m</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Work Details */}
-      <Card className="glass">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Ship className="w-5 h-5 mr-2" />
-            Detalle de Trabajos
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {diveLog.work_type && (
-            <div>
-              <p className="text-ocean-300 text-sm">Tipo de Faena</p>
-              <p className="text-white font-medium capitalize">{diveLog.work_type}</p>
+              ))}
             </div>
-          )}
-          <Separator className="bg-ocean-700" />
-          <div>
-            <p className="text-ocean-300 text-sm mb-2">Descripción de Trabajos</p>
-            <p className="text-white whitespace-pre-wrap">{diveLog.work_details}</p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Observations */}
       {diveLog.observations && (
