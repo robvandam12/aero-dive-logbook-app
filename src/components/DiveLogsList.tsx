@@ -10,9 +10,11 @@ import { Eye, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 
 export const DiveLogsList = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [perPage] = useState(10);
   const [search, setSearch] = useState('');
@@ -32,6 +34,14 @@ export const DiveLogsList = () => {
 
   const handleNextPage = () => {
     setPage((prev) => (totalPages > prev ? prev + 1 : prev));
+  };
+
+  const handleViewLog = (logId: string) => {
+    navigate(`/dive-logs/${logId}`);
+  };
+
+  const handleEditLog = (logId: string) => {
+    navigate(`/dive-logs/${logId}/edit`);
   };
 
   const tableContent = () => {
@@ -61,10 +71,20 @@ export const DiveLogsList = () => {
         </TableCell>
         <TableCell>
           <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="icon" className="text-ocean-300 hover:text-white h-8 w-8">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-ocean-300 hover:text-white h-8 w-8"
+              onClick={() => handleViewLog(log.id)}
+            >
               <Eye className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-ocean-300 hover:text-white h-8 w-8">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-ocean-300 hover:text-white h-8 w-8"
+              onClick={() => handleEditLog(log.id)}
+            >
               <Edit className="w-4 h-4" />
             </Button>
           </div>

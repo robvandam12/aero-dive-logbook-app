@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NewDiveLogPage from "./pages/NewDiveLog";
 import AllDiveLogsPage from "./pages/AllDiveLogs";
+import DiveLogDetailPage from "./pages/DiveLogDetail";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import AdminPage from "./pages/Admin";
 import ProtectedLayout from "./components/ProtectedLayout";
@@ -38,6 +39,7 @@ const AppRoutes = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/new-dive-log" element={<NewDiveLogPage />} />
           <Route path="/dive-logs" element={<AllDiveLogsPage />} />
+          <Route path="/dive-logs/:id" element={<DiveLogDetailPage />} />
           <Route element={<ProtectedRoute requiredRole="admin" />}>
             <Route path="/admin" element={<AdminPage />} />
           </Route>
