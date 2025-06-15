@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, MapPin, Users, FileText, Edit, FileSignature, Mail, Trash2 } from "lucide-react";
+import { Calendar, MapPin, Users, FileText, Edit, FileSignature, Mail, Trash2, User } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
@@ -35,6 +35,10 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
+  };
+
+  const formatDateTime = (dateString: string) => {
+    return format(new Date(dateString), "dd/MM/yyyy 'a las' HH:mm", { locale: es });
   };
 
   // Parse divers manifest from JSON
@@ -137,12 +141,17 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
           </div>
         </div>
 
-        {/* Status */}
-        <div className="flex items-center space-x-2">
-          <Badge variant={diveLog.signature_url ? 'default' : 'secondary'} 
-                 className={diveLog.signature_url ? 'bg-emerald-600' : 'bg-amber-600'}>
-            {diveLog.signature_url ? 'Firmada' : 'Pendiente de firma'}
-          </Badge>
+        {/* Status and Creation Info */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Badge variant={diveLog.signature_url ? 'default' : 'secondary'} 
+                   className={diveLog.signature_url ? 'bg-emerald-600' : 'bg-amber-600'}>
+              {diveLog.signature_url ? 'Firmada' : 'Pendiente de firma'}
+            </Badge>
+          </div>
+          <div className="text-sm text-ocean-400">
+            Creada el {formatDateTime(diveLog.created_at)}
+          </div>
         </div>
 
         {/* General Information */}
@@ -160,8 +169,11 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
                 <p className="text-white font-medium">{diveLog.centers?.name || 'N/A'}</p>
               </div>
               <div>
-                <p className="text-ocean-300 text-sm">Supervisor</p>
-                <p className="text-white font-medium">{diveLog.profiles?.username || 'N/A'}</p>
+                <p className="text-ocean-300 text-sm">Supervisor Responsable</p>
+                <div className="flex items-center">
+                  <User className="w-4 h-4 mr-2 text-ocean-400" />
+                  <p className="text-white font-medium">{diveLog.profiles?.username || 'N/A'}</p>
+                </div>
               </div>
               <div>
                 <p className="text-ocean-300 text-sm">Punto de Buceo</p>

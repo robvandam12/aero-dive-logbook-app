@@ -1,9 +1,10 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Anchor, Ship, Waves } from "lucide-react";
+import { Anchor, Ship, Waves, Users } from "lucide-react";
 import { CentersManagement } from "@/components/admin/CentersManagement";
 import { BoatsManagement } from "@/components/admin/BoatsManagement";
 import { DiveSitesManagement } from "@/components/admin/DiveSitesManagement";
+import { UsersManagement } from "@/components/admin/UsersManagement";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const AdminPage = () => {
@@ -17,10 +18,11 @@ const AdminPage = () => {
         </div>
       </div>
       <Tabs defaultValue="centers" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 glass">
-          <TabsTrigger value="centers"><Anchor className="mr-2 h-4 w-4" /> Centros de Buceo</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 glass">
+          <TabsTrigger value="centers"><Anchor className="mr-2 h-4 w-4" /> Centros</TabsTrigger>
           <TabsTrigger value="boats"><Ship className="mr-2 h-4 w-4" /> Embarcaciones</TabsTrigger>
           <TabsTrigger value="dive_sites"><Waves className="mr-2 h-4 w-4" /> Puntos de Buceo</TabsTrigger>
+          <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" /> Usuarios</TabsTrigger>
         </TabsList>
         <TabsContent value="centers" className="mt-4 glass p-6 rounded-lg">
            <CentersManagement />
@@ -30,6 +32,9 @@ const AdminPage = () => {
         </TabsContent>
         <TabsContent value="dive_sites" className="mt-4 glass p-6 rounded-lg">
           <DiveSitesManagement />
+        </TabsContent>
+        <TabsContent value="users" className="mt-4 glass p-6 rounded-lg">
+          <UsersManagement />
         </TabsContent>
       </Tabs>
     </main>
