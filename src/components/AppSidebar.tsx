@@ -33,9 +33,10 @@ export const AppSidebar = () => {
         { title: "Mis Bitácoras", href: "/dive-logs", icon: BookOpen },
     ];
     
-    const adminMenuItems = [
+    // Solo mostrar administración a usuarios admin
+    const adminMenuItems = userProfile?.role === 'admin' ? [
         { title: "Administración", href: "/admin", icon: UserCog },
-    ];
+    ] : [];
 
     return (
         <Sidebar>
@@ -61,7 +62,7 @@ export const AppSidebar = () => {
                     </SidebarMenu>
                 </SidebarGroup>
                 
-                {userProfile?.role === 'admin' && (
+                {adminMenuItems.length > 0 && (
                     <SidebarGroup>
                         <SidebarMenu>
                             {adminMenuItems.map((item) => (
@@ -80,7 +81,10 @@ export const AppSidebar = () => {
             </SidebarContent>
             <SidebarFooter>
                 <div className="flex flex-col gap-2 p-2">
-                     <p className="text-sm text-muted-foreground text-center truncate group-data-[collapsible=icon]:hidden">{user?.email}</p>
+                     <div className="text-sm text-muted-foreground text-center truncate group-data-[collapsible=icon]:hidden">
+                        <p className="font-medium">{user?.email}</p>
+                        <p className="text-xs capitalize">{userProfile?.role || 'supervisor'}</p>
+                     </div>
                      <Button onClick={handleLogout} variant="secondary" size="sm" className="w-full">
                         <LogOut className="mr-2 h-4 w-4" />
                         <span className="group-data-[collapsible=icon]:hidden">Logout</span>
