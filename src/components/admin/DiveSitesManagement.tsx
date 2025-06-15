@@ -26,15 +26,21 @@ export const DiveSitesManagement = () => {
   const [selectedDiveSite, setSelectedDiveSite] = useState<Tables<'dive_sites'> | null>(null);
   const [diveSiteToDelete, setDiveSiteToDelete] = useState<Tables<'dive_sites'> | null>(null);
 
-  const upsertMutation = useMutation({
-    mutationFn: async ({ id, values }: { id?: string; values: DiveSiteFormValues }) => {
+  const upsertMutation = useMutation<
+    Tables<'dive_sites'>,
+    Error,
+    { id?: string; values: DiveSiteFormValues }
+  >({
+    mutationFn: async ({ id, values }) => {
       if (id) {
         const { data, error } = await supabase.from('dive_sites').update(values).eq('id', id).select().single();
         if (error) throw error;
+        if (!data) throw new Error("Punto de buceo no encontrado tras la actualización.");
         return data;
       } else {
         const { data, error } = await supabase.from('dive_sites').insert(values).select().single();
         if (error) throw error;
+        if (!data) throw new Error("No se pudo crear el punto de buceo.");
         return data;
       }
     },
