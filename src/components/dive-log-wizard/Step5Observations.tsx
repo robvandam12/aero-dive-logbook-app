@@ -5,7 +5,11 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { DigitalSignature } from "@/components/DigitalSignature";
 import { Badge } from "@/components/ui/badge";
 
-export const Step5Observations = () => {
+interface Step5ObservationsProps {
+  isEditMode?: boolean;
+}
+
+export const Step5Observations = ({ isEditMode = false }: Step5ObservationsProps) => {
   const { control, setValue } = useFormContext();
 
   const handleSaveSignature = (signatureData: string) => {
@@ -37,11 +41,14 @@ export const Step5Observations = () => {
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-lg font-medium text-white">Firma de Supervisor</h4>
           <Badge variant="outline" className="border-gold-500 text-gold-400">
-            Requerida para Finalizar
+            {isEditMode ? "Requerida para Finalizar" : "Opcional"}
           </Badge>
         </div>
         <p className="text-sm text-ocean-400 mb-4">
-          La firma digital es requerida para finalizar la bitácora. Firme en el recuadro para habilitar el botón de finalizar.
+          {isEditMode 
+            ? "La firma digital es requerida para finalizar la bitácora. Firme en el recuadro para habilitar el botón de finalizar."
+            : "Puede firmar ahora o después de crear la bitácora. La bitácora se guardará como borrador sin firma."
+          }
         </p>
         <DigitalSignature onSave={handleSaveSignature} />
       </div>

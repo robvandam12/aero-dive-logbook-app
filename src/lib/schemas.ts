@@ -29,7 +29,7 @@ export const diveLogSchema = z.object({
   arrival_time: z.string().optional(),
   
   observations: z.string().optional(),
-  signature_data: z.string().optional(),
+  signature_data: z.string().optional(), // Ahora es opcional
 });
 
 export type DiveLogFormValues = z.infer<typeof diveLogSchema>;

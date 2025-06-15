@@ -210,7 +210,7 @@ export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProp
       case 2: return <Step2Conditions />;
       case 3: return <Step3DiveTeam />;
       case 4: return <Step4WorkDetails />;
-      case 5: return <Step5Observations />;
+      case 5: return <Step5Observations isEditMode={isEditMode} />;
       default: return null;
     }
   };
@@ -266,12 +266,12 @@ export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProp
             ) : (
               <Button
                 type="submit"
-                disabled={isSubmitting || !formState.isValid || (!isEditMode && !signatureData)}
-                className={`${(!formState.isValid || (!isEditMode && !signatureData)) ? 'opacity-60 cursor-not-allowed' : 'bg-gold-gradient hover:opacity-90'}`}
+                disabled={isSubmitting || !formState.isValid || (isEditMode && !signatureData)}
+                className={`${(!formState.isValid || (isEditMode && !signatureData)) ? 'opacity-60 cursor-not-allowed' : 'bg-gold-gradient hover:opacity-90'}`}
               >
-                {isSubmitting ? (isEditMode ? "Actualizando..." : "Finalizando...") : <>
+                {isSubmitting ? (isEditMode ? "Actualizando..." : "Guardando...") : <>
                   <FileSignature className="w-4 h-4 mr-2" />
-                  {isEditMode ? 'Actualizar Bitácora' : 'Finalizar Bitácora'}
+                  {isEditMode ? 'Actualizar Bitácora' : (signatureData ? 'Finalizar Bitácora' : 'Crear Bitácora')}
                 </>}
               </Button>
             )}

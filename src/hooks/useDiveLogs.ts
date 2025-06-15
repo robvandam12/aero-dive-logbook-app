@@ -3,10 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 
-export type DiveLogForTable = Pick<Tables<'dive_logs'>, 'id' | 'log_date' | 'signature_url'> & {
+export type DiveLogForTable = Pick<Tables<'dive_logs'>, 'id' | 'log_date' | 'signature_url' | 'created_at'> & {
   centers: { name: string } | null;
   dive_sites: { name: string } | null;
   boats: { name: string } | null;
+  profiles: { username: string } | null;
+  status: 'draft' | 'signed';
 };
 
 interface FetchDiveLogsParams {
@@ -35,9 +37,11 @@ const fetchDiveLogs = async ({
       id,
       log_date,
       signature_url,
+      created_at,
       centers (name),
       dive_sites (name),
-      boats (name)
+      boats (name),
+      profiles (username)
     `, { count: 'exact' })
     .eq('supervisor_id', userId)
     .order('log_date', { ascending: false })
@@ -54,7 +58,13 @@ const fetchDiveLogs = async ({
     throw new Error(error.message);
   }
 
-  return { data: data as DiveLogForTable[], count: count ?? 0 };
+  // Add status based on signature
+  const dataWithStatus = data?.map(log => ({
+    ...log,
+    status: log.signature_url ? 'signed' as const : 'draft' as const
+  })) || [];
+
+  return { data: dataWithStatus as DiveLogForTable[], count: count ?? 0 };
 };
 
 export const useDiveLogs = (params: FetchDiveLogsParams) => {

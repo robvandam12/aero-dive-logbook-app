@@ -10,61 +10,50 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileText, Eye, Edit, Send } from "lucide-react";
+import { FileText, Eye, Edit, FileSignature } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useDiveLogs } from "@/hooks/useDiveLogs";
+import { useAuth } from "@/contexts/AuthProvider";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
-interface DiveLog {
-  id: string;
-  folio: string;
-  fecha: string;
-  centro: string;
-  supervisor: string;
-  estado: 'draft' | 'signed' | 'sent';
-  buzos: number;
-}
-
-const mockData: DiveLog[] = [
-  {
-    id: '1',
-    folio: 'BTC-2024-001',
-    fecha: '2024-01-15',
-    centro: 'Puerto Valparaíso',
-    supervisor: 'Juan Díaz',
-    estado: 'sent',
-    buzos: 3
-  },
-  {
-    id: '2',
-    folio: 'BTC-2024-002',
-    fecha: '2024-01-16',
-    centro: 'Puerto San Antonio',
-    supervisor: 'María González',
-    estado: 'signed',
-    buzos: 2
-  },
-  {
-    id: '3',
-    folio: 'BTC-2024-003',
-    fecha: '2024-01-17',
-    centro: 'Puerto Valparaíso',
-    supervisor: 'Carlos Ruiz',
-    estado: 'draft',
-    buzos: 4
-  }
-];
-
-const getStatusBadge = (estado: DiveLog['estado']) => {
+const getStatusBadge = (status: 'draft' | 'signed') => {
   const variants = {
-    draft: { label: 'Borrador', variant: 'secondary' as const },
-    signed: { label: 'Firmada', variant: 'outline' as const },
-    sent: { label: 'Enviada', variant: 'default' as const }
+    draft: { label: 'Borrador', variant: 'secondary' as const, className: 'bg-amber-600' },
+    signed: { label: 'Firmada', variant: 'default' as const, className: 'bg-emerald-600' }
   };
 
-  return variants[estado];
+  return variants[status];
 };
 
 export const DiveLogTable = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: diveLogsData, isLoading } = useDiveLogs({ 
+    userId: user?.id,
+    page: 1,
+    perPage: 5 
+  });
+
+  if (isLoading) {
+    return (
+      <Card className="glass">
+        <CardHeader>
+          <CardTitle className="text-white">Bitácoras Recientes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const diveLogs = diveLogsData?.data || [];
 
   return (
     <Card className="glass">
@@ -78,55 +67,81 @@ export const DiveLogTable = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow className="border-ocean-800">
-              <TableHead className="text-ocean-300">Folio</TableHead>
-              <TableHead className="text-ocean-300">Fecha</TableHead>
-              <TableHead className="text-ocean-300">Centro</TableHead>
-              <TableHead className="text-ocean-300">Supervisor</TableHead>
-              <TableHead className="text-ocean-300">Buzos</TableHead>
-              <TableHead className="text-ocean-300">Estado</TableHead>
-              <TableHead className="text-ocean-300">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mockData.map((log) => {
-              const statusBadge = getStatusBadge(log.estado);
-              return (
-                <TableRow key={log.id} className="border-ocean-800 hover:bg-ocean-950/30">
-                  <TableCell className="font-medium text-white">{log.folio}</TableCell>
-                  <TableCell className="text-ocean-200">{log.fecha}</TableCell>
-                  <TableCell className="text-ocean-200">{log.centro}</TableCell>
-                  <TableCell className="text-ocean-200">{log.supervisor}</TableCell>
-                  <TableCell className="text-ocean-200">{log.buzos}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusBadge.variant} className="text-xs">
-                      {statusBadge.label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm" className="text-ocean-300 hover:text-white">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      {log.estado !== 'sent' && (
-                        <Button variant="ghost" size="sm" className="text-ocean-300 hover:text-white">
+        {diveLogs.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-ocean-300">No hay bitácoras registradas</p>
+            <Button 
+              onClick={() => navigate("/new-dive-log")} 
+              className="mt-4 bg-ocean-gradient hover:opacity-90"
+            >
+              Crear Primera Bitácora
+            </Button>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="border-ocean-800">
+                <TableHead className="text-ocean-300">Fecha</TableHead>
+                <TableHead className="text-ocean-300">Centro</TableHead>
+                <TableHead className="text-ocean-300">Punto de Buceo</TableHead>
+                <TableHead className="text-ocean-300">Supervisor</TableHead>
+                <TableHead className="text-ocean-300">Estado</TableHead>
+                <TableHead className="text-ocean-300">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {diveLogs.map((log) => {
+                const statusBadge = getStatusBadge(log.status);
+                return (
+                  <TableRow key={log.id} className="border-ocean-800 hover:bg-ocean-950/30">
+                    <TableCell className="font-medium text-white">
+                      {format(new Date(log.log_date), "dd/MM/yyyy", { locale: es })}
+                    </TableCell>
+                    <TableCell className="text-ocean-200">{log.centers?.name || 'N/A'}</TableCell>
+                    <TableCell className="text-ocean-200">{log.dive_sites?.name || 'N/A'}</TableCell>
+                    <TableCell className="text-ocean-200">{log.profiles?.username || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusBadge.variant} className={`text-xs ${statusBadge.className}`}>
+                        {statusBadge.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-ocean-300 hover:text-white"
+                          onClick={() => navigate(`/dive-logs/${log.id}`)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-ocean-300 hover:text-white"
+                          onClick={() => navigate(`/dive-logs/${log.id}/edit`)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                      )}
-                      {log.estado === 'signed' && (
-                        <Button variant="ghost" size="sm" className="text-ocean-300 hover:text-white">
-                          <Send className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                        {log.status === 'draft' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-gold-400 hover:text-gold-300"
+                            onClick={() => navigate(`/dive-logs/${log.id}/edit`)}
+                            title="Firmar bitácora"
+                          >
+                            <FileSignature className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );
