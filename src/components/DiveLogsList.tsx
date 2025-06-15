@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileText, Eye, Edit, FileSignature, Mail, Search } from "lucide-react";
+import { FileText, Eye, Edit, FileSignature, Mail, Search, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDiveLogs } from "@/hooks/useDiveLogs";
 import { useAuth } from "@/contexts/AuthProvider";
@@ -26,6 +26,8 @@ import { useSendDiveLogEmail } from "@/hooks/useEmailMutations";
 import { useCenters } from "@/hooks/useCenters";
 import { Filter, X } from "lucide-react";
 import { DiveLogsPagination } from "@/components/DiveLogsPagination";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useDeleteDiveLog } from "@/hooks/useDiveLogMutations";
 
 const getStatusBadge = (status: 'draft' | 'signed') => {
   const variants = {
@@ -46,6 +48,8 @@ export const DiveLogsList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [logToDelete, setLogToDelete] = useState<{ id: string; signatureUrl?: string | null } | null>(null);
   
   const { data: diveLogsResponse, isLoading } = useDiveLogs({ 
     userId: user?.id,
@@ -56,6 +60,7 @@ export const DiveLogsList = () => {
 
   const { data: centersData } = useCenters();
   const sendEmailMutation = useSendDiveLogEmail();
+  const deleteLogMutation = useDeleteDiveLog();
 
   const handleSign = (logId: string) => {
     navigate(`/dive-logs/${logId}/edit`);
@@ -64,6 +69,36 @@ export const DiveLogsList = () => {
   const handleSendEmail = (logId: string) => {
     setSelectedLogId(logId);
     setEmailDialogOpen(true);
+  };
+
+  const handleDeleteClick = (logId: string, signatureUrl?: string | null) => {
+    setLogToDelete({ id: logId, signatureUrl });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (logToDelete) {
+      deleteLogMutation.mutate({
+        id: logToDelete.id,
+        signatureUrl: logToDelete.signatureUrl
+      }, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setLogToDelete(null);
+          toast({
+            title: "Bitácora eliminada",
+            description: "La bitácora ha sido eliminada correctamente."
+          });
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error al eliminar",
+            description: error.message,
+            variant: "destructive"
+          });
+        }
+      });
+    }
   };
 
   const handleEmailSend = (email: string, name?: string) => {
@@ -302,6 +337,15 @@ export const DiveLogsList = () => {
                                 <Mail className="w-4 h-4" />
                               </Button>
                             )}
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-400 hover:text-red-300"
+                              onClick={() => handleDeleteClick(log.id, log.signature_url)}
+                              title="Eliminar bitácora"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -332,6 +376,18 @@ export const DiveLogsList = () => {
         onOpenChange={setEmailDialogOpen}
         onSend={handleEmailSend}
         isLoading={sendEmailMutation.isPending}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Eliminar Bitácora"
+        description="¿Estás seguro de que deseas eliminar esta bitácora? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={handleDeleteConfirm}
+        isLoading={deleteLogMutation.isPending}
+        variant="destructive"
       />
     </>
   );
