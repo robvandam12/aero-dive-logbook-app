@@ -35,6 +35,7 @@ export const useUpdateDiveLog = () => {
 
       // Prepare update data
       const updateData = {
+        supervisor_name: data.supervisor_name, // Agregar este campo
         log_date: data.log_date,
         center_id: data.center_id,
         dive_site_id: data.dive_site_id,
