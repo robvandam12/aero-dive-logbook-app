@@ -16,8 +16,8 @@ interface FetchDiveLogsParams {
   page?: number;
   perPage?: number;
   search?: string;
-  status?: 'draft' | 'signed';
-  centerId?: string;
+  status?: 'draft' | 'signed' | 'all';
+  centerName?: string;
 }
 
 interface DiveLogsResponse {
@@ -32,10 +32,10 @@ interface DiveLogsResponse {
 const fetchDiveLogs = async ({
   userId,
   page = 1,
-  perPage = 10,
+  perPage = 20,
   search = '',
-  status,
-  centerId,
+  status = 'all',
+  centerName = 'all',
 }: FetchDiveLogsParams): Promise<DiveLogsResponse> => {
   if (!userId) {
     return { 
@@ -67,13 +67,13 @@ const fetchDiveLogs = async ({
     .order('log_date', { ascending: false })
     .range(from, to);
 
-  // Aplicar filtros adicionales
-  if (centerId) {
-    query = query.eq('center_id', centerId);
+  // Apply center filter
+  if (centerName && centerName !== 'all') {
+    query = query.eq('centers.name', centerName);
   }
 
-  if (search) {
-    // Búsqueda básica por nombres - en el futuro se puede expandir con RPC
+  // Apply search filter - search across multiple fields
+  if (search.trim()) {
     query = query.or(`centers.name.ilike.%${search}%,dive_sites.name.ilike.%${search}%,boats.name.ilike.%${search}%`);
   }
 
@@ -83,14 +83,14 @@ const fetchDiveLogs = async ({
     throw new Error(error.message);
   }
 
-  // Add status based on signature and apply status filter
+  // Add status and apply status filter
   let dataWithStatus = data?.map(log => ({
     ...log,
     status: log.signature_url ? 'signed' as const : 'draft' as const
   })) || [];
 
   // Apply status filter after status determination
-  if (status) {
+  if (status && status !== 'all') {
     dataWithStatus = dataWithStatus.filter(log => log.status === status);
   }
 
@@ -114,5 +114,7 @@ export const useDiveLogs = (params: FetchDiveLogsParams) => {
     queryKey: ['diveLogs', params],
     queryFn: () => fetchDiveLogs(params),
     enabled: !!params.userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };

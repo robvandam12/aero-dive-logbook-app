@@ -33,7 +33,9 @@ export const DiveLogsList = () => {
     userId: user?.id,
     page: currentPage,
     perPage: 20,
-    search 
+    search,
+    status: statusFilter as 'draft' | 'signed' | 'all',
+    centerName: centerFilter
   });
 
   const sendEmailMutation = useSendDiveLogEmail();
@@ -139,14 +141,8 @@ export const DiveLogsList = () => {
     totalPages: diveLogsResponse.totalPages,
     hasNextPage: diveLogsResponse.hasNextPage,
     hasPreviousPage: diveLogsResponse.hasPreviousPage,
+    count: diveLogsResponse.count
   } : null;
-
-  // Aplicar filtros
-  const filteredLogs = diveLogs.filter((log) => {
-    if (statusFilter !== "all" && log.status !== statusFilter) return false;
-    if (centerFilter !== "all" && log.centers?.name !== centerFilter) return false;
-    return true;
-  });
 
   const hasActiveFilters = statusFilter !== "all" || centerFilter !== "all" || search.trim() !== "";
 
@@ -155,7 +151,14 @@ export const DiveLogsList = () => {
       <Card className="glass">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white">Mis Bitácoras</CardTitle>
+            <div>
+              <CardTitle className="text-white">Mis Bitácoras</CardTitle>
+              {pagination && (
+                <p className="text-sm text-ocean-300 mt-1">
+                  {pagination.count} bitácora{pagination.count !== 1 ? 's' : ''} encontrada{pagination.count !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
             <Button onClick={() => navigate("/new-dive-log")} className="bg-ocean-gradient hover:opacity-90">
               <FileText className="w-4 h-4 mr-2" />
               Nueva Bitácora
@@ -175,7 +178,7 @@ export const DiveLogsList = () => {
           />
 
           <DiveLogsTableContent
-            diveLogs={filteredLogs}
+            diveLogs={diveLogs}
             hasActiveFilters={hasActiveFilters}
             search={search}
             onSendEmail={handleSendEmail}
