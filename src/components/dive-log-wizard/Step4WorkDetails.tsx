@@ -24,7 +24,7 @@ export const Step4WorkDetails = () => {
                 <Input
                   type="time"
                   {...field}
-                  className="bg-ocean-950/50 border-ocean-700 text-white"
+                  className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
               </FormControl>
               <FormMessage />
@@ -41,7 +41,7 @@ export const Step4WorkDetails = () => {
                 <Input
                   type="time"
                   {...field}
-                  className="bg-ocean-950/50 border-ocean-700 text-white"
+                  className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
               </FormControl>
               <FormMessage />
@@ -58,16 +58,16 @@ export const Step4WorkDetails = () => {
             <FormLabel className="text-ocean-300">Tipo de Faena</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
-                <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
+                <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors">
                   <SelectValue placeholder="Seleccionar tipo de faena" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="bg-ocean-900 border-ocean-700">
-                <SelectItem value="inspeccion">Inspección</SelectItem>
-                <SelectItem value="soldadura">Soldadura Subacuática</SelectItem>
-                <SelectItem value="corte">Corte Subacuático</SelectItem>
-                <SelectItem value="limpieza">Limpieza de Casco</SelectItem>
-                <SelectItem value="reparacion">Reparación</SelectItem>
+              <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
+                <SelectItem value="inspeccion" className="hover:bg-ocean-800 focus:bg-ocean-800">Inspección</SelectItem>
+                <SelectItem value="soldadura" className="hover:bg-ocean-800 focus:bg-ocean-800">Soldadura Subacuática</SelectItem>
+                <SelectItem value="corte" className="hover:bg-ocean-800 focus:bg-ocean-800">Corte Subacuático</SelectItem>
+                <SelectItem value="limpieza" className="hover:bg-ocean-800 focus:bg-ocean-800">Limpieza de Casco</SelectItem>
+                <SelectItem value="reparacion" className="hover:bg-ocean-800 focus:bg-ocean-800">Reparación</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />
@@ -83,16 +83,16 @@ export const Step4WorkDetails = () => {
             <FormLabel className="text-ocean-300">Embarcación</FormLabel>
             <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingBoats || !centerId}>
               <FormControl>
-                <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
+                <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors">
                   <SelectValue placeholder={!centerId ? "Seleccione un centro primero" : "Seleccionar embarcación"} />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="bg-ocean-900 border-ocean-700 text-white">
+              <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
                 {isLoadingBoats && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
                 {boatsError && <SelectItem value="error" disabled>Error al cargar</SelectItem>}
                 {!isLoadingBoats && boats?.length === 0 && <SelectItem value="no-boats" disabled>No hay embarcaciones para este centro</SelectItem>}
                 {boats?.map(boat => (
-                  <SelectItem key={boat.id} value={boat.id}>{boat.name}</SelectItem>
+                  <SelectItem key={boat.id} value={boat.id} className="hover:bg-ocean-800 focus:bg-ocean-800">{boat.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -112,7 +112,7 @@ export const Step4WorkDetails = () => {
                 placeholder="Describa detalladamente los trabajos realizados..."
                 rows={6}
                 {...field}
-                className="bg-ocean-950/50 border-ocean-700 text-white"
+                className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors placeholder:text-ocean-400"
               />
             </FormControl>
             <FormMessage />
