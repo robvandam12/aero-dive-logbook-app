@@ -14,9 +14,11 @@ import {
 import { LayoutDashboard, PlusCircle, BookOpen, UserCog, LogOut, Ship } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 export const AppSidebar = () => {
-    const { user, userProfile } = useAuth();
+    const { user } = useAuth();
+    const { data: userProfile } = useUserProfile();
     const location = useLocation();
     const navigate = useNavigate();
 
