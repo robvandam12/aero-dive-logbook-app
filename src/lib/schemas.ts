@@ -45,3 +45,10 @@ export const centerSchema = z.object({
 });
 
 export type CenterFormValues = z.infer<typeof centerSchema>;
+
+export const boatSchema = z.object({
+  name: z.string().min(1, { message: "El nombre es requerido." }),
+  registration_number: z.string().min(1, { message: "El número de matrícula es requerido." }),
+});
+
+export type BoatFormValues = z.infer<typeof boatSchema>;

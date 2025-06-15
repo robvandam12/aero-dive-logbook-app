@@ -1,20 +1,15 @@
 
-import { z } from "zod";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { boatSchema, BoatFormValues } from "@/lib/schemas";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
-import { useEffect } from "react";
 
-const boatSchema = z.object({
-  name: z.string().min(1, { message: "El nombre es requerido." }),
-  registration_number: z.string().min(1, { message: "El número de matrícula es requerido." }),
-});
-
-export type BoatFormData = z.infer<typeof boatSchema>;
+export type BoatFormData = BoatFormValues;
 type Boat = Tables<'boats'>;
 
 interface BoatFormProps {
@@ -85,7 +80,7 @@ export const BoatForm = ({ isOpen, setIsOpen, onSubmit, defaultValues, isPending
             />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={isPending}>
+              <Button type="submit" disabled={isPending} className="bg-ocean-gradient hover:opacity-90">
                 {isPending ? 'Guardando...' : 'Guardar'}
               </Button>
             </DialogFooter>

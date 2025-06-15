@@ -1,10 +1,9 @@
+
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { toast } from "sonner";
 import { useCenters } from "@/hooks/useCenters";
 import { useBoats } from "@/hooks/useBoats";
+import { useBoatMutations } from "@/hooks/useBoatMutations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,69 +16,24 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 type Boat = Tables<'boats'>;
 
-// --- Funciones de mutación ---
-const createBoatFn = async (boat: BoatFormData & { center_id: string }) => {
-  const { error } = await supabase.from('boats').insert({
-    name: boat.name,
-    registration_number: boat.registration_number,
-    center_id: boat.center_id,
-  });
-  if (error) throw error;
-};
-
-const updateBoatFn = async (boat: BoatFormData & { id: string }) => {
-  const { error } = await supabase.from('boats').update({ name: boat.name, registration_number: boat.registration_number }).eq('id', boat.id);
-  if (error) throw error;
-};
-
-const deleteBoatFn = async (id: string) => {
-  const { error } = await supabase.from('boats').delete().eq('id', id);
-  if (error) throw error;
-};
-
-
 export const BoatsManagement = () => {
-  const queryClient = useQueryClient();
   const [selectedCenterId, setSelectedCenterId] = useState<string | undefined>(undefined);
-
-  const { data: centers, isLoading: isLoadingCenters } = useCenters();
-  const { data: boats, isLoading: isLoadingBoats, isError, error } = useBoats(selectedCenterId);
-
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [boatToEdit, setBoatToEdit] = useState<Boat | undefined>(undefined);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [boatToDelete, setBoatToDelete] = useState<Boat | null>(null);
 
-  const { mutate: createBoat, isPending: isCreating } = useMutation({
-    mutationFn: createBoatFn,
+  const { data: centers, isLoading: isLoadingCenters } = useCenters();
+  const { data: boats, isLoading: isLoadingBoats, isError, error } = useBoats(selectedCenterId);
+  
+  const { createMutation, updateMutation, deleteMutation } = useBoatMutations({
+    centerId: selectedCenterId,
     onSuccess: () => {
-      toast.success('Embarcación creada exitosamente.');
-      queryClient.invalidateQueries({ queryKey: ['boats', selectedCenterId] });
-      setIsFormOpen(false);
-    },
-    onError: (err) => toast.error(`Error al crear la embarcación: ${err.message}`),
-  });
-
-  const { mutate: updateBoat, isPending: isUpdating } = useMutation({
-    mutationFn: updateBoatFn,
-    onSuccess: () => {
-      toast.success('Embarcación actualizada exitosamente.');
-      queryClient.invalidateQueries({ queryKey: ['boats', selectedCenterId] });
       setIsFormOpen(false);
       setBoatToEdit(undefined);
-    },
-    onError: (err) => toast.error(`Error al actualizar la embarcación: ${err.message}`),
-  });
-
-  const { mutate: deleteBoat } = useMutation({
-    mutationFn: deleteBoatFn,
-    onSuccess: () => {
-      toast.success('Embarcación eliminada exitosamente.');
-      queryClient.invalidateQueries({ queryKey: ['boats', selectedCenterId] });
       setIsAlertOpen(false);
       setBoatToDelete(null);
-    },
-    onError: (err) => toast.error(`Error al eliminar la embarcación: ${err.message}`),
+    }
   });
 
   const handleOpenCreate = () => {
@@ -99,19 +53,18 @@ export const BoatsManagement = () => {
   
   const handleFormSubmit = (data: BoatFormData) => {
     if (!selectedCenterId) {
-      toast.error("Por favor, selecciona un centro de buceo primero.");
       return;
     }
     if (boatToEdit) {
-      updateBoat({ id: boatToEdit.id, ...data });
+      updateMutation.mutate({ id: boatToEdit.id, values: data });
     } else {
-      createBoat({ center_id: selectedCenterId, ...data });
+      createMutation.mutate({ values: { center_id: selectedCenterId, ...data } });
     }
   };
 
   const handleDeleteConfirm = () => {
     if (boatToDelete) {
-      deleteBoat(boatToDelete.id);
+      deleteMutation.mutate(boatToDelete.id);
     }
   };
   
@@ -125,23 +78,25 @@ export const BoatsManagement = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
-            <div className="w-64">
-                <Select onValueChange={setSelectedCenterId} value={selectedCenterId}>
-                    <SelectTrigger className="glass">
-                        <SelectValue placeholder="Selecciona un centro de buceo" />
-                    </SelectTrigger>
-                    <SelectContent className="glass">
-                        {isLoadingCenters ? (
-                            <SelectItem value="loading" disabled>Cargando centros...</SelectItem>
-                        ) : (
-                            centers?.map(center => (
-                                <SelectItem key={center.id} value={center.id}>{center.name}</SelectItem>
-                            ))
-                        )}
-                    </SelectContent>
-                </Select>
-            </div>
-          <Button onClick={handleOpenCreate} disabled={!selectedCenterId}><PlusCircle className="mr-2" />Añadir Embarcación</Button>
+          <div className="w-64">
+            <Select onValueChange={setSelectedCenterId} value={selectedCenterId}>
+              <SelectTrigger className="glass">
+                <SelectValue placeholder="Selecciona un centro de buceo" />
+              </SelectTrigger>
+              <SelectContent className="glass">
+                {isLoadingCenters ? (
+                  <SelectItem value="loading" disabled>Cargando centros...</SelectItem>
+                ) : (
+                  centers?.map(center => (
+                    <SelectItem key={center.id} value={center.id}>{center.name}</SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={handleOpenCreate} disabled={!selectedCenterId}>
+            <PlusCircle className="mr-2" />Añadir Embarcación
+          </Button>
         </div>
         
         <div className="border border-ocean-700/30 rounded-lg">
@@ -164,7 +119,7 @@ export const BoatsManagement = () => {
                 ))
               ) : !selectedCenterId ? (
                 <TableRow>
-                   <TableCell colSpan={3} className="text-center text-ocean-300 py-8">
+                  <TableCell colSpan={3} className="text-center text-ocean-300 py-8">
                     Por favor, selecciona un centro de buceo para ver sus embarcaciones.
                   </TableCell>
                 </TableRow>
@@ -176,7 +131,7 @@ export const BoatsManagement = () => {
                 </TableRow>
               ) : boats?.length === 0 ? (
                 <TableRow>
-                   <TableCell colSpan={3} className="text-center text-ocean-300 py-8">
+                  <TableCell colSpan={3} className="text-center text-ocean-300 py-8">
                     No hay embarcaciones registradas para este centro.
                   </TableCell>
                 </TableRow>
@@ -186,7 +141,7 @@ export const BoatsManagement = () => {
                     <TableCell className="font-medium">{boat.name}</TableCell>
                     <TableCell>{boat.registration_number}</TableCell>
                     <TableCell className="text-right">
-                       <DropdownMenu>
+                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" className="h-8 w-8 p-0">
                             <span className="sr-only">Abrir menú</span>
@@ -216,7 +171,7 @@ export const BoatsManagement = () => {
         setIsOpen={setIsFormOpen}
         onSubmit={handleFormSubmit}
         defaultValues={boatToEdit}
-        isPending={isCreating || isUpdating}
+        isPending={createMutation.isPending || updateMutation.isPending}
       />
 
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
