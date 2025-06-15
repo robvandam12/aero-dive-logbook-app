@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthProvider";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NewDiveLogPage from "./pages/NewDiveLog";
+import AllDiveLogsPage from "./pages/AllDiveLogs";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const AppRoutes = () => {
       <Route path="/auth" element={!session ? <Auth /> : <Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
       <Route path="/new-dive-log" element={session ? <NewDiveLogPage /> : <Navigate to="/auth" replace />} />
+      <Route path="/dive-logs" element={session ? <AllDiveLogsPage /> : <Navigate to="/auth" replace />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

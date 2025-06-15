@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { FileText, Eye, Edit, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface DiveLog {
   id: string;
@@ -63,12 +64,14 @@ const getStatusBadge = (estado: DiveLog['estado']) => {
 };
 
 export const DiveLogTable = () => {
+  const navigate = useNavigate();
+
   return (
     <Card className="glass">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-white">Bitácoras Recientes</CardTitle>
-          <Button className="bg-ocean-gradient hover:opacity-90">
+          <Button onClick={() => navigate("/new-dive-log")} className="bg-ocean-gradient hover:opacity-90">
             <FileText className="w-4 h-4 mr-2" />
             Nueva Bitácora
           </Button>
