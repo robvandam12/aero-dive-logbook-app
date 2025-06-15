@@ -1,15 +1,13 @@
 
-import { Header } from "@/components/Header";
 import { DiveLogsList } from "@/components/DiveLogsList";
+import { PageHeader } from "@/components/PageHeader";
 
 const AllDiveLogsPage = () => {
   return (
-    <div className="min-h-screen bg-hero-gradient ocean-pattern">
-      <Header />
-      <main className="container mx-auto px-6 py-8 space-y-8">
-        <DiveLogsList />
-      </main>
-    </div>
+    <main className="container mx-auto px-6 py-8 space-y-8">
+      <PageHeader title="Mis Bitácoras" />
+      <DiveLogsList />
+    </main>
   );
 };
 

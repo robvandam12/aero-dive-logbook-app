@@ -1,13 +1,13 @@
-
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthProvider";
 import { StatsCard } from "@/components/StatsCard";
-import { Ship, Anchor, Waves, PlusCircle } from "lucide-react";
+import { Ship, Anchor, Waves } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSystemStats } from "@/hooks/useSystemStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecentDiveLogsTable } from "@/components/RecentDiveLogsTable";
+import { PageHeader } from "@/components/PageHeader";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -36,8 +36,8 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6 min-h-screen bg-background ocean-pattern">
-      {headerContent}
+    <div className="flex-1 space-y-4 p-8 pt-6">
+      <PageHeader title="Dashboard" />
       {isLoading ? (
          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Skeleton className="h-[126px] rounded-lg" />

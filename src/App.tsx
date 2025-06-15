@@ -13,6 +13,7 @@ import NewDiveLogPage from "./pages/NewDiveLog";
 import AllDiveLogsPage from "./pages/AllDiveLogs";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import AdminPage from "./pages/Admin";
+import ProtectedLayout from "./components/ProtectedLayout";
 
 const queryClient = new QueryClient();
 
@@ -33,13 +34,14 @@ const AppRoutes = () => {
       <Route path="/auth" element={!session ? <Auth /> : <Navigate to="/dashboard" replace />} />
       
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/new-dive-log" element={<NewDiveLogPage />} />
-        <Route path="/dive-logs" element={<AllDiveLogsPage />} />
-      </Route>
-
-      <Route element={<ProtectedRoute requiredRole="admin" />}>
-        <Route path="/admin" element={<AdminPage />} />
+        <Route element={<ProtectedLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/new-dive-log" element={<NewDiveLogPage />} />
+          <Route path="/dive-logs" element={<AllDiveLogsPage />} />
+          <Route element={<ProtectedRoute requiredRole="admin" />}>
+            <Route path="/admin" element={<AdminPage />} />
+          </Route>
+        </Route>
       </Route>
 
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
