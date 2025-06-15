@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +18,7 @@ type Center = Tables<'centers'>;
 
 // --- Funciones de mutación ---
 const createCenterFn = async (center: CenterFormData) => {
-  const { error } = await supabase.from('centers').insert(center);
+  const { error } = await supabase.from('centers').insert({ name: center.name, location: center.location });
   if (error) throw error;
 };
 
