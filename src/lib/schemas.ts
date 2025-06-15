@@ -31,3 +31,10 @@ export const diveLogSchema = z.object({
 });
 
 export type DiveLogFormValues = z.infer<typeof diveLogSchema>;
+
+export const diveSiteSchema = z.object({
+  name: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres." }),
+  location: z.string().optional(),
+});
+
+export type DiveSiteFormValues = z.infer<typeof diveSiteSchema>;
