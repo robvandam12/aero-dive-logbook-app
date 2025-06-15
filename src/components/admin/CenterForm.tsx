@@ -1,32 +1,26 @@
 
-import { z } from "zod";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { centerSchema, CenterFormValues } from "@/lib/schemas";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
-import { useEffect } from "react";
 
-const centerSchema = z.object({
-  name: z.string().min(1, { message: "El nombre es requerido." }),
-  location: z.string().min(1, { message: "La ubicación es requerida." }),
-});
-
-export type CenterFormData = z.infer<typeof centerSchema>;
 type Center = Tables<'centers'>;
 
 interface CenterFormProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSubmit: (data: CenterFormData) => void;
+  onSubmit: (data: CenterFormValues) => void;
   defaultValues?: Center;
   isPending: boolean;
 }
 
 export const CenterForm = ({ isOpen, setIsOpen, onSubmit, defaultValues, isPending }: CenterFormProps) => {
-  const form = useForm<CenterFormData>({
+  const form = useForm<CenterFormValues>({
     resolver: zodResolver(centerSchema),
     defaultValues: { name: '', location: '' },
   });
@@ -85,7 +79,7 @@ export const CenterForm = ({ isOpen, setIsOpen, onSubmit, defaultValues, isPendi
             />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={isPending}>
+              <Button type="submit" disabled={isPending} className="bg-ocean-gradient hover:opacity-90">
                 {isPending ? 'Guardando...' : 'Guardar'}
               </Button>
             </DialogFooter>

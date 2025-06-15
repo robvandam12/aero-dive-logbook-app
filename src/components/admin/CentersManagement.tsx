@@ -1,39 +1,21 @@
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { toast } from "sonner";
 import { useCenters } from "@/hooks/useCenters";
+import { useCenterMutations } from "@/hooks/useCenterMutations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { CenterForm, CenterFormData } from "./CenterForm";
+import { CenterForm } from "./CenterForm";
+import { CenterFormValues } from "@/lib/schemas";
 import { PlusCircle, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 type Center = Tables<'centers'>;
 
-// --- Funciones de mutación ---
-const createCenterFn = async (center: CenterFormData) => {
-  const { error } = await supabase.from('centers').insert({ name: center.name, location: center.location });
-  if (error) throw error;
-};
-
-const updateCenterFn = async (center: CenterFormData & { id: string }) => {
-  const { error } = await supabase.from('centers').update({ name: center.name, location: center.location }).eq('id', center.id);
-  if (error) throw error;
-};
-
-const deleteCenterFn = async (id: string) => {
-  const { error } = await supabase.from('centers').delete().eq('id', id);
-  if (error) throw error;
-};
-
 export const CentersManagement = () => {
-  const queryClient = useQueryClient();
   const { data: centers, isLoading, isError, error } = useCenters();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -41,36 +23,15 @@ export const CentersManagement = () => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [centerToDelete, setCenterToDelete] = useState<Center | null>(null);
 
-  const { mutate: createCenter, isPending: isCreating } = useMutation({
-    mutationFn: createCenterFn,
-    onSuccess: () => {
-      toast.success('Centro creado exitosamente.');
-      queryClient.invalidateQueries({ queryKey: ['centers'] });
-      setIsFormOpen(false);
-    },
-    onError: (err) => toast.error(`Error al crear el centro: ${err.message}`),
-  });
+  const closeAllModals = () => {
+    setIsFormOpen(false);
+    setCenterToEdit(undefined);
+    setIsAlertOpen(false);
+    setCenterToDelete(null);
+  };
 
-  const { mutate: updateCenter, isPending: isUpdating } = useMutation({
-    mutationFn: updateCenterFn,
-    onSuccess: () => {
-      toast.success('Centro actualizado exitosamente.');
-      queryClient.invalidateQueries({ queryKey: ['centers'] });
-      setIsFormOpen(false);
-      setCenterToEdit(undefined);
-    },
-    onError: (err) => toast.error(`Error al actualizar el centro: ${err.message}`),
-  });
-
-  const { mutate: deleteCenter } = useMutation({
-    mutationFn: deleteCenterFn,
-    onSuccess: () => {
-      toast.success('Centro eliminado exitosamente.');
-      queryClient.invalidateQueries({ queryKey: ['centers'] });
-      setIsAlertOpen(false);
-      setCenterToDelete(null);
-    },
-    onError: (err) => toast.error(`Error al eliminar el centro: ${err.message}`),
+  const { createMutation, updateMutation, deleteMutation } = useCenterMutations({
+    onSuccess: closeAllModals,
   });
 
   const handleOpenCreate = () => {
@@ -88,17 +49,17 @@ export const CentersManagement = () => {
     setIsAlertOpen(true);
   };
   
-  const handleFormSubmit = (data: CenterFormData) => {
+  const handleFormSubmit = (data: CenterFormValues) => {
     if (centerToEdit) {
-      updateCenter({ id: centerToEdit.id, ...data });
+      updateMutation.mutate({ id: centerToEdit.id, values: data });
     } else {
-      createCenter(data);
+      createMutation.mutate({ values: data });
     }
   };
 
   const handleDeleteConfirm = () => {
     if (centerToDelete) {
-      deleteCenter(centerToDelete.id);
+      deleteMutation.mutate(centerToDelete.id);
     }
   };
 
@@ -111,16 +72,16 @@ export const CentersManagement = () => {
               Añade, edita o elimina los centros de buceo disponibles en el sistema.
             </CardDescription>
         </div>
-        <Button onClick={handleOpenCreate}><PlusCircle className="mr-2" />Añadir Centro</Button>
+        <Button onClick={handleOpenCreate} className="bg-ocean-gradient hover:opacity-90"><PlusCircle className="mr-2 h-4 w-4" />Añadir Centro</Button>
       </CardHeader>
       <CardContent>
-        <div className="border border-ocean-700/30 rounded-lg">
+        <div className="border border-ocean-700/30 rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="border-ocean-700/30">
-                <TableHead className="text-white">Nombre</TableHead>
-                <TableHead className="text-white">Ubicación</TableHead>
-                <TableHead className="text-right text-white">Acciones</TableHead>
+              <TableRow className="border-ocean-700/30 hover:bg-transparent">
+                <TableHead className="text-ocean-300">Nombre</TableHead>
+                <TableHead className="text-ocean-300">Ubicación</TableHead>
+                <TableHead className="text-right text-ocean-300">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -146,13 +107,13 @@ export const CentersManagement = () => {
                 </TableRow>
               ) : (
                 centers?.map((center) => (
-                  <TableRow key={center.id} className="border-ocean-700/30">
-                    <TableCell className="font-medium">{center.name}</TableCell>
-                    <TableCell>{center.location}</TableCell>
+                  <TableRow key={center.id} className="border-ocean-700/30 hover:bg-ocean-950/30">
+                    <TableCell className="font-medium text-white">{center.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{center.location}</TableCell>
                     <TableCell className="text-right">
                        <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
+                          <Button variant="ghost" className="h-8 w-8 p-0 text-ocean-300 hover:text-white">
                             <span className="sr-only">Abrir menú</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -161,7 +122,7 @@ export const CentersManagement = () => {
                           <DropdownMenuItem onClick={() => handleOpenEdit(center)} className="cursor-pointer">
                             <Edit className="mr-2 h-4 w-4" /> Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleOpenDeleteDialog(center)} className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-500/10">
+                          <DropdownMenuItem onClick={() => handleOpenDeleteDialog(center)} className="cursor-pointer text-rose-400 focus:text-rose-400 focus:bg-red-500/10">
                             <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -180,7 +141,7 @@ export const CentersManagement = () => {
         setIsOpen={setIsFormOpen}
         onSubmit={handleFormSubmit}
         defaultValues={centerToEdit}
-        isPending={isCreating || isUpdating}
+        isPending={createMutation.isPending || updateMutation.isPending}
       />
 
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
@@ -194,8 +155,8 @@ export const CentersManagement = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Sí, eliminar
+            <AlertDialogAction onClick={handleDeleteConfirm} disabled={deleteMutation.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleteMutation.isPending ? 'Eliminando...' : 'Sí, eliminar'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

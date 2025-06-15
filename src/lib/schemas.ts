@@ -38,3 +38,10 @@ export const diveSiteSchema = z.object({
 });
 
 export type DiveSiteFormValues = z.infer<typeof diveSiteSchema>;
+
+export const centerSchema = z.object({
+  name: z.string().min(1, { message: "El nombre es requerido." }),
+  location: z.string().min(1, { message: "La ubicación es requerida." }),
+});
+
+export type CenterFormValues = z.infer<typeof centerSchema>;
