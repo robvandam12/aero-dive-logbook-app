@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +19,11 @@ type Boat = Tables<'boats'>;
 
 // --- Funciones de mutación ---
 const createBoatFn = async (boat: BoatFormData & { center_id: string }) => {
-  const { error } = await supabase.from('boats').insert(boat);
+  const { error } = await supabase.from('boats').insert({
+    name: boat.name,
+    registration_number: boat.registration_number,
+    center_id: boat.center_id,
+  });
   if (error) throw error;
 };
 
