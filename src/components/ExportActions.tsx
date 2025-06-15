@@ -2,6 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { usePDFExport } from "@/hooks/usePDFExport";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +18,7 @@ interface ExportActionsProps {
 
 export const ExportActions = ({ diveLogId, hasSignature }: ExportActionsProps) => {
   const pdfExportMutation = usePDFExport();
+  const { toast } = useToast();
 
   const handleExportPDF = (includeSignature: boolean = true) => {
     pdfExportMutation.mutate({
@@ -26,9 +29,22 @@ export const ExportActions = ({ diveLogId, hasSignature }: ExportActionsProps) =
 
   const handleExportJSON = async () => {
     try {
-      // Get dive log data
-      const response = await fetch(`/api/dive-logs/${diveLogId}`);
-      const data = await response.json();
+      // Get dive log data from Supabase
+      const { data, error } = await supabase
+        .from('dive_logs')
+        .select(`
+          *,
+          centers (name, location),
+          dive_sites (name, location),
+          boats (name, registration_number),
+          profiles (username)
+        `)
+        .eq('id', diveLogId)
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
       
       // Create and download JSON file
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -40,8 +56,17 @@ export const ExportActions = ({ diveLogId, hasSignature }: ExportActionsProps) =
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting JSON:', error);
+
+      toast({
+        title: "JSON exportado",
+        description: "Los datos de la bitácora han sido exportados exitosamente."
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error al exportar JSON",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   };
 
