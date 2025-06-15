@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from "react-router-dom";
-import { useUpdateDiveLog } from "@/hooks/useDiveLogMutations";
+import { useCreateDiveLog, useUpdateDiveLog } from "@/hooks/useDiveLogMutations";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 
 import { Step1GeneralData } from './dive-log-wizard/Step1GeneralData';
@@ -52,9 +51,11 @@ interface DiveLogWizardProps {
 export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const createDiveLogMutation = useCreateDiveLog();
   const updateDiveLogMutation = useUpdateDiveLog();
 
   // Parse weather conditions for edit mode
@@ -109,7 +110,7 @@ export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProp
     defaultValues: getDefaultValues()
   });
 
-  const { handleSubmit, trigger, formState, watch, reset } = methods;
+  const { handleSubmit, trigger, formState, watch, reset, getValues } = methods;
 
   // Reset form when diveLog changes (edit mode)
   useEffect(() => {
@@ -120,6 +121,71 @@ export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProp
 
   // Observa si la firma existe (para activar el botón de finalizar)
   const signatureData = watch("signature_data");
+
+  const saveDraft = async () => {
+    if (!user) {
+      toast({ title: "Error", description: "Debe iniciar sesión para guardar.", variant: "destructive" });
+      return;
+    }
+
+    setIsSavingDraft(true);
+
+    try {
+      const currentValues = getValues();
+      
+      if (isEditMode && diveLog) {
+        // Update existing draft
+        updateDiveLogMutation.mutate(
+          { id: diveLog.id, data: currentValues, userId: user.id, currentSignatureUrl: diveLog.signature_url },
+          {
+            onSuccess: () => {
+              toast({
+                title: "Borrador guardado",
+                description: "Los cambios han sido guardados como borrador."
+              });
+            },
+            onError: (error: any) => {
+              toast({
+                title: "Error al guardar borrador",
+                description: error.message,
+                variant: "destructive"
+              });
+            }
+          }
+        );
+      } else {
+        // Create new draft
+        createDiveLogMutation.mutate(
+          { data: currentValues, userId: user.id },
+          {
+            onSuccess: (result) => {
+              toast({
+                title: "Borrador guardado",
+                description: "El borrador ha sido creado correctamente."
+              });
+              // Navigate to edit mode of the newly created draft
+              navigate(`/dive-logs/${result.id}/edit`);
+            },
+            onError: (error: any) => {
+              toast({
+                title: "Error al guardar borrador",
+                description: error.message,
+                variant: "destructive"
+              });
+            }
+          }
+        );
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error al guardar borrador",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
 
   const nextStep = async () => {
     const fieldsToValidate = steps[currentStep - 1].fields;
@@ -142,7 +208,7 @@ export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProp
     if (isEditMode && diveLog) {
       // Update existing dive log
       updateDiveLogMutation.mutate(
-        { id: diveLog.id, data, userId: user.id },
+        { id: diveLog.id, data, userId: user.id, currentSignatureUrl: diveLog.signature_url },
         {
           onSuccess: () => {
             navigate(`/dive-logs/${diveLog.id}`);
@@ -216,6 +282,7 @@ export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProp
   };
 
   const isSubmitting = isEditMode ? updateDiveLogMutation.isPending : isLoading;
+  const isDraftSaving = isSavingDraft || createDiveLogMutation.isPending || (isEditMode && updateDiveLogMutation.isPending && isSavingDraft);
 
   return (
     <FormProvider {...methods}>
@@ -254,9 +321,15 @@ export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProp
             Anterior
           </Button>
           <div className="flex space-x-2">
-            <Button type="button" variant="outline" className="border-ocean-600 text-ocean-300 hover:bg-ocean-800">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={saveDraft}
+              disabled={isDraftSaving}
+              className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
+            >
               <Save className="w-4 h-4 mr-2" />
-              Guardar Borrador
+              {isDraftSaving ? "Guardando..." : "Guardar Borrador"}
             </Button>
             {currentStep < 5 ? (
               <Button type="button" onClick={nextStep} className="bg-ocean-gradient hover:opacity-90">
