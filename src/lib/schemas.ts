@@ -10,8 +10,9 @@ export const diverSchema = z.object({
 
 export const diveLogSchema = z.object({
   log_date: z.string({ required_error: "Fecha es requerida." }).min(1, "Fecha es requerida."),
-  center_id: z.string({ required_error: "Centro es requerido." }),
+  center_id: z.string({ required_error: "Centro es requerido." }).min(1, "Centro es requerido."),
   supervisor_name: z.string().min(1, "Supervisor es requerido"),
+  dive_site_id: z.string({ required_error: "Punto de buceo es requerido." }).min(1, "Punto de buceo es requerido."),
   
   weather_condition: z.enum(["bueno", "regular", "malo"]).optional(),
   wind_knots: z.coerce.number().optional(),
@@ -22,7 +23,7 @@ export const diveLogSchema = z.object({
   divers_manifest: z.array(diverSchema).min(1, "Se requiere al menos un buzo."),
 
   work_type: z.string().optional(),
-  boat_name: z.string().optional(),
+  boat_id: z.string().optional(),
   work_details: z.string().min(1, "Detalle de trabajos es requerido."),
   
   observations: z.string().optional(),

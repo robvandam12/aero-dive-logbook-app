@@ -19,11 +19,11 @@ import { Step4WorkDetails } from './dive-log-wizard/Step4WorkDetails';
 import { Step5Observations } from './dive-log-wizard/Step5Observations';
 
 const steps = [
-  { id: 1, title: 'Datos Generales', fields: ['log_date', 'center_id', 'supervisor_name'] },
+  { id: 1, title: 'Datos Generales', fields: ['log_date', 'center_id', 'supervisor_name', 'dive_site_id'] },
   { id: 2, title: 'Condiciones', fields: ['weather_condition', 'wind_knots', 'wave_height_meters', 'compressor1_serial', 'compressor2_serial'] },
   { id: 3, title: 'Equipo de Buceo', fields: ['divers_manifest'] },
-  { id: 4, title: 'Detalle de Trabajos', fields: ['work_type', 'boat_name', 'work_details'] },
-  { id: 5, title: 'Observaciones', fields: ['observaciones', 'signature_data'] }
+  { id: 4, title: 'Detalle de Trabajos', fields: ['work_type', 'boat_id', 'work_details'] },
+  { id: 5, title: 'Observaciones', fields: ['observations', 'signature_data'] }
 ];
 
 function dataURLtoBlob(dataurl: string) {
@@ -54,6 +54,8 @@ export const DiveLogWizard = () => {
     defaultValues: {
       divers_manifest: [{ name: '', license: '', role: 'buzo', working_depth: 0 }],
       log_date: new Date().toISOString().split('T')[0], // Today's date
+      center_id: '',
+      dive_site_id: '',
     }
   });
 
@@ -101,18 +103,19 @@ export const DiveLogWizard = () => {
       }
     }
     
-    // TODO: Resolve supervisor_id and boat_id from names
     const diveLogData = {
       log_date: data.log_date,
       center_id: data.center_id,
-      supervisor_id: user.id, // Placeholder
-      weather_conditions: `${data.weather_condition}, Viento: ${data.wind_knots || 'N/A'} nudos, Oleaje: ${data.wave_height_meters || 'N/A'} m`,
+      supervisor_id: user.id,
+      dive_site_id: data.dive_site_id,
+      boat_id: data.boat_id || null,
+      weather_conditions: `${data.weather_condition || 'N/A'}, Viento: ${data.wind_knots || 'N/A'} nudos, Oleaje: ${data.wave_height_meters || 'N/A'} m`,
       divers_manifest: data.divers_manifest,
       observations: data.observations,
       signature_url: signatureUrl,
     };
 
-    const { error } = await supabase.from('dive_logs').insert(diveLogData as any); // Cast needed due to unresolved IDs
+    const { error } = await supabase.from('dive_logs').insert(diveLogData);
 
     setIsLoading(false);
 

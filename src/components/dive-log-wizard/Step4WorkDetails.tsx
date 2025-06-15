@@ -1,12 +1,14 @@
 
 import { useFormContext } from "react-hook-form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useBoats } from "@/hooks/useBoats";
 
 export const Step4WorkDetails = () => {
-  const { control } = useFormContext();
+  const { control, watch } = useFormContext();
+  const centerId = watch("center_id");
+  const { data: boats, isLoading: isLoadingBoats, error: boatsError } = useBoats(centerId);
   
   return (
     <div className="space-y-4">
@@ -36,13 +38,25 @@ export const Step4WorkDetails = () => {
       />
       <FormField
         control={control}
-        name="boat_name"
+        name="boat_id"
         render={({ field }) => (
           <FormItem>
             <FormLabel className="text-ocean-300">Embarcación</FormLabel>
-            <FormControl>
-              <Input placeholder="Nombre de la embarcación" {...field} className="bg-ocean-950/50 border-ocean-700 text-white" />
-            </FormControl>
+            <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingBoats || !centerId}>
+              <FormControl>
+                <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
+                  <SelectValue placeholder={!centerId ? "Seleccione un centro primero" : "Seleccionar embarcación"} />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent className="bg-ocean-900 border-ocean-700 text-white">
+                {isLoadingBoats && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
+                {boatsError && <SelectItem value="error" disabled>Error al cargar</SelectItem>}
+                {!isLoadingBoats && boats?.length === 0 && <SelectItem value="no-boats" disabled>No hay embarcaciones para este centro</SelectItem>}
+                {boats?.map(boat => (
+                  <SelectItem key={boat.id} value={boat.id}>{boat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}

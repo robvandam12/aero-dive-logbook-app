@@ -3,16 +3,13 @@ import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useCenters } from "@/hooks/useCenters";
+import { useDiveSites } from "@/hooks/useDiveSites";
 
 export const Step1GeneralData = () => {
   const { control } = useFormContext();
-
-  // TODO: Fetch centers and supervisors from Supabase
-  const centers = [
-    { id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef', name: 'Puerto Valparaíso' },
-    { id: 'b2c3d4e5-f6a7-8901-2345-67890abcdef0', name: 'Puerto San Antonio' },
-    { id: 'c3d4e5f6-a7b8-9012-3456-7890abcdef1', name: 'Puerto Talcahuano' },
-  ];
+  const { data: centers, isLoading: isLoadingCenters, error: centersError } = useCenters();
+  const { data: diveSites, isLoading: isLoadingDiveSites, error: diveSitesError } = useDiveSites();
 
   return (
     <div className="space-y-4">
@@ -36,14 +33,16 @@ export const Step1GeneralData = () => {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-ocean-300">Centro</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingCenters}>
                 <FormControl>
                   <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
                     <SelectValue placeholder="Seleccionar centro" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="bg-ocean-900 border-ocean-700 text-white">
-                  {centers.map(center => (
+                  {isLoadingCenters && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
+                  {centersError && <SelectItem value="error" disabled>Error al cargar</SelectItem>}
+                  {centers?.map(center => (
                     <SelectItem key={center.id} value={center.id}>{center.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -53,6 +52,30 @@ export const Step1GeneralData = () => {
           )}
         />
       </div>
+      <FormField
+        control={control}
+        name="dive_site_id"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-ocean-300">Punto de Buceo</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingDiveSites}>
+              <FormControl>
+                <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
+                  <SelectValue placeholder="Seleccionar punto de buceo" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent className="bg-ocean-900 border-ocean-700 text-white">
+                {isLoadingDiveSites && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
+                {diveSitesError && <SelectItem value="error" disabled>Error al cargar</SelectItem>}
+                {diveSites?.map(site => (
+                  <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
       <FormField
         control={control}
         name="supervisor_name"
