@@ -7,9 +7,13 @@ import { Badge } from "@/components/ui/badge";
 
 interface Step5ObservationsProps {
   isEditMode?: boolean;
+  existingSignatureUrl?: string | null;
 }
 
-export const Step5Observations = ({ isEditMode = false }: Step5ObservationsProps) => {
+export const Step5Observations = ({ 
+  isEditMode = false, 
+  existingSignatureUrl 
+}: Step5ObservationsProps) => {
   const { control, setValue } = useFormContext();
 
   const handleSaveSignature = (signatureData: string) => {
@@ -50,7 +54,10 @@ export const Step5Observations = ({ isEditMode = false }: Step5ObservationsProps
             : "Puede firmar ahora o después de crear la bitácora. La bitácora se guardará como borrador sin firma."
           }
         </p>
-        <DigitalSignature onSave={handleSaveSignature} />
+        <DigitalSignature 
+          onSave={handleSaveSignature} 
+          existingSignatureUrl={existingSignatureUrl}
+        />
       </div>
     </div>
   );
