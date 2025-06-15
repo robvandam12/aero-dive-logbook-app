@@ -1,4 +1,3 @@
-
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -27,7 +26,10 @@ export const useDiveSiteMutations = ({ onSuccess, onError }: UseDiveSiteMutation
 
   const createMutation = useMutation<Tables<'dive_sites'>, Error, { values: DiveSiteFormValues }>({
     mutationFn: async ({ values }) => {
-      const { data, error } = await supabase.from('dive_sites').insert(values).select().single();
+      const { data, error } = await supabase.from('dive_sites').insert({
+        name: values.name,
+        location: values.location || null,
+      }).select().single();
       if (error) throw error;
       if (!data) throw new Error("No se pudo crear el punto de buceo.");
       return data;
