@@ -1,4 +1,3 @@
-
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,11 +6,13 @@ import { useCenters } from "@/hooks/useCenters";
 import { useDiveSites } from "@/hooks/useDiveSites";
 import { useUserManagement } from "@/hooks/useUserManagement";
 import { useAuth } from "@/contexts/AuthProvider";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useEffect } from "react";
 
 export const Step1GeneralData = () => {
   const { control, setValue, watch } = useFormContext();
-  const { user, userProfile } = useAuth();
+  const { user } = useAuth();
+  const { data: userProfile } = useUserProfile();
   const { data: centers, isLoading: isLoadingCenters, error: centersError } = useCenters();
   const { data: diveSites, isLoading: isLoadingDiveSites, error: diveSitesError } = useDiveSites();
   const { data: users, isLoading: isLoadingUsers } = useUserManagement();
