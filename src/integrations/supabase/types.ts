@@ -9,16 +9,201 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      boats: {
+        Row: {
+          center_id: string | null
+          created_at: string
+          id: string
+          name: string
+          registration_number: string | null
+        }
+        Insert: {
+          center_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          registration_number?: string | null
+        }
+        Update: {
+          center_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          registration_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boats_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      centers: {
+        Row: {
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      dive_logs: {
+        Row: {
+          arrival_time: string | null
+          boat_id: string | null
+          center_id: string
+          created_at: string
+          departure_time: string | null
+          dive_site_id: string
+          divers_manifest: Json | null
+          id: string
+          log_date: string
+          observations: string | null
+          signature_url: string | null
+          supervisor_id: string
+          weather_conditions: string | null
+        }
+        Insert: {
+          arrival_time?: string | null
+          boat_id?: string | null
+          center_id: string
+          created_at?: string
+          departure_time?: string | null
+          dive_site_id: string
+          divers_manifest?: Json | null
+          id?: string
+          log_date?: string
+          observations?: string | null
+          signature_url?: string | null
+          supervisor_id: string
+          weather_conditions?: string | null
+        }
+        Update: {
+          arrival_time?: string | null
+          boat_id?: string | null
+          center_id?: string
+          created_at?: string
+          departure_time?: string | null
+          dive_site_id?: string
+          divers_manifest?: Json | null
+          id?: string
+          log_date?: string
+          observations?: string | null
+          signature_url?: string | null
+          supervisor_id?: string
+          weather_conditions?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dive_logs_boat_id_fkey"
+            columns: ["boat_id"]
+            isOneToOne: false
+            referencedRelation: "boats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dive_logs_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dive_logs_dive_site_id_fkey"
+            columns: ["dive_site_id"]
+            isOneToOne: false
+            referencedRelation: "dive_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dive_logs_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dive_sites: {
+        Row: {
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          center_id: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          center_id?: string | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          center_id?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "supervisor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +318,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "supervisor"],
+    },
   },
 } as const
