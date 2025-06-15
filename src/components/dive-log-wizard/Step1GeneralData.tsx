@@ -24,7 +24,7 @@ export const Step1GeneralData = () => {
                 <Input 
                   type="date" 
                   {...field} 
-                  className="bg-ocean-950/50 border-ocean-700 text-white rounded-md h-10 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
               </FormControl>
               <FormMessage />
@@ -39,15 +39,15 @@ export const Step1GeneralData = () => {
               <FormLabel className="text-ocean-300">Centro</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingCenters}>
                 <FormControl>
-                  <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
+                  <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors">
                     <SelectValue placeholder="Seleccionar centro" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="bg-ocean-900 border-ocean-700 text-white">
+                <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
                   {isLoadingCenters && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
                   {centersError && <SelectItem value="error" disabled>Error al cargar</SelectItem>}
                   {centers?.map(center => (
-                    <SelectItem key={center.id} value={center.id}>{center.name}</SelectItem>
+                    <SelectItem key={center.id} value={center.id} className="hover:bg-ocean-800 focus:bg-ocean-800">{center.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -64,15 +64,15 @@ export const Step1GeneralData = () => {
             <FormLabel className="text-ocean-300">Punto de Buceo</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingDiveSites}>
               <FormControl>
-                <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
+                <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors">
                   <SelectValue placeholder="Seleccionar punto de buceo" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="bg-ocean-900 border-ocean-700 text-white">
+              <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
                 {isLoadingDiveSites && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
                 {diveSitesError && <SelectItem value="error" disabled>Error al cargar</SelectItem>}
                 {diveSites?.map(site => (
-                  <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
+                  <SelectItem key={site.id} value={site.id} className="hover:bg-ocean-800 focus:bg-ocean-800">{site.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -87,7 +87,11 @@ export const Step1GeneralData = () => {
           <FormItem>
             <FormLabel className="text-ocean-300">Supervisor de Buceo</FormLabel>
             <FormControl>
-              <Input placeholder="Nombre del supervisor" {...field} className="bg-ocean-950/50 border-ocean-700 text-white" />
+              <Input 
+                placeholder="Nombre del supervisor" 
+                {...field} 
+                className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors placeholder:text-ocean-400" 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
