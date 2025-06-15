@@ -1,8 +1,9 @@
+
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthProvider";
 import { StatsCard } from "@/components/StatsCard";
-import { Ship, Anchor, Waves } from "lucide-react";
+import { Ship, Anchor, Waves, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSystemStats } from "@/hooks/useSystemStats";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -74,3 +75,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
