@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,7 +103,7 @@ export const DiveLogsList = () => {
   }
 
   const diveLogs = diveLogsData?.data || [];
-  const centers = centersData?.data || [];
+  const centers = centersData || [];
 
   // Aplicar filtros
   const filteredLogs = diveLogs.filter((log) => {
