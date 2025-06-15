@@ -76,6 +76,7 @@ export type Database = {
           observations: string | null
           signature_url: string | null
           supervisor_id: string
+          supervisor_name: string | null
           weather_conditions: string | null
         }
         Insert: {
@@ -91,6 +92,7 @@ export type Database = {
           observations?: string | null
           signature_url?: string | null
           supervisor_id: string
+          supervisor_name?: string | null
           weather_conditions?: string | null
         }
         Update: {
@@ -106,6 +108,7 @@ export type Database = {
           observations?: string | null
           signature_url?: string | null
           supervisor_id?: string
+          supervisor_name?: string | null
           weather_conditions?: string | null
         }
         Relationships: [
