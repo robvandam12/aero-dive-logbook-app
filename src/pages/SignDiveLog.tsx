@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +31,16 @@ const SignDiveLogPage = () => {
   const handleSubmitSignature = () => {
     if (!signatureData || !user || !diveLog) return;
 
+    // Properly cast divers_manifest to expected type
+    const diversManifest = Array.isArray(diveLog.divers_manifest) 
+      ? diveLog.divers_manifest as Array<{
+          name?: string;
+          role?: "supervisor" | "buzo" | "buzo-emergencia";
+          license?: string;
+          working_depth?: number;
+        }>
+      : [];
+
     const formData = {
       log_date: diveLog.log_date,
       center_id: diveLog.center_id,
@@ -40,7 +49,7 @@ const SignDiveLogPage = () => {
       weather_condition: 'N/A' as any,
       wind_knots: undefined,
       wave_height_meters: undefined,
-      divers_manifest: Array.isArray(diveLog.divers_manifest) ? diveLog.divers_manifest : [],
+      divers_manifest: diversManifest,
       observations: diveLog.observations || '',
       departure_time: diveLog.departure_time || '',
       arrival_time: diveLog.arrival_time || '',
