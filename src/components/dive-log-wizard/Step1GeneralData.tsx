@@ -5,11 +5,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCenters } from "@/hooks/useCenters";
 import { useDiveSites } from "@/hooks/useDiveSites";
+import { useUserManagement } from "@/hooks/useUserManagement";
+import { useAuth } from "@/contexts/AuthProvider";
+import { useEffect } from "react";
 
 export const Step1GeneralData = () => {
-  const { control } = useFormContext();
+  const { control, setValue, watch } = useFormContext();
+  const { user, userProfile } = useAuth();
   const { data: centers, isLoading: isLoadingCenters, error: centersError } = useCenters();
   const { data: diveSites, isLoading: isLoadingDiveSites, error: diveSitesError } = useDiveSites();
+  const { data: users, isLoading: isLoadingUsers } = useUserManagement();
+
+  const isAdmin = userProfile?.role === 'admin';
+  const supervisors = users?.filter(user => user.role === 'supervisor' && user.is_active) || [];
+
+  // Auto-fill supervisor name for non-admin users
+  useEffect(() => {
+    if (!isAdmin && userProfile?.username && !watch("supervisor_name")) {
+      setValue("supervisor_name", userProfile.username);
+    }
+  }, [isAdmin, userProfile, setValue, watch]);
 
   return (
     <div className="space-y-4">
@@ -87,11 +102,36 @@ export const Step1GeneralData = () => {
           <FormItem>
             <FormLabel className="text-ocean-300">Supervisor de Buceo</FormLabel>
             <FormControl>
-              <Input 
-                placeholder="Nombre del supervisor" 
-                {...field} 
-                className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors placeholder:text-ocean-400" 
-              />
+              {isAdmin ? (
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                  disabled={isLoadingUsers}
+                >
+                  <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors">
+                    <SelectValue placeholder="Seleccionar supervisor" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
+                    {isLoadingUsers && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
+                    {supervisors.map(supervisor => (
+                      <SelectItem 
+                        key={supervisor.id} 
+                        value={supervisor.full_name || supervisor.email}
+                        className="hover:bg-ocean-800 focus:bg-ocean-800"
+                      >
+                        {supervisor.full_name || supervisor.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input 
+                  placeholder="Nombre del supervisor" 
+                  {...field} 
+                  className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors placeholder:text-ocean-400"
+                  readOnly={!isAdmin}
+                />
+              )}
             </FormControl>
             <FormMessage />
           </FormItem>
