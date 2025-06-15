@@ -20,6 +20,15 @@ interface FetchDiveLogsParams {
   centerId?: string;
 }
 
+interface DiveLogsResponse {
+  data: DiveLogForTable[];
+  count: number;
+  totalPages: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 const fetchDiveLogs = async ({
   userId,
   page = 1,
@@ -27,9 +36,16 @@ const fetchDiveLogs = async ({
   search = '',
   status,
   centerId,
-}: FetchDiveLogsParams) => {
+}: FetchDiveLogsParams): Promise<DiveLogsResponse> => {
   if (!userId) {
-    return { data: [], count: 0 };
+    return { 
+      data: [], 
+      count: 0, 
+      totalPages: 0, 
+      currentPage: 1, 
+      hasNextPage: false, 
+      hasPreviousPage: false 
+    };
   }
 
   const from = (page - 1) * perPage;
@@ -78,7 +94,19 @@ const fetchDiveLogs = async ({
     dataWithStatus = dataWithStatus.filter(log => log.status === status);
   }
 
-  return { data: dataWithStatus as DiveLogForTable[], count: count ?? 0 };
+  const totalCount = count ?? 0;
+  const totalPages = Math.ceil(totalCount / perPage);
+  const hasNextPage = page < totalPages;
+  const hasPreviousPage = page > 1;
+
+  return { 
+    data: dataWithStatus as DiveLogForTable[], 
+    count: totalCount,
+    totalPages,
+    currentPage: page,
+    hasNextPage,
+    hasPreviousPage
+  };
 };
 
 export const useDiveLogs = (params: FetchDiveLogsParams) => {

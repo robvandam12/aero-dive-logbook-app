@@ -25,6 +25,7 @@ import { EmailDialog } from "@/components/EmailDialog";
 import { useSendDiveLogEmail } from "@/hooks/useEmailMutations";
 import { useCenters } from "@/hooks/useCenters";
 import { Filter, X } from "lucide-react";
+import { DiveLogsPagination } from "@/components/DiveLogsPagination";
 
 const getStatusBadge = (status: 'draft' | 'signed') => {
   const variants = {
@@ -42,12 +43,13 @@ export const DiveLogsList = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [centerFilter, setCenterFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   
-  const { data: diveLogsData, isLoading } = useDiveLogs({ 
+  const { data: diveLogsResponse, isLoading } = useDiveLogs({ 
     userId: user?.id,
-    page: 1,
+    page: currentPage,
     perPage: 20,
     search 
   });
@@ -83,6 +85,27 @@ export const DiveLogsList = () => {
     setSearch("");
     setStatusFilter("all");
     setCenterFilter("all");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Reset to page 1 when filters change
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleCenterFilterChange = (value: string) => {
+    setCenterFilter(value);
+    setCurrentPage(1);
   };
 
   if (isLoading) {
@@ -102,8 +125,14 @@ export const DiveLogsList = () => {
     );
   }
 
-  const diveLogs = diveLogsData?.data || [];
+  const diveLogs = diveLogsResponse?.data || [];
   const centers = centersData || [];
+  const pagination = diveLogsResponse ? {
+    currentPage: diveLogsResponse.currentPage,
+    totalPages: diveLogsResponse.totalPages,
+    hasNextPage: diveLogsResponse.hasNextPage,
+    hasPreviousPage: diveLogsResponse.hasPreviousPage,
+  } : null;
 
   // Aplicar filtros
   const filteredLogs = diveLogs.filter((log) => {
@@ -135,7 +164,7 @@ export const DiveLogsList = () => {
               <Input
                 placeholder="Buscar bitácoras..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 bg-ocean-950/50 border-ocean-700 text-white placeholder:text-ocean-400"
               />
             </div>
@@ -147,7 +176,7 @@ export const DiveLogsList = () => {
                 <span className="text-ocean-300 text-sm">Filtros:</span>
               </div>
               
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                 <SelectTrigger className="w-full sm:w-[140px] bg-ocean-950/50 border-ocean-700 text-white">
                   <SelectValue placeholder="Estado" />
                 </SelectTrigger>
@@ -158,7 +187,7 @@ export const DiveLogsList = () => {
                 </SelectContent>
               </Select>
 
-              <Select value={centerFilter} onValueChange={setCenterFilter}>
+              <Select value={centerFilter} onValueChange={handleCenterFilterChange}>
                 <SelectTrigger className="w-full sm:w-[180px] bg-ocean-950/50 border-ocean-700 text-white">
                   <SelectValue placeholder="Centro" />
                 </SelectTrigger>
@@ -203,82 +232,97 @@ export const DiveLogsList = () => {
               )}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="border-ocean-800">
-                  <TableHead className="text-ocean-300">Fecha</TableHead>
-                  <TableHead className="text-ocean-300">Centro</TableHead>
-                  <TableHead className="text-ocean-300">Punto de Buceo</TableHead>
-                  <TableHead className="text-ocean-300">Embarcación</TableHead>
-                  <TableHead className="text-ocean-300">Estado</TableHead>
-                  <TableHead className="text-ocean-300">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.map((log) => {
-                  const statusBadge = getStatusBadge(log.status);
-                  return (
-                    <TableRow key={log.id} className="border-ocean-800 hover:bg-ocean-950/30">
-                      <TableCell className="font-medium text-white">
-                        {format(new Date(log.log_date), "dd/MM/yyyy", { locale: es })}
-                      </TableCell>
-                      <TableCell className="text-ocean-200">{log.centers?.name || 'N/A'}</TableCell>
-                      <TableCell className="text-ocean-200">{log.dive_sites?.name || 'N/A'}</TableCell>
-                      <TableCell className="text-ocean-200">{log.boats?.name || 'N/A'}</TableCell>
-                      <TableCell>
-                        <Badge variant={statusBadge.variant} className={`text-xs ${statusBadge.className}`}>
-                          {statusBadge.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-ocean-300 hover:text-white"
-                            onClick={() => navigate(`/dive-logs/${log.id}`)}
-                            title="Ver detalles"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-ocean-300 hover:text-white"
-                            onClick={() => navigate(`/dive-logs/${log.id}/edit`)}
-                            title="Editar"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          {log.status === 'draft' && (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-ocean-800">
+                    <TableHead className="text-ocean-300">Fecha</TableHead>
+                    <TableHead className="text-ocean-300">Centro</TableHead>
+                    <TableHead className="text-ocean-300">Punto de Buceo</TableHead>
+                    <TableHead className="text-ocean-300">Embarcación</TableHead>
+                    <TableHead className="text-ocean-300">Estado</TableHead>
+                    <TableHead className="text-ocean-300">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLogs.map((log) => {
+                    const statusBadge = getStatusBadge(log.status);
+                    return (
+                      <TableRow key={log.id} className="border-ocean-800 hover:bg-ocean-950/30">
+                        <TableCell className="font-medium text-white">
+                          {format(new Date(log.log_date), "dd/MM/yyyy", { locale: es })}
+                        </TableCell>
+                        <TableCell className="text-ocean-200">{log.centers?.name || 'N/A'}</TableCell>
+                        <TableCell className="text-ocean-200">{log.dive_sites?.name || 'N/A'}</TableCell>
+                        <TableCell className="text-ocean-200">{log.boats?.name || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Badge variant={statusBadge.variant} className={`text-xs ${statusBadge.className}`}>
+                            {statusBadge.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="text-gold-400 hover:text-gold-300"
-                              onClick={() => handleSign(log.id)}
-                              title="Firmar bitácora"
+                              className="text-ocean-300 hover:text-white"
+                              onClick={() => navigate(`/dive-logs/${log.id}`)}
+                              title="Ver detalles"
                             >
-                              <FileSignature className="w-4 h-4" />
+                              <Eye className="w-4 h-4" />
                             </Button>
-                          )}
-                          {log.status === 'signed' && (
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="text-green-400 hover:text-green-300"
-                              onClick={() => handleSendEmail(log.id)}
-                              title="Enviar por correo"
+                              className="text-ocean-300 hover:text-white"
+                              onClick={() => navigate(`/dive-logs/${log.id}/edit`)}
+                              title="Editar"
                             >
-                              <Mail className="w-4 h-4" />
+                              <Edit className="w-4 h-4" />
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                            {log.status === 'draft' && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-gold-400 hover:text-gold-300"
+                                onClick={() => handleSign(log.id)}
+                                title="Firmar bitácora"
+                              >
+                                <FileSignature className="w-4 h-4" />
+                              </Button>
+                            )}
+                            {log.status === 'signed' && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-green-400 hover:text-green-300"
+                                onClick={() => handleSendEmail(log.id)}
+                                title="Enviar por correo"
+                              >
+                                <Mail className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+
+              {/* Paginación */}
+              {pagination && (
+                <div className="mt-6">
+                  <DiveLogsPagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    hasNextPage={pagination.hasNextPage}
+                    hasPreviousPage={pagination.hasPreviousPage}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
