@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,12 +16,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 type Center = Tables<'centers'>;
 
 // --- Funciones de mutación ---
-const createCenterFn = async (center: Omit<Center, 'id' | 'created_at'>) => {
+const createCenterFn = async (center: CenterFormData) => {
   const { error } = await supabase.from('centers').insert(center);
   if (error) throw error;
 };
 
-const updateCenterFn = async (center: Pick<Center, 'id' | 'name' | 'location'>) => {
+const updateCenterFn = async (center: CenterFormData & { id: string }) => {
   const { error } = await supabase.from('centers').update({ name: center.name, location: center.location }).eq('id', center.id);
   if (error) throw error;
 };

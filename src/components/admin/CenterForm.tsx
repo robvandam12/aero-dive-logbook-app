@@ -33,7 +33,10 @@ export const CenterForm = ({ isOpen, setIsOpen, onSubmit, defaultValues, isPendi
 
   useEffect(() => {
     if (defaultValues) {
-      form.reset(defaultValues);
+      form.reset({
+        name: defaultValues.name,
+        location: defaultValues.location ?? '',
+      });
     } else {
       form.reset({ name: '', location: '' });
     }
