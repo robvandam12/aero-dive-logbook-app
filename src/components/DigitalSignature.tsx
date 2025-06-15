@@ -1,4 +1,3 @@
-
 import { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +13,8 @@ interface DigitalSignatureProps {
 export const DigitalSignature = ({ 
   onSave, 
   existingSignatureUrl,
-  width = 400, 
-  height = 200 
+  width = 800, 
+  height = 300 
 }: DigitalSignatureProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -29,6 +28,20 @@ export const DigitalSignature = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Configurar el canvas para ser responsive
+    const container = canvas.parentElement;
+    if (container) {
+      const containerWidth = container.clientWidth - 32; // Menos padding
+      const aspectRatio = height / width;
+      const finalWidth = Math.min(containerWidth, width);
+      const finalHeight = finalWidth * aspectRatio;
+      
+      canvas.width = finalWidth;
+      canvas.height = finalHeight;
+      canvas.style.width = `${finalWidth}px`;
+      canvas.style.height = `${finalHeight}px`;
+    }
+
     // Configurar el canvas
     ctx.strokeStyle = '#0ea5e9';
     ctx.lineWidth = 2;
@@ -37,7 +50,7 @@ export const DigitalSignature = ({
 
     // Fondo transparente
     ctx.fillStyle = 'rgba(12, 74, 110, 0.1)';
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, [width, height]);
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -46,7 +59,7 @@ export const DigitalSignature = ({
 
     setIsDrawing(true);
     setHasSignature(true);
-    setShowExisting(false); // Hide existing signature when user starts drawing
+    setShowExisting(false);
 
     const rect = canvas.getBoundingClientRect();
     const x = ('touches' in e ? e.touches[0].clientX : e.clientX) - rect.left;
@@ -86,9 +99,9 @@ export const DigitalSignature = ({
 
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = 'rgba(12, 74, 110, 0.1)';
-      ctx.fillRect(0, 0, width, height);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     setHasSignature(false);
     setShowExisting(!!existingSignatureUrl);
@@ -109,19 +122,16 @@ export const DigitalSignature = ({
   };
 
   return (
-    <Card className="glass">
-      <CardHeader>
-        <CardTitle className="text-white">Firma Digital</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="relative">
+    <div className="w-full">
+      <div className="space-y-4">
+        <div className="relative w-full">
           {showExisting && existingSignatureUrl ? (
-            <div className="border-2 border-dashed border-ocean-600 rounded-lg bg-ocean-950/20 p-4 text-center">
+            <div className="border-2 border-dashed border-ocean-600 rounded-lg bg-ocean-950/20 p-4 text-center w-full">
               <img 
                 src={existingSignatureUrl} 
                 alt="Firma existente" 
-                className="max-w-full max-h-48 mx-auto"
-                style={{ maxWidth: width, maxHeight: height }}
+                className="max-w-full h-auto mx-auto"
+                style={{ maxHeight: height }}
               />
               <p className="text-ocean-300 text-sm mt-2">Firma existente</p>
             </div>
@@ -129,9 +139,7 @@ export const DigitalSignature = ({
             <>
               <canvas
                 ref={canvasRef}
-                width={width}
-                height={height}
-                className="border-2 border-dashed border-ocean-600 rounded-lg cursor-crosshair bg-ocean-950/20"
+                className="border-2 border-dashed border-ocean-600 rounded-lg cursor-crosshair bg-ocean-950/20 w-full"
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
@@ -142,7 +150,7 @@ export const DigitalSignature = ({
               />
               {!hasSignature && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <p className="text-ocean-400 text-sm">
+                  <p className="text-ocean-400 text-sm text-center px-4">
                     {existingSignatureUrl ? "Firme aquí para reemplazar la firma existente" : "Firme aquí con su dedo o mouse"}
                   </p>
                 </div>
@@ -196,7 +204,7 @@ export const DigitalSignature = ({
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

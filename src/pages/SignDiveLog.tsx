@@ -1,13 +1,15 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, FileSignature } from "lucide-react";
+import { ArrowLeft, FileSignature, Mail } from "lucide-react";
 import { useDiveLog } from "@/hooks/useDiveLog";
 import { DigitalSignature } from "@/components/DigitalSignature";
+import { EmailDialog } from "@/components/EmailDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useState } from "react";
 import { useUpdateDiveLog } from "@/hooks/useDiveLogMutations";
+import { useSendDiveLogEmail } from "@/hooks/useEmailMutations";
 import { useAuth } from "@/contexts/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,7 +20,10 @@ const SignDiveLogPage = () => {
   const { toast } = useToast();
   const { data: diveLog, isLoading, error } = useDiveLog(id);
   const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [isJustSigned, setIsJustSigned] = useState(false);
   const updateDiveLogMutation = useUpdateDiveLog();
+  const sendEmailMutation = useSendDiveLogEmail();
 
   const handleBack = () => {
     navigate(`/dive-logs/${id}`);
@@ -65,14 +70,35 @@ const SignDiveLogPage = () => {
       },
       {
         onSuccess: () => {
+          setIsJustSigned(true);
           toast({
             title: "Bitácora firmada",
-            description: "La bitácora ha sido firmada correctamente."
+            description: "La bitácora ha sido firmada correctamente. ¿Desea enviarla por correo?"
           });
-          navigate(`/dive-logs/${id}`);
+          setEmailDialogOpen(true);
         }
       }
     );
+  };
+
+  const handleSendEmail = (email: string, name?: string) => {
+    if (!diveLog) return;
+
+    sendEmailMutation.mutate({
+      diveLogId: diveLog.id,
+      recipientEmail: email,
+      recipientName: name,
+    }, {
+      onSuccess: () => {
+        setEmailDialogOpen(false);
+        navigate(`/dive-logs/${id}`);
+      },
+    });
+  };
+
+  const handleSkipEmail = () => {
+    setEmailDialogOpen(false);
+    navigate(`/dive-logs/${id}`);
   };
 
   if (isLoading) {
@@ -112,7 +138,7 @@ const SignDiveLogPage = () => {
   }
 
   // Check if already signed
-  if (diveLog.signature_url) {
+  if (diveLog.signature_url && !isJustSigned) {
     return (
       <main className="container mx-auto px-6 py-8 space-y-8">
         <div className="flex items-center gap-4">
@@ -134,79 +160,98 @@ const SignDiveLogPage = () => {
   }
 
   return (
-    <main className="container mx-auto px-6 py-8 space-y-8">
-      <div className="flex items-start md:items-center gap-4">
-        <SidebarTrigger />
-        <Button variant="ghost" onClick={handleBack} className="text-ocean-300 hover:text-white">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver a la Bitácora
-        </Button>
-        <div className="text-left">
-          <h1 className="text-4xl font-bold text-white">
-            Firmar Bitácora de Buceo
-          </h1>
-          <p className="text-xl text-ocean-300 max-w-2xl">
-            Firme la bitácora para finalizar y validar el registro.
-          </p>
+    <>
+      <main className="container mx-auto px-6 py-8 space-y-8">
+        <div className="flex items-start md:items-center gap-4">
+          <SidebarTrigger />
+          <Button variant="ghost" onClick={handleBack} className="text-ocean-300 hover:text-white">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver a la Bitácora
+          </Button>
+          <div className="text-left">
+            <h1 className="text-4xl font-bold text-white">
+              Firmar Bitácora de Buceo
+            </h1>
+            <p className="text-xl text-ocean-300 max-w-2xl">
+              Firme la bitácora para finalizar y validar el registro.
+            </p>
+          </div>
         </div>
-      </div>
 
-      <Card className="glass max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <FileSignature className="w-5 h-5 mr-2" />
-            Firma Digital del Supervisor
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <p className="text-ocean-300 text-sm">
-              <strong>Fecha:</strong> {new Date(diveLog.log_date).toLocaleDateString('es-ES')}
-            </p>
-            <p className="text-ocean-300 text-sm">
-              <strong>Centro:</strong> {diveLog.centers?.name}
-            </p>
-            <p className="text-ocean-300 text-sm">
-              <strong>Punto de Buceo:</strong> {diveLog.dive_sites?.name}
-            </p>
-            <p className="text-ocean-300 text-sm">
-              <strong>Supervisor:</strong> {diveLog.profiles?.username}
-            </p>
-          </div>
+        <Card className="glass w-full">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center">
+              <FileSignature className="w-5 h-5 mr-2" />
+              Firma Digital del Supervisor
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <p className="text-ocean-300 text-sm">
+                <strong>Fecha:</strong> {new Date(diveLog.log_date).toLocaleDateString('es-ES')}
+              </p>
+              <p className="text-ocean-300 text-sm">
+                <strong>Centro:</strong> {diveLog.centers?.name}
+              </p>
+              <p className="text-ocean-300 text-sm">
+                <strong>Punto de Buceo:</strong> {diveLog.dive_sites?.name}
+              </p>
+              <p className="text-ocean-300 text-sm">
+                <strong>Supervisor:</strong> {diveLog.profiles?.username}
+              </p>
+            </div>
 
-          <div className="border-t border-ocean-700 pt-6">
-            <p className="text-sm text-ocean-400 mb-4">
-              Su firma digital certificará que la información registrada en esta bitácora es correcta y completa.
-            </p>
-            <DigitalSignature onSave={handleSaveSignature} />
-          </div>
+            <div className="border-t border-ocean-700 pt-6">
+              <p className="text-sm text-ocean-400 mb-4">
+                Su firma digital certificará que la información registrada en esta bitácora es correcta y completa.
+              </p>
+              <DigitalSignature 
+                onSave={handleSaveSignature} 
+                width={800}
+                height={300}
+              />
+            </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              className="flex-1 border-ocean-600 text-ocean-300 hover:bg-ocean-800"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSubmitSignature}
-              disabled={!signatureData || updateDiveLogMutation.isPending}
-              className={`flex-1 ${!signatureData ? 'opacity-60 cursor-not-allowed' : 'bg-gold-gradient hover:opacity-90'}`}
-            >
-              {updateDiveLogMutation.isPending ? (
-                "Firmando..."
-              ) : (
-                <>
-                  <FileSignature className="w-4 h-4 mr-2" />
-                  Firmar Bitácora
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </main>
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                className="flex-1 border-ocean-600 text-ocean-300 hover:bg-ocean-800"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSubmitSignature}
+                disabled={!signatureData || updateDiveLogMutation.isPending}
+                className={`flex-1 ${!signatureData ? 'opacity-60 cursor-not-allowed' : 'bg-gold-gradient hover:opacity-90'}`}
+              >
+                {updateDiveLogMutation.isPending ? (
+                  "Firmando..."
+                ) : (
+                  <>
+                    <FileSignature className="w-4 h-4 mr-2" />
+                    Firmar Bitácora
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+
+      <EmailDialog
+        open={emailDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && isJustSigned) {
+            handleSkipEmail();
+          } else {
+            setEmailDialogOpen(open);
+          }
+        }}
+        onSend={handleSendEmail}
+        isLoading={sendEmailMutation.isPending}
+      />
+    </>
   );
 };
 
