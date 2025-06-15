@@ -28,11 +28,15 @@ export const DiveSitesManagement = () => {
 
   const upsertMutation = useMutation({
     mutationFn: async ({ id, values }: { id?: string; values: DiveSiteFormValues }) => {
-      const { data, error } = id
-        ? await supabase.from('dive_sites').update(values).eq('id', id).select().single()
-        : await supabase.from('dive_sites').insert(values).select().single();
-      if (error) throw error;
-      return data;
+      if (id) {
+        const { data, error } = await supabase.from('dive_sites').update(values).eq('id', id).select().single();
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase.from('dive_sites').insert(values).select().single();
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
       toast({ title: "Éxito", description: `Punto de buceo ${selectedDiveSite ? 'actualizado' : 'creado'} con éxito.` });
