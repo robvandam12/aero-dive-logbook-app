@@ -1,14 +1,15 @@
 
 import { useAuth } from "@/contexts/AuthProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Skeleton } from "./ui/skeleton";
 
 interface ProtectedRouteProps {
+  children: React.ReactNode;
   requiredRole?: 'admin' | 'supervisor';
 }
 
-export const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { data: profile, isLoading: profileLoading } = useUserProfile();
 
@@ -35,5 +36,7 @@ export const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <Outlet />;
+  return <>{children}</>;
 };
+
+export { ProtectedRoute };

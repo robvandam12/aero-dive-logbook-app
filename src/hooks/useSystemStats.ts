@@ -3,30 +3,40 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const fetchSystemStats = async () => {
-  const { count: centersCount, error: centersError } = await supabase
+  // Get total dive logs count
+  const { count: totalDiveLogs, error: totalDiveLogsError } = await supabase
+    .from('dive_logs')
+    .select('*', { count: 'exact', head: true });
+
+  if (totalDiveLogsError) throw new Error(totalDiveLogsError.message);
+
+  // Get active users count (users with profiles)
+  const { count: activeUsers, error: activeUsersError } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true });
+
+  if (activeUsersError) throw new Error(activeUsersError.message);
+
+  // Get centers count
+  const { count: centers, error: centersError } = await supabase
     .from('centers')
     .select('*', { count: 'exact', head: true });
 
   if (centersError) throw new Error(centersError.message);
 
-  const { count: boatsCount, error: boatsError } = await supabase
-    .from('boats')
-    .select('*', { count: 'exact', head: true });
-
-  if (boatsError) throw new Error(boatsError.message);
-
-  const today = new Date().toISOString().slice(0, 10);
-  const { count: diveLogsTodayCount, error: diveLogsTodayError } = await supabase
+  // Get pending logs count (draft status)
+  const { count: pendingLogs, error: pendingLogsError } = await supabase
     .from('dive_logs')
     .select('*', { count: 'exact', head: true })
-    .eq('log_date', today);
+    .eq('status', 'draft');
     
-  if (diveLogsTodayError) throw new Error(diveLogsTodayError.message);
+  if (pendingLogsError) throw new Error(pendingLogsError.message);
 
   return {
-    centers: centersCount ?? 0,
-    boats: boatsCount ?? 0,
-    diveLogsToday: diveLogsTodayCount ?? 0,
+    totalDiveLogs: totalDiveLogs ?? 0,
+    activeUsers: activeUsers ?? 0,
+    centers: centers ?? 0,
+    pendingLogs: pendingLogs ?? 0,
   };
 };
 

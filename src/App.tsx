@@ -21,7 +21,7 @@ import NotFound from "@/pages/NotFound";
 
 // Protected Components
 import ProtectedLayout from "@/components/ProtectedLayout";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import "./App.css";
 
