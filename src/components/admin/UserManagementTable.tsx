@@ -14,14 +14,14 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Edit, Mail, Shield, Users, Settings } from "lucide-react";
 import { useUserManagement } from "@/hooks/useUserManagement";
-import { useUserMutations } from "@/hooks/useUserMutations";
+import { useUpdateUser } from "@/hooks/useUserMutations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InviteUserForm } from "./InviteUserForm";
 
 export const UserManagementTable = () => {
   const [showInviteForm, setShowInviteForm] = useState(false);
   const { data: users, isLoading } = useUserManagement();
-  const { updateUser } = useUserMutations();
+  const updateUser = useUpdateUser();
 
   const handleToggleActive = async (userId: string, isActive: boolean) => {
     try {

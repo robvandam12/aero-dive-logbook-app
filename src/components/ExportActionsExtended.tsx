@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useExcelExport } from "@/hooks/useExcelExport";
 import { usePDFExport } from "@/hooks/usePDFExport";
-import { useEmailMutations } from "@/hooks/useEmailMutations";
+import { useSendDiveLogEmail } from "@/hooks/useEmailMutations";
 import { useToast } from "@/hooks/use-toast";
 import { EmailDialog } from "./EmailDialog";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
@@ -33,7 +33,7 @@ export const ExportActionsExtended = ({
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const { exportSingleDiveLog, exportMultipleDiveLogs } = useExcelExport();
   const { exportToPDF } = usePDFExport();
-  const { sendDiveLogEmail } = useEmailMutations();
+  const sendDiveLogEmail = useSendDiveLogEmail();
   const { toast } = useToast();
 
   const handleExportPDF = async () => {
@@ -41,7 +41,7 @@ export const ExportActionsExtended = ({
     
     try {
       setIsExporting(true);
-      await exportToPDF(diveLog.id);
+      await exportToPDF.mutateAsync({ diveLogId: diveLog.id });
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast({
@@ -78,21 +78,14 @@ export const ExportActionsExtended = ({
     }
   };
 
-  const handleSendEmail = async (emailData: { 
-    email: string; 
-    name?: string; 
-    message?: string; 
-    includePDF?: boolean; 
-  }) => {
+  const handleSendEmail = async (email: string, name?: string) => {
     if (!diveLog) return;
 
     try {
       await sendDiveLogEmail.mutateAsync({
         diveLogId: diveLog.id,
-        recipientEmail: emailData.email,
-        recipientName: emailData.name,
-        message: emailData.message,
-        includePDF: emailData.includePDF,
+        recipientEmail: email,
+        recipientName: name,
       });
       setShowEmailDialog(false);
     } catch (error) {
@@ -116,12 +109,12 @@ export const ExportActionsExtended = ({
             <div className="flex flex-wrap gap-2">
               <Button
                 onClick={handleExportPDF}
-                disabled={isExporting}
+                disabled={isExporting || exportToPDF.isPending}
                 variant="outline"
                 size="sm"
                 className="border-ocean-700 text-ocean-300 hover:bg-ocean-800"
               >
-                {isExporting ? (
+                {isExporting || exportToPDF.isPending ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <FileText className="w-4 h-4 mr-2" />

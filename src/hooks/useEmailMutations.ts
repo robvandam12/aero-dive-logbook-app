@@ -7,18 +7,22 @@ interface SendEmailRequest {
   diveLogId: string;
   recipientEmail: string;
   recipientName?: string;
+  message?: string;
+  includePDF?: boolean;
 }
 
 export const useSendDiveLogEmail = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ diveLogId, recipientEmail, recipientName }: SendEmailRequest) => {
+    mutationFn: async ({ diveLogId, recipientEmail, recipientName, message, includePDF }: SendEmailRequest) => {
       const { data, error } = await supabase.functions.invoke('send-dive-log-email', {
         body: {
           diveLogId,
           recipientEmail,
           recipientName,
+          message,
+          includePDF,
         },
       });
 
@@ -46,4 +50,13 @@ export const useSendDiveLogEmail = () => {
       });
     },
   });
+};
+
+// Export hook with proper name for compatibility
+export const useEmailMutations = () => {
+  const sendDiveLogEmail = useSendDiveLogEmail();
+  
+  return {
+    sendDiveLogEmail,
+  };
 };

@@ -13,10 +13,13 @@ interface CreateUserData {
 
 interface UpdateUserData {
   id: string;
-  full_name?: string;
-  role?: 'admin' | 'supervisor';
-  center_id?: string;
-  is_active?: boolean;
+  data: {
+    full_name?: string;
+    role?: 'admin' | 'supervisor';
+    center_id?: string;
+    is_active?: boolean;
+    allow_multi_center?: boolean;
+  };
 }
 
 export const useCreateUser = () => {
@@ -86,7 +89,7 @@ export const useUpdateUser = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: UpdateUserData) => {
+    mutationFn: async ({ id, data }: UpdateUserData) => {
       // Actualizar user_management
       const { error: userMgmtError } = await supabase
         .from('user_management')
@@ -95,9 +98,10 @@ export const useUpdateUser = () => {
           role: data.role,
           center_id: data.center_id,
           is_active: data.is_active,
+          allow_multi_center: data.allow_multi_center,
           updated_at: new Date().toISOString()
         })
-        .eq('id', data.id);
+        .eq('id', id);
 
       if (userMgmtError) throw userMgmtError;
 
@@ -105,7 +109,7 @@ export const useUpdateUser = () => {
       const { data: userMgmt } = await supabase
         .from('user_management')
         .select('user_id')
-        .eq('id', data.id)
+        .eq('id', id)
         .single();
 
       if (userMgmt) {
@@ -138,4 +142,15 @@ export const useUpdateUser = () => {
       });
     }
   });
+};
+
+// Export main hook for compatibility
+export const useUserMutations = () => {
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+  
+  return {
+    createUser,
+    updateUser,
+  };
 };

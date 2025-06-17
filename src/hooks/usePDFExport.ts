@@ -11,7 +11,7 @@ interface ExportToPDFRequest {
 export const usePDFExport = () => {
   const { toast } = useToast();
 
-  return useMutation({
+  const exportToPDF = useMutation({
     mutationFn: async ({ diveLogId, includeSignature = true }: ExportToPDFRequest) => {
       const { data, error } = await supabase.functions.invoke('export-dive-log-pdf', {
         body: {
@@ -54,4 +54,8 @@ export const usePDFExport = () => {
       });
     },
   });
+
+  return {
+    exportToPDF,
+  };
 };
