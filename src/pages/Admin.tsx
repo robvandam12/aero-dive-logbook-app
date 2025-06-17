@@ -1,44 +1,70 @@
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Anchor, Ship, Waves, Users } from "lucide-react";
-import { CentersManagement } from "@/components/admin/CentersManagement";
-import { BoatsManagement } from "@/components/admin/BoatsManagement";
-import { DiveSitesManagement } from "@/components/admin/DiveSitesManagement";
-import { UsersManagement } from "@/components/admin/UsersManagement";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthProvider";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { Navigate } from "react-router-dom";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
+import { Suspense } from "react";
+import { UserManagementTable } from "@/components/admin/UserManagementTable";
+import { ExportActionsExtended } from "@/components/ExportActionsExtended";
 
-const AdminPage = () => {
+const Admin = () => {
+  const { user } = useAuth();
+  const { data: userProfile, isLoading } = useUserProfile();
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 space-y-4 p-8 pt-6">
+        <div className="flex items-center gap-4">
+          <SidebarTrigger />
+          <LoadingSkeleton type="page" count={1} />
+        </div>
+        <LoadingSkeleton type="dashboard" count={4} />
+      </div>
+    );
+  }
+
+  // Solo admins pueden acceder
+  if (userProfile?.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
-    <main className="container mx-auto px-6 py-8 space-y-8">
-      <div className="flex items-start md:items-center gap-4">
+    <div className="flex-1 space-y-4 p-8 pt-6">
+      <div className="flex items-center gap-4 mb-6">
         <SidebarTrigger />
-        <div className="text-left">
-            <h1 className="text-4xl font-bold text-white">Panel de Administración</h1>
-            <p className="text-xl text-ocean-300">Gestión de datos maestros del sistema.</p>
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
+            Panel de Administración
+          </h2>
+          <p className="text-ocean-300">Gestión completa del sistema</p>
         </div>
       </div>
-      <Tabs defaultValue="centers" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 glass">
-          <TabsTrigger value="centers"><Anchor className="mr-2 h-4 w-4" /> Centros</TabsTrigger>
-          <TabsTrigger value="boats"><Ship className="mr-2 h-4 w-4" /> Embarcaciones</TabsTrigger>
-          <TabsTrigger value="dive_sites"><Waves className="mr-2 h-4 w-4" /> Puntos de Buceo</TabsTrigger>
-          <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" /> Usuarios</TabsTrigger>
-        </TabsList>
-        <TabsContent value="centers" className="mt-4 glass p-6 rounded-lg">
-           <CentersManagement />
-        </TabsContent>
-        <TabsContent value="boats" className="mt-4 glass p-6 rounded-lg">
-          <BoatsManagement />
-        </TabsContent>
-        <TabsContent value="dive_sites" className="mt-4 glass p-6 rounded-lg">
-          <DiveSitesManagement />
-        </TabsContent>
-        <TabsContent value="users" className="mt-4 glass p-6 rounded-lg">
-          <UsersManagement />
-        </TabsContent>
-      </Tabs>
-    </main>
+
+      <div className="grid gap-6">
+        {/* Gestión de Usuarios */}
+        <Suspense fallback={<LoadingSkeleton type="table" count={5} />}>
+          <UserManagementTable />
+        </Suspense>
+
+        {/* Grid de Secciones */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Exportación Global */}
+          <ExportActionsExtended showMultipleExport={true} />
+
+          {/* Configuración del Sistema */}
+          <Card className="glass">
+            <CardHeader>
+              <CardTitle className="text-white">Configuración del Sistema</CardTitle>
+            </CardHeader>
+            <CardContent className="text-ocean-300">
+              <p>Configuraciones avanzadas del sistema (próximamente)</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default AdminPage;
+export default Admin;
