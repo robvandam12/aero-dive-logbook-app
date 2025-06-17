@@ -93,12 +93,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <div className="flex items-center">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-sidebar-primary-foreground relative overflow-hidden">
-                  <img 
-                    src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
-                    alt="Aerocam" 
-                    className="w-6 h-6 object-contain filter brightness-0 invert"
-                  />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-sidebar-primary-foreground">
+                  <Anchor className="w-5 h-5 text-white" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold text-white">Aerocam App</span>

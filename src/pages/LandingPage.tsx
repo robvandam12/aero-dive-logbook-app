@@ -57,11 +57,7 @@ const LandingPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-[#6555FF] to-purple-700 rounded-lg flex items-center justify-center">
-                <img 
-                  src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
-                  alt="Aerocam" 
-                  className="w-6 h-6 object-contain filter brightness-0 invert"
-                />
+                <Anchor className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-2xl font-bold text-white">Aerocam App</h1>
             </div>
@@ -79,11 +75,7 @@ const LandingPage = () => {
       <section className="py-20 px-6">
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-4 mb-6">
-            <img 
-              src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
-              alt="Aerocam" 
-              className="w-16 h-16 object-contain"
-            />
+            <Anchor className="w-16 h-16 text-[#6555FF]" />
             <h2 className="text-5xl font-bold bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
               Sistema de Bitácoras de Buceo
             </h2>
@@ -127,11 +119,7 @@ const LandingPage = () => {
       <footer className="py-8 px-6 border-t border-ocean-800">
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-2">
-            <img 
-              src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
-              alt="Aerocam" 
-              className="w-5 h-5 object-contain opacity-60"
-            />
+            <Anchor className="w-5 h-5 text-ocean-400" />
             <p className="text-ocean-400">
               © 2025 Aerocam App. Sistema profesional de gestión de bitácoras de buceo.
             </p>

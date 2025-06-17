@@ -1,9 +1,10 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { Anchor } from "lucide-react";
 
 export const NavigationLoader = () => {
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-gradient-to-br from-ocean-950 via-ocean-900 to-slate-900 z-50 flex items-center justify-center">
       <div className="flex flex-col items-center space-y-4">
         <div className="relative">
           <div className="w-12 h-12 border-4 border-[#6555FF]/20 border-t-[#6555FF] rounded-full animate-spin"></div>
@@ -11,11 +12,7 @@ export const NavigationLoader = () => {
         </div>
         <div className="text-center space-y-2">
           <div className="flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
-              alt="Aerocam" 
-              className="w-5 h-5 object-contain"
-            />
+            <Anchor className="w-5 h-5 text-[#6555FF]" />
             <span className="text-white font-medium">Aerocam</span>
           </div>
           <p className="text-ocean-300 text-sm">Cargando...</p>
