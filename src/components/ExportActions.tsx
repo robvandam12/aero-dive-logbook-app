@@ -17,11 +17,11 @@ interface ExportActionsProps {
 }
 
 export const ExportActions = ({ diveLogId, hasSignature }: ExportActionsProps) => {
-  const pdfExportMutation = usePDFExport();
+  const { exportToPDF } = usePDFExport();
   const { toast } = useToast();
 
   const handleExportPDF = (includeSignature: boolean = true) => {
-    pdfExportMutation.mutate({
+    exportToPDF.mutate({
       diveLogId,
       includeSignature,
     });
@@ -76,10 +76,10 @@ export const ExportActions = ({ diveLogId, hasSignature }: ExportActionsProps) =
         <Button 
           variant="outline" 
           size="sm" 
-          disabled={pdfExportMutation.isPending}
+          disabled={exportToPDF.isPending}
           className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
         >
-          {pdfExportMutation.isPending ? (
+          {exportToPDF.isPending ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
           ) : (
             <Download className="w-4 h-4 mr-2" />
@@ -91,7 +91,7 @@ export const ExportActions = ({ diveLogId, hasSignature }: ExportActionsProps) =
         <DropdownMenuItem 
           onClick={() => handleExportPDF(true)}
           className="text-white hover:bg-ocean-800"
-          disabled={pdfExportMutation.isPending}
+          disabled={exportToPDF.isPending}
         >
           <FileText className="w-4 h-4 mr-2" />
           PDF Completo
@@ -100,7 +100,7 @@ export const ExportActions = ({ diveLogId, hasSignature }: ExportActionsProps) =
           <DropdownMenuItem 
             onClick={() => handleExportPDF(false)}
             className="text-white hover:bg-ocean-800"
-            disabled={pdfExportMutation.isPending}
+            disabled={exportToPDF.isPending}
           >
             <FileText className="w-4 h-4 mr-2" />
             PDF sin Firma

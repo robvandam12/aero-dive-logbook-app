@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useExcelExport } from "@/hooks/useExcelExport";
 import { usePDFExport } from "@/hooks/usePDFExport";
-import { useSendDiveLogEmail } from "@/hooks/useEmailMutations";
+import { useEmailMutations } from "@/hooks/useEmailMutations";
 import { useToast } from "@/hooks/use-toast";
 import { EmailDialog } from "./EmailDialog";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
@@ -33,7 +33,7 @@ export const ExportActionsExtended = ({
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const { exportSingleDiveLog, exportMultipleDiveLogs } = useExcelExport();
   const { exportToPDF } = usePDFExport();
-  const sendDiveLogEmail = useSendDiveLogEmail();
+  const { sendDiveLogEmail } = useEmailMutations();
   const { toast } = useToast();
 
   const handleExportPDF = async () => {
@@ -203,7 +203,6 @@ export const ExportActionsExtended = ({
             open={showEmailDialog}
             onOpenChange={setShowEmailDialog}
             onSend={handleSendEmail}
-            diveLog={diveLog}
             isLoading={sendDiveLogEmail.isPending}
           />
         )}

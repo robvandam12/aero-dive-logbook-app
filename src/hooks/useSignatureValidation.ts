@@ -45,8 +45,7 @@ export const useSignatureValidation = () => {
 
   const generateSignatureCode = useMutation({
     mutationFn: async ({ diveLogId, userId }: { diveLogId: string; userId: string }) => {
-      // El código se genera automáticamente por el trigger de la base de datos
-      // No incluimos el campo 'code' para que el trigger lo genere
+      // Insertar sin incluir el campo 'code' para que el trigger lo genere automáticamente
       const { data, error } = await supabase
         .from('signature_codes')
         .insert({
