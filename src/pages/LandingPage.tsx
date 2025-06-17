@@ -1,69 +1,74 @@
 
-import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Ship, Shield, BarChart3, Users, CheckCircle, Anchor } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthProvider";
-import { Button } from "@/components/ui/button";
-import { Ship, Anchor, Waves, Shield, Users, BarChart3 } from "lucide-react";
 
 const LandingPage = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    // Redirigir usuarios autenticados al dashboard
+  const handleGetStarted = () => {
     if (user) {
-      navigate("/dashboard");
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
     }
-  }, [user, navigate]);
+  };
 
   const features = [
     {
       icon: Ship,
-      title: "Bitácoras Digitales",
-      description: "Registro completo de actividades de buceo con firmas digitales"
+      title: "Gestión de Bitácoras",
+      description: "Crea, edita y gestiona bitácoras de buceo de manera profesional"
     },
     {
       icon: Shield,
-      title: "Seguridad Garantizada",
-      description: "Sistema seguro con códigos únicos de validación"
-    },
-    {
-      icon: Users,
-      title: "Gestión de Equipos",
-      description: "Control completo de supervisores y buzos"
+      title: "Firmas Digitales",
+      description: "Sistema seguro de firmas digitales con códigos únicos de verificación"
     },
     {
       icon: BarChart3,
-      title: "Reportes Operativos",
-      description: "Análisis detallados de rendimiento y operaciones"
+      title: "Reportes Avanzados",
+      description: "Análisis detallado de operaciones con gráficos interactivos"
     },
     {
-      icon: Anchor,
+      icon: Users,
       title: "Multi-Centro",
-      description: "Gestión de múltiples centros de buceo"
-    },
-    {
-      icon: Waves,
-      title: "Trazabilidad Completa",
-      description: "Seguimiento detallado de todas las operaciones"
+      description: "Gestión centralizada para múltiples centros de buceo"
     }
   ];
 
+  const benefits = [
+    "Control total de operaciones de buceo",
+    "Cumplimiento de normativas de seguridad",
+    "Trazabilidad completa de actividades",
+    "Reportes automáticos para autoridades",
+    "Interface intuitiva y fácil de usar",
+    "Acceso desde cualquier dispositivo"
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-ocean-950 via-ocean-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80">
       {/* Header */}
-      <header className="bg-ocean-950/50 backdrop-blur-sm border-b border-ocean-800">
+      <header className="border-b border-white/10 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-ocean-gradient rounded-lg flex items-center justify-center">
-                <Ship className="w-6 h-6 text-white" />
+              <div className="bg-white/10 p-2 rounded-xl">
+                <img 
+                  src="/lovable-uploads/acb40eaa-dea4-4b1a-bcf0-2f102558239e.png" 
+                  alt="Aerocam Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
-              <h1 className="text-2xl font-bold text-white">DiveLogger Pro</h1>
+              <h1 className="text-2xl font-bold text-white">AerocamApp</h1>
             </div>
             <Button 
-              onClick={() => navigate("/auth")}
-              className="bg-ocean-gradient hover:opacity-90"
+              onClick={() => navigate('/auth')} 
+              variant="outline" 
+              className="border-white/20 text-white hover:bg-white/10"
             >
               Iniciar Sesión
             </Button>
@@ -72,51 +77,117 @@ const LandingPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-6">
-        <div className="container mx-auto text-center">
-          <h2 className="text-5xl font-bold text-white mb-6">
-            Sistema de Bitácoras de Buceo
-            <span className="block text-3xl text-ocean-300 mt-2">
-              Profesional y Seguro
-            </span>
-          </h2>
-          <p className="text-xl text-ocean-200 mb-8 max-w-2xl mx-auto">
-            Gestiona de manera eficiente todas las operaciones de buceo con nuestro sistema 
-            integral de bitácoras digitales, reportes y trazabilidad completa.
-          </p>
-          <Button 
-            size="lg"
-            onClick={() => navigate("/auth")}
-            className="bg-ocean-gradient hover:opacity-90 text-lg px-8 py-3"
-          >
-            Comenzar Ahora
-          </Button>
+      <section className="py-20">
+        <div className="container mx-auto px-6 text-center">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              Sistema Profesional de
+              <span className="block bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent">
+                Bitácoras de Buceo
+              </span>
+            </h1>
+            <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+              Gestiona operaciones de buceo de manera segura, eficiente y con total trazabilidad. 
+              Cumple con normativas y mantén el control total de tus actividades.
+            </p>
+            <Button 
+              onClick={handleGetStarted}
+              size="lg" 
+              className="bg-gold-500 hover:bg-gold-600 text-white px-8 py-3 text-lg"
+            >
+              Comenzar Ahora
+            </Button>
+          </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-16 px-6">
-        <div className="container mx-auto">
-          <h3 className="text-3xl font-bold text-white text-center mb-12">
-            Características Principales
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* Features Section */}
+      <section className="py-20 bg-white/5 backdrop-blur-sm">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Funcionalidades Principales
+            </h2>
+            <p className="text-white/70 text-lg max-w-2xl mx-auto">
+              Todo lo que necesitas para gestionar operaciones de buceo profesionales
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="bg-ocean-950/30 backdrop-blur-sm rounded-lg p-6 border border-ocean-800">
-                <feature.icon className="w-12 h-12 text-ocean-400 mb-4" />
-                <h4 className="text-xl font-semibold text-white mb-2">{feature.title}</h4>
-                <p className="text-ocean-300">{feature.description}</p>
-              </div>
+              <Card key={index} className="bg-white/10 border-white/20 backdrop-blur-sm">
+                <CardHeader>
+                  <div className="bg-gold-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <feature.icon className="w-6 h-6 text-gold-400" />
+                  </div>
+                  <CardTitle className="text-white">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-white/70">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Benefits Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl font-bold text-white mb-6">
+                ¿Por qué elegir AerocamApp?
+              </h2>
+              <p className="text-white/80 mb-8 text-lg">
+                Desarrollado específicamente para centros de buceo profesionales, 
+                nuestro sistema garantiza eficiencia y cumplimiento normativo.
+              </p>
+              <div className="space-y-4">
+                {benefits.map((benefit, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <CheckCircle className="w-5 h-5 text-gold-400 flex-shrink-0" />
+                    <span className="text-white/90">{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative">
+              <Card className="bg-white/10 border-white/20 backdrop-blur-sm p-8">
+                <div className="text-center">
+                  <Anchor className="w-16 h-16 text-gold-400 mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold text-white mb-4">¿Listo para comenzar?</h3>
+                  <p className="text-white/70 mb-6">
+                    Únete a los centros de buceo que ya confían en AerocamApp
+                  </p>
+                  <Button 
+                    onClick={handleGetStarted}
+                    className="bg-gold-500 hover:bg-gold-600 text-white w-full"
+                  >
+                    Acceder al Sistema
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-ocean-800">
-        <div className="container mx-auto text-center">
-          <p className="text-ocean-400">
-            © 2025 DiveLogger Pro. Sistema profesional de gestión de bitácoras de buceo.
+      <footer className="border-t border-white/10 py-8">
+        <div className="container mx-auto px-6 text-center">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <img 
+              src="/lovable-uploads/acb40eaa-dea4-4b1a-bcf0-2f102558239e.png" 
+              alt="Aerocam Logo" 
+              className="w-6 h-6 object-contain"
+            />
+            <span className="text-white font-semibold">AerocamApp</span>
+          </div>
+          <p className="text-white/60">
+            © 2024 AerocamApp - Sistema Profesional de Gestión de Bitácoras de Buceo
           </p>
         </div>
       </footer>

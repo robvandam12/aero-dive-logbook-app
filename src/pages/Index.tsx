@@ -60,14 +60,21 @@ const Index = () => {
 
 
   return (
-    <div className="min-h-screen bg-hero-gradient ocean-pattern">
+    <div className="min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80 ocean-pattern">
       <Header />
       
       <main className="container mx-auto px-6 py-8 space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-white">
-            Bienvenido al Sistema Aerocam
-          </h1>
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            <img 
+              src="/lovable-uploads/acb40eaa-dea4-4b1a-bcf0-2f102558239e.png" 
+              alt="Aerocam Logo" 
+              className="w-16 h-16 object-contain"
+            />
+            <h1 className="text-4xl font-bold text-white">
+              Bienvenido a AerocamApp
+            </h1>
+          </div>
           <p className="text-xl text-ocean-300 max-w-2xl mx-auto">
             Gestiona tus bitácoras de buceo de manera profesional, segura y eficiente
           </p>
@@ -84,7 +91,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div onClick={() => handleQuickActionClick('/new-dive-log')} className="glass p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer ocean-shimmer">
             <div className="flex items-center space-x-4">
-              <div className="bg-ocean-gradient p-3 rounded-xl">
+              <div className="bg-gradient-to-r from-primary to-primary/80 p-3 rounded-xl">
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -96,7 +103,7 @@ const Index = () => {
 
           <div onClick={() => handleQuickActionClick('/dashboard')} className="glass p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer ocean-shimmer">
             <div className="flex items-center space-x-4">
-              <div className="bg-gold-gradient p-3 rounded-xl">
+              <div className="bg-gradient-to-r from-gold-500 to-gold-600 p-3 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -120,7 +127,7 @@ const Index = () => {
         </div>
 
         <footer className="text-center text-ocean-400 text-sm py-8">
-          <p>© 2024 Aerocam App - Sistema de Gestión de Bitácoras de Buceo</p>
+          <p>© 2024 AerocamApp - Sistema de Gestión de Bitácoras de Buceo</p>
         </footer>
       </main>
     </div>

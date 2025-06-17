@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminDiveLogsTable } from "./AdminDiveLogsTable";
 import { ActivityLogsWidget } from "./ActivityLogsWidget";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 
 export const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -22,6 +23,10 @@ export const AdminDashboard = () => {
   });
 
   const recentLogs = diveLogsData?.data || [];
+
+  if (statsLoading && logsLoading) {
+    return <LoadingSkeleton type="dashboard" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -36,7 +41,7 @@ export const AdminDashboard = () => {
             <FileText className="w-4 h-4 mr-2" />
             Reportes
           </Button>
-          <Button onClick={() => navigate('/new-dive-log')} className="bg-ocean-gradient hover:opacity-90">
+          <Button onClick={() => navigate('/new-dive-log')} className="bg-primary hover:bg-primary/90">
             <PlusCircle className="w-4 h-4 mr-2" />
             Nueva Bitácora
           </Button>

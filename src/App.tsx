@@ -22,6 +22,7 @@ import NotFound from "@/pages/NotFound";
 // Protected Components
 import ProtectedLayout from "@/components/ProtectedLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { NavigationLoader } from "@/components/NavigationLoader";
 
 import "./App.css";
 
@@ -35,31 +36,33 @@ function App() {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Protected routes with sidebar */}
-              <Route path="/*" element={
-                <ProtectedRoute>
-                  <SidebarProvider>
-                    <ProtectedLayout>
-                      <Routes>
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/new-dive-log" element={<NewDiveLog />} />
-                        <Route path="/dive-logs/:id/edit" element={<EditDiveLog />} />
-                        <Route path="/dive-logs/:id" element={<DiveLogDetail />} />
-                        <Route path="/all-dive-logs" element={<AllDiveLogs />} />
-                        <Route path="/reports" element={<Reports />} />
-                        <Route path="/admin" element={<Admin />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </ProtectedLayout>
-                  </SidebarProvider>
-                </ProtectedRoute>
-              } />
-            </Routes>
+            <NavigationLoader>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/auth" element={<Auth />} />
+                
+                {/* Protected routes with sidebar */}
+                <Route path="/*" element={
+                  <ProtectedRoute>
+                    <SidebarProvider>
+                      <ProtectedLayout>
+                        <Routes>
+                          <Route path="/dashboard" element={<Dashboard />} />
+                          <Route path="/new-dive-log" element={<NewDiveLog />} />
+                          <Route path="/dive-logs/:id/edit" element={<EditDiveLog />} />
+                          <Route path="/dive-logs/:id" element={<DiveLogDetail />} />
+                          <Route path="/all-dive-logs" element={<AllDiveLogs />} />
+                          <Route path="/reports" element={<Reports />} />
+                          <Route path="/admin" element={<Admin />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </ProtectedLayout>
+                    </SidebarProvider>
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </NavigationLoader>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
