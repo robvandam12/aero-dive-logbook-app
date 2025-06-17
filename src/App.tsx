@@ -23,7 +23,7 @@ import NotFound from "@/pages/NotFound";
 // Protected Components
 import ProtectedLayout from "@/components/ProtectedLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import NavigationLoader from "@/components/NavigationLoader";
+import { NavigationLoader } from "@/components/NavigationLoader";
 
 import "./App.css";
 

@@ -7,12 +7,6 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
 const generatePDFHtml = (diveLog: any) => {
   const diversList = Array.isArray(diveLog.divers_manifest) 
     ? diveLog.divers_manifest.map((diver: any, index: number) => `
@@ -232,32 +226,15 @@ const generatePDFHtml = (diveLog: any) => {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { 
-      status: 200,
-      headers: corsHeaders 
-    });
-  }
-
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { 
-      status: 405,
-      headers: corsHeaders 
-    });
+    return new Response("Method not allowed", { status: 405 });
   }
 
   try {
     const { diveLogId } = await req.json();
 
     if (!diveLogId) {
-      return new Response(
-        JSON.stringify({ error: "Dive log ID is required" }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
+      return new Response("Dive log ID is required", { status: 400 });
     }
 
     // Obtener datos de la bitácora
@@ -274,39 +251,27 @@ serve(async (req) => {
       .single();
 
     if (error || !diveLog) {
-      return new Response(
-        JSON.stringify({ error: "Dive log not found" }),
-        { 
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
+      return new Response("Dive log not found", { status: 404 });
     }
 
     // Generar HTML para PDF
     const htmlContent = generatePDFHtml(diveLog);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        html: htmlContent,
-        message: "PDF HTML generated successfully" 
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    // Por ahora retornamos el HTML. En un entorno real usaríamos una librería como puppeteer
+    // para generar PDF binario real
+    return new Response(htmlContent, {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Disposition": `attachment; filename="bitacora_${diveLog.log_date}_${diveLog.id.slice(0, 8)}.html"`,
+      },
+    });
   } catch (error) {
     console.error("Error generating PDF:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false,
-        error: error.message 
-      }),
+      JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }

@@ -28,17 +28,14 @@ export const usePDFExport = () => {
         throw new Error(data.error || 'Error al generar el PDF');
       }
 
-      // Para esta implementación temporal, crear un blob con el HTML y descargarlo
-      if (data.html) {
-        const blob = new Blob([data.html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
+      // Download the PDF
+      if (data.pdfUrl) {
         const link = document.createElement('a');
-        link.href = url;
-        link.download = `bitacora-${diveLogId}.html`;
+        link.href = data.pdfUrl;
+        link.download = `bitacora-${diveLogId}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(url);
       }
 
       return data;
@@ -46,7 +43,7 @@ export const usePDFExport = () => {
     onSuccess: () => {
       toast({
         title: "PDF generado",
-        description: "La bitácora ha sido exportada exitosamente.",
+        description: "La bitácora ha sido exportada a PDF exitosamente.",
       });
     },
     onError: (error: any) => {

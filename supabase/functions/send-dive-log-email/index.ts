@@ -8,12 +8,6 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
 interface EmailData {
   diveLogId: string;
   recipientEmail: string;
@@ -155,35 +149,15 @@ const getEmailTemplate = (diveLog: any, message?: string) => {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { 
-      status: 200,
-      headers: corsHeaders 
-    });
-  }
-
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { 
-      status: 405,
-      headers: corsHeaders 
-    });
+    return new Response("Method not allowed", { status: 405 });
   }
 
   try {
     const data: EmailData = await req.json();
 
     if (!RESEND_API_KEY) {
-      return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: "RESEND_API_KEY no configurado" 
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
+      throw new Error("RESEND_API_KEY no configurado");
     }
 
     // Obtener datos de la bitácora
@@ -200,16 +174,7 @@ serve(async (req) => {
       .single();
 
     if (error || !diveLog) {
-      return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: "Bitácora no encontrada" 
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
+      throw new Error("Bitácora no encontrada");
     }
 
     const emailHtml = getEmailTemplate(diveLog, data.message);
@@ -241,38 +206,22 @@ serve(async (req) => {
     if (!response.ok) {
       const error = await response.text();
       console.error("Error de Resend:", error);
-      return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: `Error enviando email: ${error}` 
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
+      throw new Error(`Error enviando email: ${error}`);
     }
 
     const result = await response.json();
     console.log("Email enviado exitosamente:", result);
 
-    return new Response(
-      JSON.stringify({ success: true, result }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ success: true, result }), {
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error en send-dive-log-email:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false,
-        error: error.message 
-      }),
+      JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
