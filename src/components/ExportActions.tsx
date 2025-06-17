@@ -11,6 +11,7 @@ import {
 import { PDFPreview } from "./PDFPreview";
 import { EmailDialog } from "./EmailDialog";
 import { useExcelExport } from "@/hooks/useExcelExport";
+import { useSendDiveLogEmail } from "@/hooks/useEmailMutations";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 
 interface ExportActionsProps {
@@ -22,11 +23,25 @@ interface ExportActionsProps {
 export const ExportActions = ({ diveLogId, hasSignature, diveLog }: ExportActionsProps) => {
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const { exportSingleDiveLog } = useExcelExport();
+  const { mutate: sendEmail, isPending: isSendingEmail } = useSendDiveLogEmail();
 
   const handleExportExcel = () => {
     if (diveLog) {
       exportSingleDiveLog(diveLog);
     }
+  };
+
+  const handleSendEmail = (email: string, name?: string) => {
+    sendEmail({
+      diveLogId,
+      recipientEmail: email,
+      recipientName: name,
+      includePDF: true,
+    }, {
+      onSuccess: () => {
+        setEmailDialogOpen(false);
+      }
+    });
   };
 
   return (
@@ -65,7 +80,8 @@ export const ExportActions = ({ diveLogId, hasSignature, diveLog }: ExportAction
       <EmailDialog
         open={emailDialogOpen}
         onOpenChange={setEmailDialogOpen}
-        diveLogId={diveLogId}
+        onSend={handleSendEmail}
+        isLoading={isSendingEmail}
       />
     </div>
   );
