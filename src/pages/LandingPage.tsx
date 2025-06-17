@@ -56,14 +56,14 @@ const LandingPage = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-ocean-gradient rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-[#6555FF] to-purple-700 rounded-lg flex items-center justify-center">
                 <Ship className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-white">DiveLogger Pro</h1>
+              <h1 className="text-2xl font-bold text-white">Aerocam App</h1>
             </div>
             <Button 
               onClick={() => navigate("/auth")}
-              className="bg-ocean-gradient hover:opacity-90"
+              className="bg-gradient-to-r from-[#6555FF] to-purple-700 hover:opacity-90"
             >
               Iniciar Sesión
             </Button>
@@ -87,7 +87,7 @@ const LandingPage = () => {
           <Button 
             size="lg"
             onClick={() => navigate("/auth")}
-            className="bg-ocean-gradient hover:opacity-90 text-lg px-8 py-3"
+            className="bg-gradient-to-r from-[#6555FF] to-purple-700 hover:opacity-90 text-lg px-8 py-3"
           >
             Comenzar Ahora
           </Button>
@@ -116,7 +116,7 @@ const LandingPage = () => {
       <footer className="py-8 px-6 border-t border-ocean-800">
         <div className="container mx-auto text-center">
           <p className="text-ocean-400">
-            © 2025 DiveLogger Pro. Sistema profesional de gestión de bitácoras de buceo.
+            © 2025 Aerocam App. Sistema profesional de gestión de bitácoras de buceo.
           </p>
         </div>
       </footer>
