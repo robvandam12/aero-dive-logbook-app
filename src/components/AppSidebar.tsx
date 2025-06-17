@@ -1,96 +1,187 @@
+import * as React from "react"
 
-import { useAuth } from "@/contexts/AuthProvider";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+export interface NavItem {
+  title: string
+  href?: string
+  disabled?: boolean
+  external?: boolean
+  icon?: React.ReactNode
+  label?: string
+  description?: string
+}
+
+export interface NavLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  to: string
+  children: React.ReactNode
+}
+
+import { Calendar, Home, Ship, Users, Cog, BarChart3, Settings, Anchor, ChevronUp, User2, FileText } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuItem,
   SidebarMenuButton,
-  SidebarGroup,
-  SidebarFooter,
-} from "@/components/ui/sidebar";
-import { LayoutDashboard, PlusCircle, BookOpen, UserCog, LogOut, Ship } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useUserProfile } from "@/hooks/useUserProfile";
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/contexts/AuthProvider"
+import { useUserProfile } from "@/hooks/useUserProfile"
+import { supabase } from "@/integrations/supabase/client"
+import { useNavigate } from "react-router-dom"
 
-export const AppSidebar = () => {
-    const { user } = useAuth();
-    const { data: userProfile } = useUserProfile();
-    const location = useLocation();
-    const navigate = useNavigate();
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth();
+  const { data: userProfile } = useUserProfile();
+  const navigate = useNavigate();
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        navigate('/auth');
-    };
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
 
-    const menuItems = [
-        { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { title: "Nueva Bitácora", href: "/new-dive-log", icon: PlusCircle },
-        { title: "Mis Bitácoras", href: "/dive-logs", icon: BookOpen },
-    ];
-    
-    // Solo mostrar administración a usuarios admin
-    const adminMenuItems = userProfile?.role === 'admin' ? [
-        { title: "Administración", href: "/admin", icon: UserCog },
-    ] : [];
+  const isAdmin = userProfile?.role === 'admin';
 
-    return (
-        <Sidebar>
-            <SidebarHeader className="p-4">
-                <div className="flex items-center gap-2">
-                    <Ship className="w-8 h-8 text-ocean-400"/>
-                    <h1 className="text-xl font-bold text-white group-data-[collapsible=icon]:hidden">Aerocam</h1>
+  // Elementos de navegación principales
+  const mainNavigation = [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: Home,
+    },
+    {
+      title: "Nueva Bitácora",
+      url: "/new-dive-log",
+      icon: Ship,
+    },
+    {
+      title: "Todas las Bitácoras",
+      url: "/all-dive-logs",
+      icon: FileText,
+    },
+  ];
+
+  // Elementos solo para administradores
+  const adminNavigation = [
+    {
+      title: "Reportes",
+      url: "/reports",
+      icon: BarChart3,
+    },
+    {
+      title: "Administración",
+      url: "/admin",
+      icon: Settings,
+    },
+  ];
+
+  return (
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <div className="flex items-center">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-ocean-gradient text-sidebar-primary-foreground">
+                  <Ship className="size-4" />
                 </div>
-            </SidebarHeader>
-            <SidebarContent>
-                <SidebarGroup>
-                    <SidebarMenu>
-                        {menuItems.map((item) => (
-                            <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton asChild isActive={location.pathname === item.href} tooltip={item.title}>
-                                    <Link to={item.href}>
-                                        <item.icon className="h-5 w-5" />
-                                        <span>{item.title}</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        ))}
-                    </SidebarMenu>
-                </SidebarGroup>
-                
-                {adminMenuItems.length > 0 && (
-                    <SidebarGroup>
-                        <SidebarMenu>
-                            {adminMenuItems.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild isActive={location.pathname === item.href} tooltip={item.title}>
-                                        <Link to={item.href}>
-                                            <item.icon className="h-5 w-5" />
-                                            <span>{item.title}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenu>
-                    </SidebarGroup>
-                )}
-            </SidebarContent>
-            <SidebarFooter>
-                <div className="flex flex-col gap-2 p-2">
-                     <div className="text-sm text-muted-foreground text-center truncate group-data-[collapsible=icon]:hidden">
-                        <p className="font-medium">{user?.email}</p>
-                        <p className="text-xs capitalize">{userProfile?.role || 'supervisor'}</p>
-                     </div>
-                     <Button onClick={handleLogout} variant="secondary" size="sm" className="w-full">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span className="group-data-[collapsible=icon]:hidden">Logout</span>
-                    </Button>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold text-white">DiveLogger Pro</span>
+                  <span className="truncate text-xs text-ocean-300">Sistema de Bitácoras</span>
                 </div>
-            </SidebarFooter>
-        </Sidebar>
-    );
-};
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-ocean-300">Navegación Principal</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainNavigation.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild className="text-ocean-200 hover:text-white hover:bg-ocean-800">
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-ocean-300">Administración</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminNavigation.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild className="text-ocean-200 hover:text-white hover:bg-ocean-800">
+                      <a href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+      </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground text-ocean-200"
+                >
+                  <User2 className="size-4" />
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">
+                      {userProfile?.username || user?.email?.split('@')[0] || 'Usuario'}
+                    </span>
+                    <span className="truncate text-xs text-ocean-400">
+                      {userProfile?.role === 'admin' ? 'Administrador' : 'Supervisor'}
+                    </span>
+                  </div>
+                  <ChevronUp className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-ocean-900 border-ocean-700"
+                side="bottom"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuItem onClick={handleSignOut} className="text-ocean-200 hover:text-white hover:bg-ocean-800">
+                  Cerrar Sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+
+      <SidebarRail />
+    </Sidebar>
+  )
+}

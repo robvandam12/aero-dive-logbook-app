@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          dive_log_id: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          dive_log_id?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          dive_log_id?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_dive_log_id_fkey"
+            columns: ["dive_log_id"]
+            isOneToOne: false
+            referencedRelation: "dive_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boats: {
         Row: {
           center_id: string | null
@@ -72,9 +107,13 @@ export type Database = {
           dive_site_id: string
           divers_manifest: Json | null
           id: string
+          invalidated_at: string | null
+          invalidated_by: string | null
+          invalidation_reason: string | null
           log_date: string
           observations: string | null
           signature_url: string | null
+          status: string
           supervisor_id: string
           supervisor_name: string | null
           weather_conditions: string | null
@@ -88,9 +127,13 @@ export type Database = {
           dive_site_id: string
           divers_manifest?: Json | null
           id?: string
+          invalidated_at?: string | null
+          invalidated_by?: string | null
+          invalidation_reason?: string | null
           log_date?: string
           observations?: string | null
           signature_url?: string | null
+          status?: string
           supervisor_id: string
           supervisor_name?: string | null
           weather_conditions?: string | null
@@ -104,9 +147,13 @@ export type Database = {
           dive_site_id?: string
           divers_manifest?: Json | null
           id?: string
+          invalidated_at?: string | null
+          invalidated_by?: string | null
+          invalidation_reason?: string | null
           log_date?: string
           observations?: string | null
           signature_url?: string | null
+          status?: string
           supervisor_id?: string
           supervisor_name?: string | null
           weather_conditions?: string | null
@@ -160,6 +207,39 @@ export type Database = {
           id?: string
           location?: string | null
           name?: string
+        }
+        Relationships: []
+      }
+      invitation_tokens: {
+        Row: {
+          created_at: string
+          created_by: string
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+          user_data: Json
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          email: string
+          expires_at?: string
+          id?: string
+          token: string
+          used_at?: string | null
+          user_data: Json
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+          user_data?: Json
         }
         Relationships: []
       }
@@ -236,8 +316,44 @@ export type Database = {
           },
         ]
       }
+      signature_codes: {
+        Row: {
+          code: string
+          created_at: string
+          dive_log_id: string | null
+          id: string
+          signature_url: string | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          dive_log_id?: string | null
+          id?: string
+          signature_url?: string | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          dive_log_id?: string | null
+          id?: string
+          signature_url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signature_codes_dive_log_id_fkey"
+            columns: ["dive_log_id"]
+            isOneToOne: false
+            referencedRelation: "dive_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_management: {
         Row: {
+          allow_multi_center: boolean
           center_id: string | null
           created_at: string
           created_by: string | null
@@ -250,6 +366,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          allow_multi_center?: boolean
           center_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -262,6 +379,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          allow_multi_center?: boolean
           center_id?: string | null
           created_at?: string
           created_by?: string | null

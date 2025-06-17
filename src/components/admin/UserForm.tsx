@@ -29,6 +29,7 @@ export const UserForm = ({ user, onSubmit, isLoading, isEdit = false }: UserForm
     role: user?.role || "supervisor",
     center_id: user?.center_id || "",
     is_active: user?.is_active ?? true,
+    allow_multi_center: user?.allow_multi_center ?? false,
   });
 
   const { data: centers = [] } = useCenters();
@@ -110,6 +111,15 @@ export const UserForm = ({ user, onSubmit, isLoading, isEdit = false }: UserForm
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="allow_multi_center"
+            checked={formData.allow_multi_center}
+            onCheckedChange={(checked) => setFormData({ ...formData, allow_multi_center: checked })}
+          />
+          <Label htmlFor="allow_multi_center">Permitir Multi-Centro</Label>
         </div>
 
         {isEdit && (
