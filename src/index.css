@@ -1,98 +1,145 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
-
-@layer base {
-  :root {
-    --background: 240 6% 10%;
-    --foreground: 0 0% 98%;
-
-    --card: 240 6% 12%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 6% 12%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 197 71% 50%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 240 5% 20%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 240 5% 17%;
-    --muted-foreground: 240 5% 65%;
-
-    --accent: 28 89% 47%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 5% 20%;
-    --input: 240 5% 20%;
-    --ring: 197 71% 50%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 240 6% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 197 71% 50%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 5% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 240 5% 20%;
-    --sidebar-ring: 197 71% 50%;
-  }
+:root {
+  /* Primary color scheme - Purple/Violet */
+  --primary: #6555FF;
+  --primary-foreground: #ffffff;
+  
+  /* Secondary colors */
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  
+  /* Muted colors */
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  
+  /* Accent colors */
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  
+  /* Background and foreground */
+  --background: #ffffff;
+  --foreground: #0f172a;
+  
+  /* Card colors */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  
+  /* Popover colors */
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  
+  /* Border and input */
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #6555FF;
+  
+  /* Destructive colors */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  
+  /* Ocean color scheme */
+  --ocean-50: #f0f9ff;
+  --ocean-100: #e0f2fe;
+  --ocean-200: #bae6fd;
+  --ocean-300: #7dd3fc;
+  --ocean-400: #38bdf8;
+  --ocean-500: #0ea5e9;
+  --ocean-600: #0284c7;
+  --ocean-700: #0369a1;
+  --ocean-800: #075985;
+  --ocean-900: #0c4a6e;
+  --ocean-950: #082f49;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  .ocean-pattern {
-    background-image: 
-      radial-gradient(circle at 25% 25%, rgba(14, 165, 233, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
-  }
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  
+  --primary: #6555FF;
+  --primary-foreground: #ffffff;
+  
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+  
+  --destructive: #7f1d1d;
+  --destructive-foreground: #f8fafc;
+  
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #6555FF;
 }
 
-@layer components {
-  .glass {
-    @apply bg-background/60 backdrop-blur-md border border-border/50;
-  }
-  
-  .ocean-shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .ocean-shimmer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(14, 165, 233, 0.2),
-      transparent
-    );
-    animation: shimmer 2s infinite;
-  }
-  
-  @keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
-  }
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: linear-gradient(135deg, #082f49 0%, #0c4a6e 50%, #1e293b 100%);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* Glass effect for cards */
+.glass {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Ocean gradient */
+.bg-ocean-gradient {
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%);
+}
+
+/* Primary gradient with new color */
+.bg-primary-gradient {
+  background: linear-gradient(135deg, #6555FF 0%, #8B5CF6 50%, #A855F7 100%);
+}
+
+/* Gold gradient */
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%);
+}
+
+/* Emerald gradient */
+.bg-emerald-gradient {
+  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+}
+
+/* Rose gradient */
+.bg-rose-gradient {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #be123c 100%);
+}
+
+/* Navigation loader styles */
+.navigation-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #082f49 0%, #0c4a6e 50%, #1e293b 100%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

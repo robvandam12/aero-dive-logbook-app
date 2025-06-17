@@ -26,7 +26,7 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#6555FF", // Nuevo color de marca
+          DEFAULT: "#6555FF",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -59,57 +59,25 @@ const config: Config = {
           200: "#bae6fd",
           300: "#7dd3fc",
           400: "#38bdf8",
-          500: "#6555FF", // Cambiado al color de marca
-          600: "#5A4AE5", // Variación más oscura
-          700: "#4F3FCC", // Aún más oscura
-          800: "#4433B2", // Más oscura
-          900: "#392999", // La más oscura
-          950: "#1e1b4b",
+          500: "#0ea5e9",
+          600: "#0284c7",
+          700: "#0369a1",
+          800: "#075985",
+          900: "#0c4a6e",
+          950: "#082f49",
         },
         gold: {
-          50: "#fefce8",
-          100: "#fef9c3",
-          200: "#fef08a",
-          300: "#fde047",
-          400: "#facc15",
-          500: "#eab308",
-          600: "#ca8a04",
-          700: "#a16207",
-          800: "#854d0e",
-          900: "#713f12",
-          950: "#422006",
+          50: "#fffbeb",
+          100: "#fef3c7",
+          200: "#fde68a",
+          300: "#fcd34d",
+          400: "#fbbf24",
+          500: "#f59e0b",
+          600: "#d97706",
+          700: "#b45309",
+          800: "#92400e",
+          900: "#78350f",
         },
-        emerald: {
-          50: "#ecfdf5",
-          100: "#d1fae5",
-          200: "#a7f3d0",
-          300: "#6ee7b7",
-          400: "#34d399",
-          500: "#10b981",
-          600: "#059669",
-          700: "#047857",
-          800: "#065f46",
-          900: "#064e3b",
-          950: "#022c22",
-        },
-        rose: {
-          50: "#fff1f2",
-          100: "#ffe4e6",
-          200: "#fecdd3",
-          300: "#fda4af",
-          400: "#fb7185",
-          500: "#f43f5e",
-          600: "#e11d48",
-          700: "#be123c",
-          800: "#9f1239",
-          900: "#881337",
-          950: "#4c0519",
-        },
-      },
-      backgroundImage: {
-        "ocean-gradient": "linear-gradient(135deg, #6555FF 0%, #5A4AE5 100%)", // Actualizado con el nuevo color
-        "deep-ocean": "linear-gradient(to bottom, #1e293b, #0f172a)",
-        "sunset-ocean": "linear-gradient(135deg, #6555FF 0%, #eab308 100%)", // Actualizado
       },
       keyframes: {
         "accordion-down": {
@@ -120,10 +88,22 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "caret-blink": {
+          "0%,70%,100%": { opacity: "1" },
+          "20%,50%": { opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "caret-blink": "caret-blink 1.25s ease-out infinite",
+      },
+      backgroundImage: {
+        'ocean-gradient': 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%)',
+        'primary-gradient': 'linear-gradient(135deg, #6555FF 0%, #8B5CF6 50%, #A855F7 100%)',
+        'gold-gradient': 'linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%)',
+        'emerald-gradient': 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
+        'rose-gradient': 'linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #be123c 100%)',
       },
     },
   },

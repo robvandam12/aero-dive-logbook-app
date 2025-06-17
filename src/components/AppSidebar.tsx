@@ -1,188 +1,181 @@
 
-import * as React from "react"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { 
+  FileText, 
+  Plus, 
+  BarChart3, 
+  Settings, 
+  Users, 
+  LogOut,
+  Building2,
+  MapPin,
+  Ship,
+  Shield
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthProvider";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
-export interface NavItem {
-  title: string
-  href?: string
-  disabled?: boolean
-  external?: boolean
-  icon?: React.ReactNode
-  label?: string
-  description?: string
-}
-
-export interface NavLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  to: string
-  children: React.ReactNode
-}
-
-import { Calendar, Home, Ship, Users, Cog, BarChart3, Settings, Anchor, ChevronUp, User2, FileText } from "lucide-react"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-} from "@/components/ui/sidebar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/contexts/AuthProvider"
-import { useUserProfile } from "@/hooks/useUserProfile"
-import { supabase } from "@/integrations/supabase/client"
-import { useNavigate } from "react-router-dom"
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const AppSidebar = () => {
   const { user } = useAuth();
-  const { data: userProfile } = useUserProfile();
+  const { data: profile } = useUserProfile();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/");
+    navigate('/auth');
   };
 
-  const isAdmin = userProfile?.role === 'admin';
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
 
-  // Elementos de navegación principales
-  const mainNavigation = [
+  const menuItems = [
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: Home,
+      icon: BarChart3,
+      show: true
     },
     {
       title: "Nueva Bitácora",
-      url: "/new-dive-log",
-      icon: Ship,
+      url: "/dive-logs/new",
+      icon: Plus,
+      show: true
     },
     {
-      title: "Todas las Bitácoras",
-      url: "/all-dive-logs",
+      title: "Bitácoras",
+      url: "/dive-logs",
       icon: FileText,
+      show: true
     },
-  ];
-
-  // Elementos solo para administradores
-  const adminNavigation = [
     {
       title: "Reportes",
       url: "/reports",
       icon: BarChart3,
+      show: profile?.role === 'admin'
     },
+    {
+      title: "Validar Firma",
+      url: "/validate-signature",
+      icon: Shield,
+      show: true
+    }
+  ];
+
+  const adminItems = [
     {
       title: "Administración",
       url: "/admin",
       icon: Settings,
+      show: profile?.role === 'admin'
     },
+    {
+      title: "Usuarios",
+      url: "/admin/users",
+      icon: Users,
+      show: profile?.role === 'admin'
+    },
+    {
+      title: "Centros",
+      url: "/admin/centers",
+      icon: Building2,
+      show: profile?.role === 'admin'
+    },
+    {
+      title: "Sitios de Buceo",
+      url: "/admin/dive-sites",
+      icon: MapPin,
+      show: profile?.role === 'admin'
+    },
+    {
+      title: "Embarcaciones",
+      url: "/admin/boats",
+      icon: Ship,
+      show: profile?.role === 'admin'
+    }
   ];
 
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <div className="flex items-center">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-sidebar-primary-foreground">
-                  <Anchor className="w-5 h-5 text-white" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold text-white">Aerocam App</span>
-                  <span className="truncate text-xs text-ocean-300">Sistema de Bitácoras</span>
-                </div>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar className="glass border-r border-ocean-700">
+      <SidebarHeader className="p-6 border-b border-ocean-700">
+        <div className="flex items-center space-x-3">
+          <img 
+            src="/lovable-uploads/5038e2b4-cc24-47a9-8840-3147bbda23b9.png"
+            alt="Aerocam Logo"
+            className="w-10 h-10 object-contain"
+          />
+          <div>
+            <h2 className="text-xl font-bold text-white">Aerocam</h2>
+            <p className="text-sm text-ocean-300">Sistema de Bitácoras</p>
+          </div>
+        </div>
       </SidebarHeader>
+      
+      <SidebarContent className="p-4">
+        <SidebarMenu>
+          {menuItems.filter(item => item.show).map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton 
+                onClick={() => navigate(item.url)}
+                className={`w-full justify-start text-ocean-300 hover:text-white hover:bg-ocean-800 ${
+                  isActive(item.url) ? 'bg-ocean-800 text-white' : ''
+                }`}
+              >
+                <item.icon className="w-4 h-4 mr-3" />
+                {item.title}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-ocean-300">Navegación Principal</SidebarGroupLabel>
-          <SidebarGroupContent>
+        {profile?.role === 'admin' && (
+          <>
+            <div className="mt-8 mb-4">
+              <h3 className="text-sm font-semibold text-ocean-400 uppercase tracking-wider px-3">
+                Administración
+              </h3>
+            </div>
             <SidebarMenu>
-              {mainNavigation.map((item) => (
+              {adminItems.filter(item => item.show).map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-ocean-200 hover:text-white hover:bg-gradient-to-r hover:from-[#6555FF]/20 hover:to-purple-700/20">
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                  <SidebarMenuButton 
+                    onClick={() => navigate(item.url)}
+                    className={`w-full justify-start text-ocean-300 hover:text-white hover:bg-ocean-800 ${
+                      isActive(item.url) ? 'bg-ocean-800 text-white' : ''
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 mr-3" />
+                    {item.title}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-ocean-300">Administración</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminNavigation.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="text-ocean-200 hover:text-white hover:bg-gradient-to-r hover:from-[#6555FF]/20 hover:to-purple-700/20">
-                      <a href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          </>
         )}
       </SidebarContent>
-
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-gradient-to-r data-[state=open]:from-[#6555FF]/20 data-[state=open]:to-purple-700/20 text-ocean-200"
-                >
-                  <User2 className="size-4" />
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">
-                      {userProfile?.username || user?.email?.split('@')[0] || 'Usuario'}
-                    </span>
-                    <span className="truncate text-xs text-ocean-400">
-                      {userProfile?.role === 'admin' ? 'Administrador' : 'Supervisor'}
-                    </span>
-                  </div>
-                  <ChevronUp className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-ocean-900 border-ocean-700"
-                side="bottom"
-                align="end"
-                sideOffset={4}
-              >
-                <DropdownMenuItem onClick={handleSignOut} className="text-ocean-200 hover:text-white hover:bg-gradient-to-r hover:from-[#6555FF]/20 hover:to-purple-700/20">
-                  Cerrar Sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      
+      <SidebarFooter className="p-4 border-t border-ocean-700">
+        <div className="mb-4">
+          <p className="text-sm text-ocean-300">
+            {profile?.username || user?.email}
+          </p>
+          <p className="text-xs text-ocean-400 capitalize">
+            {profile?.role || 'Usuario'}
+          </p>
+        </div>
+        <SidebarMenuButton 
+          onClick={handleSignOut}
+          className="w-full justify-start text-ocean-300 hover:text-white hover:bg-red-800"
+        >
+          <LogOut className="w-4 h-4 mr-3" />
+          Cerrar Sesión
+        </SidebarMenuButton>
       </SidebarFooter>
-
-      <SidebarRail />
     </Sidebar>
-  )
-}
+  );
+};
+
+export { AppSidebar };
