@@ -3,9 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthProvider";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { Suspense } from "react";
 
 // Pages
@@ -23,7 +22,7 @@ import NotFound from "@/pages/NotFound";
 // Protected Components
 import ProtectedLayout from "@/components/ProtectedLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { NavigationLoader } from "@/components/NavigationLoader";
+import NavigationLoader from "@/components/NavigationLoader";
 
 import "./App.css";
 
@@ -53,22 +52,20 @@ function App() {
               {/* Protected routes with sidebar */}
               <Route path="/*" element={
                 <ProtectedRoute>
-                  <SidebarProvider>
-                    <ProtectedLayout>
-                      <Suspense fallback={<NavigationLoader />}>
-                        <Routes>
-                          <Route path="/dashboard" element={<Dashboard />} />
-                          <Route path="/new-dive-log" element={<NewDiveLog />} />
-                          <Route path="/dive-logs/:id/edit" element={<EditDiveLog />} />
-                          <Route path="/dive-logs/:id" element={<DiveLogDetail />} />
-                          <Route path="/all-dive-logs" element={<AllDiveLogs />} />
-                          <Route path="/reports" element={<Reports />} />
-                          <Route path="/admin" element={<Admin />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </Suspense>
-                    </ProtectedLayout>
-                  </SidebarProvider>
+                  <ProtectedLayout>
+                    <Suspense fallback={<NavigationLoader />}>
+                      <Routes>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/new-dive-log" element={<NewDiveLog />} />
+                        <Route path="/dive-logs/:id/edit" element={<EditDiveLog />} />
+                        <Route path="/dive-logs/:id" element={<DiveLogDetail />} />
+                        <Route path="/all-dive-logs" element={<AllDiveLogs />} />
+                        <Route path="/reports" element={<Reports />} />
+                        <Route path="/admin" element={<Admin />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </ProtectedLayout>
                 </ProtectedRoute>
               } />
             </Routes>

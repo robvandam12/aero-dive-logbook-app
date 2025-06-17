@@ -26,7 +26,7 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#6555FF", // Nuevo color de marca
+          DEFAULT: "#6555FF",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -59,11 +59,11 @@ const config: Config = {
           200: "#bae6fd",
           300: "#7dd3fc",
           400: "#38bdf8",
-          500: "#6555FF", // Cambiado al color de marca
-          600: "#5A4AE5", // Variación más oscura
-          700: "#4F3FCC", // Aún más oscura
-          800: "#4433B2", // Más oscura
-          900: "#392999", // La más oscura
+          500: "#6555FF",
+          600: "#5A4AE5",
+          700: "#4F3FCC",
+          800: "#4433B2",
+          900: "#392999",
           950: "#1e1b4b",
         },
         gold: {
@@ -107,9 +107,9 @@ const config: Config = {
         },
       },
       backgroundImage: {
-        "ocean-gradient": "linear-gradient(135deg, #6555FF 0%, #5A4AE5 100%)", // Actualizado con el nuevo color
+        "ocean-gradient": "linear-gradient(135deg, #6555FF 0%, #5A4AE5 100%)",
         "deep-ocean": "linear-gradient(to bottom, #1e293b, #0f172a)",
-        "sunset-ocean": "linear-gradient(135deg, #6555FF 0%, #eab308 100%)", // Actualizado
+        "sunset-ocean": "linear-gradient(135deg, #6555FF 0%, #eab308 100%)",
       },
       keyframes: {
         "accordion-down": {

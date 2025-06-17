@@ -2,6 +2,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -226,15 +231,26 @@ const generatePDFHtml = (diveLog: any) => {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+    return new Response("Method not allowed", { 
+      status: 405,
+      headers: corsHeaders 
+    });
   }
 
   try {
     const { diveLogId } = await req.json();
 
     if (!diveLogId) {
-      return new Response("Dive log ID is required", { status: 400 });
+      return new Response(JSON.stringify({ error: "Dive log ID is required" }), { 
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders }
+      });
     }
 
     // Obtener datos de la bitácora
@@ -251,18 +267,23 @@ serve(async (req) => {
       .single();
 
     if (error || !diveLog) {
-      return new Response("Dive log not found", { status: 404 });
+      return new Response(JSON.stringify({ error: "Dive log not found" }), { 
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders }
+      });
     }
 
     // Generar HTML para PDF
     const htmlContent = generatePDFHtml(diveLog);
 
-    // Por ahora retornamos el HTML. En un entorno real usaríamos una librería como puppeteer
-    // para generar PDF binario real
-    return new Response(htmlContent, {
+    return new Response(JSON.stringify({
+      success: true,
+      html: htmlContent,
+      filename: `bitacora_${diveLog.log_date}_${diveLog.id.slice(0, 8)}.html`
+    }), {
       headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Content-Disposition": `attachment; filename="bitacora_${diveLog.log_date}_${diveLog.id.slice(0, 8)}.html"`,
+        "Content-Type": "application/json",
+        ...corsHeaders
       },
     });
   } catch (error) {
@@ -271,7 +292,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }
