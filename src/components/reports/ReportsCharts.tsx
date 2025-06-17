@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from "recharts";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 
 interface ReportsChartsProps {
   dateRange: { from?: Date; to?: Date };
@@ -113,13 +113,7 @@ export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps)
   });
 
   if (isLoading) {
-    return (
-      <div className="grid gap-6 md:grid-cols-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-80" />
-        ))}
-      </div>
-    );
+    return <LoadingSkeleton type="dashboard" count={6} />;
   }
 
   const customTooltipStyle = {
@@ -164,6 +158,7 @@ export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps)
                 outerRadius={80}
                 dataKey="value"
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                labelStyle={{ fill: '#ffffff', fontSize: '12px' }}
               >
                 {chartData?.roleData?.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -190,6 +185,7 @@ export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps)
                 outerRadius={80}
                 dataKey="value"
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                labelStyle={{ fill: '#ffffff', fontSize: '12px' }}
               >
                 {chartData?.statusData?.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -103,6 +103,7 @@ export type Database = {
           boat_id: string | null
           center_id: string
           created_at: string
+          current_strength: number | null
           departure_time: string | null
           dive_site_id: string
           divers_manifest: Json | null
@@ -116,6 +117,8 @@ export type Database = {
           status: string
           supervisor_id: string
           supervisor_name: string | null
+          visibility: number | null
+          water_temperature: number | null
           weather_conditions: string | null
         }
         Insert: {
@@ -123,6 +126,7 @@ export type Database = {
           boat_id?: string | null
           center_id: string
           created_at?: string
+          current_strength?: number | null
           departure_time?: string | null
           dive_site_id: string
           divers_manifest?: Json | null
@@ -136,6 +140,8 @@ export type Database = {
           status?: string
           supervisor_id: string
           supervisor_name?: string | null
+          visibility?: number | null
+          water_temperature?: number | null
           weather_conditions?: string | null
         }
         Update: {
@@ -143,6 +149,7 @@ export type Database = {
           boat_id?: string | null
           center_id?: string
           created_at?: string
+          current_strength?: number | null
           departure_time?: string | null
           dive_site_id?: string
           divers_manifest?: Json | null
@@ -156,6 +163,8 @@ export type Database = {
           status?: string
           supervisor_id?: string
           supervisor_name?: string | null
+          visibility?: number | null
+          water_temperature?: number | null
           weather_conditions?: string | null
         }
         Relationships: [
