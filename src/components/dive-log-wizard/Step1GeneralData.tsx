@@ -1,3 +1,4 @@
+
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -114,15 +115,18 @@ export const Step1GeneralData = () => {
                   </SelectTrigger>
                   <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
                     {isLoadingUsers && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
-                    {supervisors.map(supervisor => (
-                      <SelectItem 
-                        key={supervisor.id} 
-                        value={supervisor.full_name || supervisor.email}
-                        className="hover:bg-ocean-800 focus:bg-ocean-800"
-                      >
-                        {supervisor.full_name || supervisor.email}
-                      </SelectItem>
-                    ))}
+                    {supervisors.map(supervisor => {
+                      const supervisorName = supervisor.full_name || supervisor.email || `Usuario ${supervisor.id.slice(0, 8)}`;
+                      return (
+                        <SelectItem 
+                          key={supervisor.id} 
+                          value={supervisorName}
+                          className="hover:bg-ocean-800 focus:bg-ocean-800"
+                        >
+                          {supervisorName}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               ) : (

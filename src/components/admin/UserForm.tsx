@@ -102,7 +102,7 @@ export const UserForm = ({ user, onSubmit, isLoading, isEdit = false }: UserForm
               <SelectValue placeholder="Seleccionar centro" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Sin centro asignado</SelectItem>
+              <SelectItem value="no-center">Sin centro asignado</SelectItem>
               {centers.map((center) => (
                 <SelectItem key={center.id} value={center.id}>
                   {center.name}
