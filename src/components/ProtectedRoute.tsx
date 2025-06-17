@@ -2,7 +2,7 @@
 import { useAuth } from "@/contexts/AuthProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Navigate } from "react-router-dom";
-import { Skeleton } from "./ui/skeleton";
+import { LoadingSkeleton } from "./LoadingSkeleton";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,12 +17,16 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background ocean-pattern">
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <Skeleton className="h-4 w-[250px]" />
-          <Skeleton className="h-4 w-[200px]" />
-          <p className="text-white text-center pt-4">Verificando acceso...</p>
+      <div className="min-h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-gray-900">
+        <div className="flex min-h-screen w-full">
+          {/* Sidebar skeleton */}
+          <div className="w-64 bg-gradient-to-b from-slate-950 to-gray-900 border-r border-slate-800">
+            <LoadingSkeleton type="page" count={1} />
+          </div>
+          {/* Content skeleton */}
+          <div className="flex-1 p-8">
+            <LoadingSkeleton type="dashboard" count={3} />
+          </div>
         </div>
       </div>
     );

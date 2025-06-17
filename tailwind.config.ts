@@ -54,17 +54,17 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
         ocean: {
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          200: "#bae6fd",
-          300: "#7dd3fc",
-          400: "#38bdf8",
+          50: "#f8fafc",
+          100: "#f1f5f9",
+          200: "#e2e8f0",
+          300: "#cbd5e1",
+          400: "#94a3b8",
           500: "#6555FF",
           600: "#5A4AE5",
           700: "#4F3FCC",
-          800: "#4433B2",
-          900: "#392999",
-          950: "#1e1b4b",
+          800: "#334155",
+          900: "#1e293b",
+          950: "#0f172a",
         },
         gold: {
           50: "#fefce8",
@@ -108,8 +108,9 @@ const config: Config = {
       },
       backgroundImage: {
         "ocean-gradient": "linear-gradient(135deg, #6555FF 0%, #5A4AE5 100%)",
-        "deep-ocean": "linear-gradient(to bottom, #1e293b, #0f172a)",
+        "deep-ocean": "linear-gradient(to bottom, #0f172a, #020617)",
         "sunset-ocean": "linear-gradient(135deg, #6555FF 0%, #eab308 100%)",
+        "dark-gradient": "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
       },
       keyframes: {
         "accordion-down": {

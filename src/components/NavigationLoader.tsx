@@ -1,24 +1,30 @@
 
-import { Anchor } from "lucide-react";
+import { LoadingSkeleton } from "./LoadingSkeleton";
 
 const NavigationLoader = () => {
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-purple-950 via-purple-900 to-slate-900 z-50 flex items-center justify-center">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="relative">
-          <div className="w-12 h-12 border-4 border-[#6555FF]/20 border-t-[#6555FF] rounded-full animate-spin"></div>
-          <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-l-purple-700 rounded-full animate-spin animate-reverse" style={{ animationDelay: '0.2s' }}></div>
-        </div>
-        <div className="text-center space-y-2">
-          <div className="flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/fa9f20fb-eb9a-43dd-9e79-070cb9437c55.png" 
-              alt="Aerocam Logo" 
-              className="w-5 h-5"
-            />
-            <span className="text-white font-medium">Aerocam</span>
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-gray-900">
+      <div className="flex min-h-screen w-full">
+        {/* Sidebar skeleton */}
+        <div className="w-64 bg-gradient-to-b from-slate-950 to-gray-900 border-r border-slate-800 p-4">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#6555FF]/20 to-purple-700/20 rounded-lg animate-pulse"></div>
+              <div className="space-y-1">
+                <div className="h-4 w-24 bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-3 w-20 bg-slate-800 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-10 bg-slate-800/50 rounded animate-pulse"></div>
+              ))}
+            </div>
           </div>
-          <p className="text-purple-300 text-sm">Cargando...</p>
+        </div>
+        {/* Content skeleton */}
+        <div className="flex-1 p-8">
+          <LoadingSkeleton type="dashboard" count={3} />
         </div>
       </div>
     </div>

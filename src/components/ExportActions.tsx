@@ -1,119 +1,72 @@
 
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Loader2 } from "lucide-react";
-import { usePDFExport } from "@/hooks/usePDFExport";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { Download, FileText, Loader2, Mail } from "lucide-react";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PDFPreview } from "./PDFPreview";
+import { EmailDialog } from "./EmailDialog";
+import { useExcelExport } from "@/hooks/useExcelExport";
+import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 
 interface ExportActionsProps {
   diveLogId: string;
   hasSignature: boolean;
+  diveLog?: DiveLogWithFullDetails;
 }
 
-export const ExportActions = ({ diveLogId, hasSignature }: ExportActionsProps) => {
-  const { exportToPDF } = usePDFExport();
-  const { toast } = useToast();
+export const ExportActions = ({ diveLogId, hasSignature, diveLog }: ExportActionsProps) => {
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const { exportSingleDiveLog } = useExcelExport();
 
-  const handleExportPDF = (includeSignature: boolean = true) => {
-    exportToPDF.mutate({
-      diveLogId,
-      includeSignature,
-    });
-  };
-
-  const handleExportJSON = async () => {
-    try {
-      // Get dive log data from Supabase
-      const { data, error } = await supabase
-        .from('dive_logs')
-        .select(`
-          *,
-          centers (name, location),
-          dive_sites (name, location),
-          boats (name, registration_number),
-          profiles (username)
-        `)
-        .eq('id', diveLogId)
-        .single();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-      
-      // Create and download JSON file
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `bitacora-${diveLogId}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "JSON exportado",
-        description: "Los datos de la bitácora han sido exportados exitosamente."
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error al exportar JSON",
-        description: error.message,
-        variant: "destructive"
-      });
+  const handleExportExcel = () => {
+    if (diveLog) {
+      exportSingleDiveLog(diveLog);
     }
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          disabled={exportToPDF.isPending}
-          className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
-        >
-          {exportToPDF.isPending ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
+    <div className="flex gap-2">
+      <PDFPreview diveLogId={diveLogId} hasSignature={hasSignature} />
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
+          >
             <Download className="w-4 h-4 mr-2" />
-          )}
-          Exportar
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-ocean-950 border-ocean-700">
-        <DropdownMenuItem 
-          onClick={() => handleExportPDF(true)}
-          className="text-white hover:bg-ocean-800"
-          disabled={exportToPDF.isPending}
-        >
-          <FileText className="w-4 h-4 mr-2" />
-          PDF Completo
-        </DropdownMenuItem>
-        {hasSignature && (
+            Más opciones
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="bg-slate-950 border-slate-700">
           <DropdownMenuItem 
-            onClick={() => handleExportPDF(false)}
-            className="text-white hover:bg-ocean-800"
-            disabled={exportToPDF.isPending}
+            onClick={handleExportExcel}
+            className="text-white hover:bg-slate-800"
           >
             <FileText className="w-4 h-4 mr-2" />
-            PDF sin Firma
+            Exportar Excel
           </DropdownMenuItem>
-        )}
-        <DropdownMenuItem 
-          onClick={handleExportJSON}
-          className="text-white hover:bg-ocean-800"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          Datos JSON
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem 
+            onClick={() => setEmailDialogOpen(true)}
+            className="text-white hover:bg-slate-800"
+          >
+            <Mail className="w-4 h-4 mr-2" />
+            Enviar por Email
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <EmailDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        diveLogId={diveLogId}
+      />
+    </div>
   );
 };

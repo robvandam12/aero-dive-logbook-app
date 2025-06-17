@@ -12,8 +12,8 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex-1 space-y-4 p-8 pt-6">
-        <div className="flex items-center gap-4">
+      <div className="w-full h-full p-8">
+        <div className="flex items-center gap-4 mb-6">
           <SidebarTrigger />
           <LoadingSkeleton type="page" count={1} />
         </div>
@@ -25,7 +25,7 @@ const Dashboard = () => {
   // Renderizar dashboard según el rol del usuario
   if (userProfile?.role === 'admin') {
     return (
-      <div className="flex-1 space-y-4 p-8 pt-6">
+      <div className="w-full h-full p-8">
         <div className="flex items-center gap-4 mb-6">
           <SidebarTrigger />
         </div>
@@ -35,7 +35,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
+    <div className="w-full h-full p-8">
       <div className="flex items-center gap-4 mb-6">
         <SidebarTrigger />
       </div>
