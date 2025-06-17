@@ -93,8 +93,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <div className="flex items-center">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-sidebar-primary-foreground">
-                  <Ship className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-sidebar-primary-foreground relative overflow-hidden">
+                  <img 
+                    src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
+                    alt="Aerocam" 
+                    className="w-6 h-6 object-contain filter brightness-0 invert"
+                  />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold text-white">Aerocam App</span>
@@ -113,7 +117,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               {mainNavigation.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-ocean-200 hover:text-white hover:bg-ocean-800">
+                  <SidebarMenuButton asChild className="text-ocean-200 hover:text-white hover:bg-gradient-to-r hover:from-[#6555FF]/20 hover:to-purple-700/20">
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -132,7 +136,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenu>
                 {adminNavigation.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="text-ocean-200 hover:text-white hover:bg-ocean-800">
+                    <SidebarMenuButton asChild className="text-ocean-200 hover:text-white hover:bg-gradient-to-r hover:from-[#6555FF]/20 hover:to-purple-700/20">
                       <a href={item.url}>
                         <item.icon />
                         <span>{item.title}</span>
@@ -153,7 +157,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground text-ocean-200"
+                  className="data-[state=open]:bg-gradient-to-r data-[state=open]:from-[#6555FF]/20 data-[state=open]:to-purple-700/20 text-ocean-200"
                 >
                   <User2 className="size-4" />
                   <div className="grid flex-1 text-left text-sm leading-tight">
@@ -173,7 +177,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuItem onClick={handleSignOut} className="text-ocean-200 hover:text-white hover:bg-ocean-800">
+                <DropdownMenuItem onClick={handleSignOut} className="text-ocean-200 hover:text-white hover:bg-gradient-to-r hover:from-[#6555FF]/20 hover:to-purple-700/20">
                   Cerrar Sesión
                 </DropdownMenuItem>
               </DropdownMenuContent>

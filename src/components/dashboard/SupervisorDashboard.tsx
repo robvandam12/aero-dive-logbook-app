@@ -5,7 +5,7 @@ import { Ship, FileCheck, Clock, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDiveLogs } from "@/hooks/useDiveLogs";
 import { useAuth } from "@/contexts/AuthProvider";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { RecentDiveLogsTable } from "@/components/RecentDiveLogsTable";
 
 export const SupervisorDashboard = () => {
@@ -27,10 +27,12 @@ export const SupervisorDashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-white">Mi Dashboard</h2>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
+            Mi Dashboard
+          </h2>
           <p className="text-ocean-300">Resumen de mis bitácoras de buceo</p>
         </div>
-        <Button onClick={() => navigate('/new-dive-log')} className="bg-ocean-gradient hover:opacity-90">
+        <Button onClick={() => navigate('/new-dive-log')} className="bg-gradient-to-r from-[#6555FF] to-purple-700 hover:opacity-90">
           <PlusCircle className="w-4 h-4 mr-2" />
           Nueva Bitácora
         </Button>
@@ -38,11 +40,7 @@ export const SupervisorDashboard = () => {
 
       {/* Personal Stats */}
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-[126px] rounded-lg" />
-          ))}
-        </div>
+        <LoadingSkeleton type="dashboard" count={3} />
       ) : (
         <div className="grid gap-4 md:grid-cols-3">
           <StatsCard

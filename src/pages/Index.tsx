@@ -5,7 +5,7 @@ import { DiveLogTable } from "@/components/DiveLogTable";
 import { DashboardChart } from "@/components/DashboardChart";
 import { FileText, CheckCircle, Send, Users, Clock, TrendingUp } from "lucide-react";
 import { useIndexStats } from "@/hooks/useIndexStats";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthProvider";
 
@@ -26,7 +26,11 @@ const Index = () => {
   const sentPercentage = "0.0";
 
   const statsCards = isLoading ? (
-    Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-full min-h-[124px] rounded-xl glass" />)
+    Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="glass rounded-xl p-6">
+        <LoadingSkeleton type="cards" count={1} />
+      </div>
+    ))
   ) : (
     <>
       <StatsCard
@@ -58,16 +62,22 @@ const Index = () => {
     </>
   );
 
-
   return (
     <div className="min-h-screen bg-hero-gradient ocean-pattern">
       <Header />
       
       <main className="container mx-auto px-6 py-8 space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-white">
-            Bienvenido al Sistema Aerocam
-          </h1>
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <img 
+              src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
+              alt="Aerocam" 
+              className="w-12 h-12 object-contain"
+            />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
+              Bienvenido al Sistema Aerocam
+            </h1>
+          </div>
           <p className="text-xl text-ocean-300 max-w-2xl mx-auto">
             Gestiona tus bitácoras de buceo de manera profesional, segura y eficiente
           </p>
@@ -84,7 +94,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div onClick={() => handleQuickActionClick('/new-dive-log')} className="glass p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer ocean-shimmer">
             <div className="flex items-center space-x-4">
-              <div className="bg-ocean-gradient p-3 rounded-xl">
+              <div className="bg-gradient-to-r from-[#6555FF] to-purple-700 p-3 rounded-xl">
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -120,7 +130,14 @@ const Index = () => {
         </div>
 
         <footer className="text-center text-ocean-400 text-sm py-8">
-          <p>© 2024 Aerocam App - Sistema de Gestión de Bitácoras de Buceo</p>
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <img 
+              src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
+              alt="Aerocam" 
+              className="w-4 h-4 object-contain opacity-60"
+            />
+            <p>© 2024 Aerocam App - Sistema de Gestión de Bitácoras de Buceo</p>
+          </div>
         </footer>
       </main>
     </div>

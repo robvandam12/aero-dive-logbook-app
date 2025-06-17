@@ -57,7 +57,11 @@ const LandingPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-[#6555FF] to-purple-700 rounded-lg flex items-center justify-center">
-                <Ship className="w-6 h-6 text-white" />
+                <img 
+                  src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
+                  alt="Aerocam" 
+                  className="w-6 h-6 object-contain filter brightness-0 invert"
+                />
               </div>
               <h1 className="text-2xl font-bold text-white">Aerocam App</h1>
             </div>
@@ -74,12 +78,19 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section className="py-20 px-6">
         <div className="container mx-auto text-center">
-          <h2 className="text-5xl font-bold text-white mb-6">
-            Sistema de Bitácoras de Buceo
-            <span className="block text-3xl text-ocean-300 mt-2">
-              Profesional y Seguro
-            </span>
-          </h2>
+          <div className="flex items-center justify-center space-x-4 mb-6">
+            <img 
+              src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
+              alt="Aerocam" 
+              className="w-16 h-16 object-contain"
+            />
+            <h2 className="text-5xl font-bold bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
+              Sistema de Bitácoras de Buceo
+            </h2>
+          </div>
+          <span className="block text-3xl text-ocean-300 mt-2 mb-6">
+            Profesional y Seguro
+          </span>
           <p className="text-xl text-ocean-200 mb-8 max-w-2xl mx-auto">
             Gestiona de manera eficiente todas las operaciones de buceo con nuestro sistema 
             integral de bitácoras digitales, reportes y trazabilidad completa.
@@ -102,8 +113,8 @@ const LandingPage = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="bg-ocean-950/30 backdrop-blur-sm rounded-lg p-6 border border-ocean-800">
-                <feature.icon className="w-12 h-12 text-ocean-400 mb-4" />
+              <div key={index} className="bg-ocean-950/30 backdrop-blur-sm rounded-lg p-6 border border-ocean-800 hover:border-[#6555FF]/50 transition-all duration-300">
+                <feature.icon className="w-12 h-12 text-[#6555FF] mb-4" />
                 <h4 className="text-xl font-semibold text-white mb-2">{feature.title}</h4>
                 <p className="text-ocean-300">{feature.description}</p>
               </div>
@@ -115,9 +126,16 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="py-8 px-6 border-t border-ocean-800">
         <div className="container mx-auto text-center">
-          <p className="text-ocean-400">
-            © 2025 Aerocam App. Sistema profesional de gestión de bitácoras de buceo.
-          </p>
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <img 
+              src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
+              alt="Aerocam" 
+              className="w-5 h-5 object-contain opacity-60"
+            />
+            <p className="text-ocean-400">
+              © 2025 Aerocam App. Sistema profesional de gestión de bitácoras de buceo.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

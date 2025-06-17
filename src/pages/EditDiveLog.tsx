@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useDiveLog } from "@/hooks/useDiveLog";
 import { DiveLogWizard } from "@/components/DiveLogWizard";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const EditDiveLogPage = () => {
@@ -21,13 +21,9 @@ const EditDiveLogPage = () => {
       <main className="container mx-auto px-6 py-8 space-y-8">
         <div className="flex items-center gap-4">
           <SidebarTrigger />
-          <Skeleton className="h-8 w-64" />
+          <LoadingSkeleton type="page" count={1} />
         </div>
-        <div className="space-y-4">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+        <LoadingSkeleton type="form" count={6} />
       </main>
     );
   }
@@ -37,7 +33,7 @@ const EditDiveLogPage = () => {
       <main className="container mx-auto px-6 py-8 space-y-8">
         <div className="flex items-center gap-4">
           <SidebarTrigger />
-          <Button variant="ghost" onClick={handleBack} className="text-ocean-300">
+          <Button variant="ghost" onClick={handleBack} className="text-ocean-300 hover:text-white">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a la Bitácora
           </Button>
@@ -45,7 +41,7 @@ const EditDiveLogPage = () => {
         <div className="text-center py-16">
           <h2 className="text-2xl font-bold text-white mb-4">Error al cargar la bitácora</h2>
           <p className="text-ocean-300 mb-8">No se pudo cargar la bitácora para editar.</p>
-          <Button onClick={handleBack} className="bg-ocean-gradient hover:opacity-90">
+          <Button onClick={handleBack} className="bg-gradient-to-r from-[#6555FF] to-purple-700 hover:opacity-90">
             Volver a la Bitácora
           </Button>
         </div>
@@ -62,7 +58,7 @@ const EditDiveLogPage = () => {
           Volver a la Bitácora
         </Button>
         <div className="text-left">
-          <h1 className="text-4xl font-bold text-white">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
             Editar Bitácora de Buceo
           </h1>
           <p className="text-xl text-ocean-300 max-w-2xl">

@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/contexts/AuthProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { SupervisorDashboard } from "@/components/dashboard/SupervisorDashboard";
@@ -15,13 +15,9 @@ const Dashboard = () => {
       <div className="flex-1 space-y-4 p-8 pt-6">
         <div className="flex items-center gap-4">
           <SidebarTrigger />
-          <Skeleton className="h-8 w-64" />
+          <LoadingSkeleton type="page" count={1} />
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-        </div>
+        <LoadingSkeleton type="dashboard" count={4} />
       </div>
     );
   }
