@@ -12,6 +12,27 @@ interface ReportsChartsProps {
 
 const COLORS = ['#6555FF', '#10b981', '#eab308', '#f43f5e', '#8b5cf6', '#06b6d4', '#f97316'];
 
+// Custom label component for pie charts with white text
+const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text 
+      x={x} 
+      y={y} 
+      fill="#ffffff" 
+      textAnchor={x > cx ? 'start' : 'end'} 
+      dominantBaseline="central"
+      fontSize="12px"
+    >
+      {`${name} ${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
 export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps) => {
   const { data: chartData, isLoading } = useQuery({
     queryKey: ['reportsCharts', dateRange, selectedCenter],
@@ -155,10 +176,10 @@ export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps)
                 data={chartData?.roleData || []}
                 cx="50%"
                 cy="50%"
+                labelLine={false}
+                label={CustomLabel}
                 outerRadius={80}
                 dataKey="value"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                labelStyle={{ fill: '#ffffff', fontSize: '12px' }}
               >
                 {chartData?.roleData?.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -182,10 +203,10 @@ export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps)
                 data={chartData?.statusData || []}
                 cx="50%"
                 cy="50%"
+                labelLine={false}
+                label={CustomLabel}
                 outerRadius={80}
                 dataKey="value"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                labelStyle={{ fill: '#ffffff', fontSize: '12px' }}
               >
                 {chartData?.statusData?.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
