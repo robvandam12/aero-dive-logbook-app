@@ -13,18 +13,20 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-interface InvitationRequest {
+interface InvitationData {
   email: string;
-  token: string;
-  userData: {
-    full_name: string;
-    role: 'admin' | 'supervisor';
-    center_id?: string;
-  };
+  fullName: string;
+  role: 'admin' | 'supervisor';
+  centerId?: string;
   message?: string;
+  createdBy: string;
 }
 
-const getEmailTemplate = (data: InvitationRequest & { inviteUrl: string }) => {
+const generateInvitationToken = () => {
+  return crypto.randomUUID() + '-' + Date.now().toString(36);
+};
+
+const getEmailTemplate = (data: InvitationData & { token: string; inviteUrl: string }) => {
   return `
     <!DOCTYPE html>
     <html>
@@ -43,12 +45,35 @@ const getEmailTemplate = (data: InvitationRequest & { inviteUrl: string }) => {
           border-radius: 10px 10px 0 0; 
         }
         .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+        .subtitle { font-size: 16px; opacity: 0.9; }
         .content { 
           background: #f8fafc; 
           padding: 40px 30px; 
           border-radius: 0 0 10px 10px;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        .welcome-message { 
+          font-size: 24px; 
+          font-weight: bold; 
+          color: #1e293b; 
+          margin-bottom: 20px; 
+        }
+        .invitation-details {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px solid #f1f5f9;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-weight: bold; color: #6555FF; }
+        .detail-value { color: #334155; }
         .cta-button { 
           display: inline-block; 
           background: linear-gradient(135deg, #6555FF, #8B5CF6); 
@@ -58,44 +83,121 @@ const getEmailTemplate = (data: InvitationRequest & { inviteUrl: string }) => {
           border-radius: 8px; 
           margin: 30px 0; 
           font-weight: bold;
+          font-size: 16px;
+          box-shadow: 0 4px 12px rgba(101, 85, 255, 0.3);
+          transition: transform 0.2s;
         }
-        .footer { text-align: center; margin-top: 40px; color: #64748b; font-size: 14px; }
+        .cta-button:hover { transform: translateY(-2px); }
+        .backup-link {
+          background: #f1f5f9;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          padding: 15px;
+          margin: 20px 0;
+          font-size: 14px;
+          word-break: break-all;
+        }
+        .message-box {
+          background: #e0f2fe;
+          border-left: 4px solid #0284c7;
+          padding: 20px;
+          margin: 25px 0;
+          border-radius: 0 8px 8px 0;
+        }
+        .message-title { font-weight: bold; color: #0284c7; margin-bottom: 10px; }
+        .footer { 
+          text-align: center; 
+          margin-top: 40px; 
+          color: #64748b; 
+          font-size: 14px;
+          line-height: 1.5;
+        }
+        .security-note {
+          background: #fef7cd;
+          border: 1px solid #f59e0b;
+          border-radius: 6px;
+          padding: 15px;
+          margin: 20px 0;
+          font-size: 14px;
+        }
+        .security-title { font-weight: bold; color: #f59e0b; margin-bottom: 8px; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
           <div class="logo">🚁 Aerocam App</div>
-          <div>Sistema Profesional de Bitácoras de Buceo</div>
+          <div class="subtitle">Sistema Profesional de Bitácoras de Buceo</div>
         </div>
         
         <div class="content">
-          <h2>¡Has sido invitado!</h2>
+          <div class="welcome-message">¡Has sido invitado!</div>
           
-          <p>Hola <strong>${data.userData.full_name}</strong>,</p>
+          <p>Hola <strong>${data.fullName}</strong>,</p>
           
-          <p>Has sido invitado a formar parte del equipo de Aerocam App como <strong>${data.userData.role === 'admin' ? 'Administrador' : 'Supervisor'}</strong>.</p>
+          <p>Has sido invitado a formar parte del equipo de Aerocam App, el sistema profesional para la gestión de bitácoras de buceo.</p>
+          
+          <div class="invitation-details">
+            <h3 style="margin-top: 0; color: #1e293b;">Detalles de tu invitación:</h3>
+            <div class="detail-row">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value">${data.email}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Nombre completo:</span>
+              <span class="detail-value">${data.fullName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Rol asignado:</span>
+              <span class="detail-value">${data.role === 'admin' ? 'Administrador' : 'Supervisor'}</span>
+            </div>
+            ${data.centerId ? `
+              <div class="detail-row">
+                <span class="detail-label">Centro asignado:</span>
+                <span class="detail-value">Configurado automáticamente</span>
+              </div>
+            ` : ''}
+          </div>
           
           ${data.message ? `
-            <div style="background: #e0f2fe; border-left: 4px solid #0284c7; padding: 20px; margin: 25px 0;">
-              <strong>Mensaje del administrador:</strong><br>
-              ${data.message}
+            <div class="message-box">
+              <div class="message-title">Mensaje del administrador:</div>
+              <p style="margin: 0;">${data.message}</p>
             </div>
           ` : ''}
+          
+          <p>Para completar tu registro y acceder al sistema, haz clic en el siguiente botón:</p>
           
           <div style="text-align: center;">
             <a href="${data.inviteUrl}" class="cta-button">Completar mi Registro</a>
           </div>
           
-          <p style="font-size: 12px; color: #666;">
+          <div class="backup-link">
             <strong>Enlace alternativo:</strong><br>
-            ${data.inviteUrl}
-          </p>
+            Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+            <a href="${data.inviteUrl}">${data.inviteUrl}</a>
+          </div>
+          
+          <div class="security-note">
+            <div class="security-title">⚠️ Nota de seguridad:</div>
+            Esta invitación expira en 7 días por motivos de seguridad. Si no puedes acceder o tienes problemas, contacta a tu administrador.
+          </div>
+          
+          <p><strong>¿Qué puedes hacer con Aerocam App?</strong></p>
+          <ul style="color: #475569; line-height: 1.7;">
+            <li>Crear y gestionar bitácoras de buceo digitales</li>
+            <li>Firmar digitalmente tus reportes</li>
+            <li>Exportar bitácoras en PDF y Excel</li>
+            <li>Enviar reportes por email</li>
+            <li>Gestionar equipos de buceo y sitios</li>
+            ${data.role === 'admin' ? '<li>Administrar usuarios y configuración del sistema</li>' : ''}
+          </ul>
         </div>
         
         <div class="footer">
           <p><strong>© 2025 Aerocam App</strong></p>
-          <p>Esta invitación expira en 7 días por seguridad.</p>
+          <p>Sistema profesional de gestión de bitácoras de buceo</p>
+          <p>Esta invitación fue enviada a ${data.email}</p>
         </div>
       </div>
     </body>
@@ -117,23 +219,43 @@ serve(async (req) => {
   }
 
   try {
-    const data: InvitationRequest = await req.json();
+    const data: InvitationData = await req.json();
     console.log("Received invitation request:", data);
 
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY no configurado");
     }
 
-    // Crear URL de invitación
-    const inviteUrl = `${supabaseUrl.replace('/rest/v1', '')}/auth/signup?token=${data.token}&email=${encodeURIComponent(data.email)}`;
+    // Generate invitation token
+    const token = generateInvitationToken();
+    const inviteUrl = `${supabaseUrl}/auth/signup?token=${token}&email=${encodeURIComponent(data.email)}`;
 
-    // Enviar email de invitación
-    const emailHtml = getEmailTemplate({ ...data, inviteUrl });
+    // Store invitation in database
+    const { error: insertError } = await supabase
+      .from('invitation_tokens')
+      .insert({
+        email: data.email,
+        token,
+        created_by: data.createdBy,
+        user_data: {
+          full_name: data.fullName,
+          role: data.role,
+          center_id: data.centerId
+        }
+      });
+
+    if (insertError) {
+      console.error("Error storing invitation:", insertError);
+      throw new Error("Error almacenando invitación");
+    }
+
+    // Send invitation email
+    const emailHtml = getEmailTemplate({ ...data, token, inviteUrl });
 
     const emailPayload = {
-      from: "Aerocam App <noreply@resend.dev>",
+      from: "noreply@resend.dev",
       to: [data.email],
-      subject: `Invitación a Aerocam App - ${data.userData.role === 'admin' ? 'Administrador' : 'Supervisor'}`,
+      subject: `Invitación a Aerocam App - ${data.role === 'admin' ? 'Administrador' : 'Supervisor'}`,
       html: emailHtml,
     };
 
@@ -162,6 +284,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true, 
       result,
+      token,
       inviteUrl 
     }), {
       headers: { "Content-Type": "application/json", ...corsHeaders },

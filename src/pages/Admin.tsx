@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthProvider";
@@ -34,6 +33,12 @@ const Admin = () => {
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center gap-4 mb-6">
         <SidebarTrigger />
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
+            Panel de Administración
+          </h2>
+          <p className="text-ocean-300">Gestión completa del sistema</p>
+        </div>
       </div>
 
       <div className="grid gap-6">
