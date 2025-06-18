@@ -6,7 +6,7 @@ import { LoadingSkeleton } from "./LoadingSkeleton";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'admin' | 'supervisor';
+  requiredRole?: 'admin' | 'usuario';
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {

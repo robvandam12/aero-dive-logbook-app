@@ -7,7 +7,7 @@ interface CreateUserData {
   email: string;
   password: string;
   full_name?: string;
-  role: 'admin' | 'supervisor';
+  role: 'admin' | 'usuario';
   center_id?: string;
 }
 
@@ -15,7 +15,7 @@ interface UpdateUserData {
   id: string;
   data: {
     full_name?: string;
-    role?: 'admin' | 'supervisor';
+    role?: 'admin' | 'usuario';
     center_id?: string;
     is_active?: boolean;
     allow_multi_center?: boolean;

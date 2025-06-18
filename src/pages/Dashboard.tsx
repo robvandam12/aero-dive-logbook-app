@@ -46,7 +46,7 @@ const Dashboard = () => {
         <SidebarTrigger />
         <div>
           <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
-            Dashboard Supervisor
+            Dashboard Usuario
           </h2>
           <p className="text-ocean-300">Gestión de bitácoras y operaciones de buceo</p>
         </div>

@@ -26,7 +26,7 @@ export const UserForm = ({ user, onSubmit, isLoading, isEdit = false }: UserForm
     email: user?.email || "",
     password: "",
     full_name: user?.full_name || "",
-    role: user?.role || "supervisor",
+    role: user?.role || "usuario",
     center_id: user?.center_id || "",
     is_active: user?.is_active ?? true,
     allow_multi_center: user?.allow_multi_center ?? false,
@@ -81,13 +81,13 @@ export const UserForm = ({ user, onSubmit, isLoading, isEdit = false }: UserForm
           <Label htmlFor="role">Rol</Label>
           <Select
             value={formData.role}
-            onValueChange={(value) => setFormData({ ...formData, role: value as 'admin' | 'supervisor' })}
+            onValueChange={(value) => setFormData({ ...formData, role: value as 'admin' | 'usuario' })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar rol" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="supervisor">Supervisor</SelectItem>
+              <SelectItem value="usuario">Usuario</SelectItem>
               <SelectItem value="admin">Administrador</SelectItem>
             </SelectContent>
           </Select>

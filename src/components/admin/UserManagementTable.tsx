@@ -109,7 +109,7 @@ export const UserManagementTable = () => {
                     <TableCell className="text-ocean-200">{user.email}</TableCell>
                     <TableCell>
                       <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                        {user.role === 'admin' ? 'Administrador' : 'Supervisor'}
+                        {user.role === 'admin' ? 'Administrador' : 'Usuario'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-ocean-200">

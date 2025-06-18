@@ -66,7 +66,7 @@ export const UsersManagement = () => {
     return role === 'admin' ? (
       <Badge variant="destructive">Administrador</Badge>
     ) : (
-      <Badge variant="secondary">Supervisor</Badge>
+      <Badge variant="secondary">Usuario</Badge>
     );
   };
 
