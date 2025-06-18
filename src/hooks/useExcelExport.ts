@@ -21,22 +21,20 @@ export const useExcelExport = () => {
         ? diveLog.divers_manifest as DiverManifest[]
         : [];
 
-      // Format dive log data according to the Excel structure shown in the image
+      // Separate regular divers from emergency divers
+      const regularDivers = diversManifest.filter(d => d.role !== 'BB.EE');
+      const emergencyDivers = diversManifest.filter(d => d.role === 'BB.EE');
+
+      // Format dive log data according to the Excel structure you specified
       const excelData = [{
         'Fecha': diveLog.log_date,
         'N° Boleta': diveLog.id.slice(-6),
         'Centro\nEmbarcacion': `${diveLog.centers?.name || 'N/A'}\n${diveLog.boats?.name || 'N/A'}`,
-        'Trabajo realizado': (diveLog as any).work_type || 'MANTENCIÓN',
+        'Trabajo realizado': diveLog.work_type || 'MANTENCIÓN',
         'Supervisor de Buceo': diveLog.profiles?.username || 'N/A',
-        'Buzos': diversManifest
-          .filter(d => d.role !== 'BB.EE')
-          .map(d => d.name)
-          .join('\n'),
-        'Buzo de Emergencia': diversManifest
-          .filter(d => d.role === 'BB.EE')
-          .map(d => d.name)
-          .join('\n'),
-        'Detalle trabajos realizados / Observaciones': (diveLog as any).work_details || diveLog.observations || ''
+        'Buzos': regularDivers.map(d => d.name).join('\n'),
+        'Buzo de Emergencia': emergencyDivers.map(d => d.name).join('\n'),
+        'Detalle trabajos realizados / Observaciones': diveLog.work_details || diveLog.observations || ''
       }];
 
       // Convert to CSV format for download
@@ -100,7 +98,7 @@ export const useExcelExport = () => {
         query = query.lte('log_date', dateRange.to.toISOString().split('T')[0]);
       }
       if (selectedCenter && selectedCenter !== 'all') {
-        query = query.eq('centers.name', selectedCenter);
+        query = query.eq('center_id', selectedCenter);
       }
 
       const { data: diveLogs, error } = await query;
@@ -116,11 +114,15 @@ export const useExcelExport = () => {
         return;
       }
 
-      // Format data according to format type
+      // Format data according to the new Excel structure
       const excelData = diveLogs.map(diveLog => {
         const diversManifest = Array.isArray(diveLog.divers_manifest) 
           ? diveLog.divers_manifest as DiverManifest[]
           : [];
+
+        // Separate regular divers from emergency divers
+        const regularDivers = diversManifest.filter(d => d.role !== 'BB.EE');
+        const emergencyDivers = diversManifest.filter(d => d.role === 'BB.EE');
 
         return {
           'Fecha': diveLog.log_date,
@@ -128,14 +130,8 @@ export const useExcelExport = () => {
           'Centro\nEmbarcacion': `${(diveLog.centers as any)?.name || 'N/A'}\n${(diveLog.boats as any)?.name || 'N/A'}`,
           'Trabajo realizado': diveLog.work_type || 'MANTENCIÓN',
           'Supervisor de Buceo': (diveLog.profiles as any)?.username || 'N/A',
-          'Buzos': diversManifest
-            .filter(d => d.role !== 'BB.EE')
-            .map(d => d.name)
-            .join('\n'),
-          'Buzo de Emergencia': diversManifest
-            .filter(d => d.role === 'BB.EE')
-            .map(d => d.name)
-            .join('\n'),
+          'Buzos': regularDivers.map(d => d.name).join('\n'),
+          'Buzo de Emergencia': emergencyDivers.map(d => d.name).join('\n'),
           'Detalle trabajos realizados / Observaciones': diveLog.work_details || diveLog.observations || ''
         };
       });

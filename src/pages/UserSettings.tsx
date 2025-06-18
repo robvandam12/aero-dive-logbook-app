@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthProvider";
@@ -15,7 +15,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
-import { User, Lock, Save, Bell, Monitor, Globe, Shield, Camera } from "lucide-react";
+import { User, Lock, Save, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const userSettingsSchema = z.object({
@@ -25,10 +25,6 @@ const userSettingsSchema = z.object({
   phone: z.string().optional(),
   bio: z.string().optional(),
   timezone: z.string().optional(),
-  language: z.string().optional(),
-  emailNotifications: z.boolean().optional(),
-  pushNotifications: z.boolean().optional(),
-  weeklyReports: z.boolean().optional(),
   theme: z.string().optional(),
   currentPassword: z.string().optional(),
   newPassword: z.string().min(6, "La contraseña debe tener al menos 6 caracteres").optional().or(z.literal("")),
@@ -50,7 +46,7 @@ const UserSettings = () => {
   const { data: userProfile, isLoading } = useUserProfile();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'preferences'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'preferences'>('profile');
 
   const form = useForm<UserSettingsForm>({
     resolver: zodResolver(userSettingsSchema),
@@ -61,10 +57,6 @@ const UserSettings = () => {
       phone: "",
       bio: "",
       timezone: "America/Santiago",
-      language: "es",
-      emailNotifications: true,
-      pushNotifications: true,
-      weeklyReports: false,
       theme: "dark",
       currentPassword: "",
       newPassword: "",
@@ -77,15 +69,11 @@ const UserSettings = () => {
       form.reset({
         username: userProfile.username || "",
         email: user.email || "",
-        fullName: (userProfile as any).full_name || "",
-        phone: (userProfile as any).phone || "",
-        bio: (userProfile as any).bio || "",
-        timezone: (userProfile as any).timezone || "America/Santiago",
-        language: (userProfile as any).language || "es",
-        emailNotifications: (userProfile as any).email_notifications ?? true,
-        pushNotifications: (userProfile as any).push_notifications ?? true,
-        weeklyReports: (userProfile as any).weekly_reports ?? false,
-        theme: (userProfile as any).theme || "dark",
+        fullName: userProfile.full_name || "",
+        phone: userProfile.phone || "",
+        bio: userProfile.bio || "",
+        timezone: userProfile.timezone || "America/Santiago",
+        theme: userProfile.theme || "dark",
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
@@ -106,10 +94,6 @@ const UserSettings = () => {
           phone: data.phone,
           bio: data.bio,
           timezone: data.timezone,
-          language: data.language,
-          email_notifications: data.emailNotifications,
-          push_notifications: data.pushNotifications,
-          weekly_reports: data.weeklyReports,
           theme: data.theme,
         })
         .eq('id', user?.id);
@@ -168,8 +152,7 @@ const UserSettings = () => {
 
   const tabs = [
     { id: 'profile', label: 'Perfil', icon: User },
-    { id: 'security', label: 'Seguridad', icon: Shield },
-    { id: 'notifications', label: 'Notificaciones', icon: Bell },
+    { id: 'security', label: 'Seguridad', icon: Lock },
     { id: 'preferences', label: 'Preferencias', icon: Monitor },
   ];
 
@@ -372,76 +355,6 @@ const UserSettings = () => {
                 </Card>
               )}
 
-              {/* Pestaña Notificaciones */}
-              {activeTab === 'notifications' && (
-                <Card className="glass">
-                  <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <Bell className="w-5 h-5" />
-                      Configuración de Notificaciones
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="emailNotifications"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between space-y-0">
-                          <div>
-                            <FormLabel className="text-ocean-200">Notificaciones por Email</FormLabel>
-                            <p className="text-sm text-ocean-400">Recibe alertas importantes por correo</p>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="pushNotifications"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between space-y-0">
-                          <div>
-                            <FormLabel className="text-ocean-200">Notificaciones Push</FormLabel>
-                            <p className="text-sm text-ocean-400">Notificaciones en tiempo real</p>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="weeklyReports"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between space-y-0">
-                          <div>
-                            <FormLabel className="text-ocean-200">Reportes Semanales</FormLabel>
-                            <p className="text-sm text-ocean-400">Resumen semanal de actividades</p>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Pestaña Preferencias */}
               {activeTab === 'preferences' && (
                 <Card className="glass">
@@ -453,28 +366,6 @@ const UserSettings = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="language"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-ocean-200">Idioma</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white">
-                                  <SelectValue placeholder="Seleccionar idioma" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="bg-ocean-950 border-ocean-700">
-                                <SelectItem value="es" className="text-white">Español</SelectItem>
-                                <SelectItem value="en" className="text-white">English</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
                       <FormField
                         control={form.control}
                         name="timezone"
