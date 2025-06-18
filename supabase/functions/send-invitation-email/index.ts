@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -13,20 +12,7 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-interface InvitationData {
-  email: string;
-  fullName: string;
-  role: 'admin' | 'supervisor';
-  centerId?: string;
-  message?: string;
-  createdBy: string;
-}
-
-const generateInvitationToken = () => {
-  return crypto.randomUUID() + '-' + Date.now().toString(36);
-};
-
-const getEmailTemplate = (data: InvitationData & { token: string; inviteUrl: string }) => {
+const getEmailTemplate = (data: { email: string; fullName: string; role: string; centerId?: string; message?: string; token: string; inviteUrl: string }) => {
   return `
     <!DOCTYPE html>
     <html>
@@ -219,29 +205,27 @@ serve(async (req) => {
   }
 
   try {
-    const data: InvitationData = await req.json();
-    console.log("Received invitation request:", data);
+    const { email, token, userData, message } = await req.json();
+    console.log("Received invitation request:", { email, token, userData, message });
 
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY no configurado");
     }
 
-    // Generate invitation token
-    const token = generateInvitationToken();
-    const inviteUrl = `${supabaseUrl}/auth/signup?token=${token}&email=${encodeURIComponent(data.email)}`;
+    // Generate invitation URL
+    const inviteUrl = `${req.headers.get('origin') || 'http://localhost:3000'}/auth?token=${token}&email=${encodeURIComponent(email)}`;
 
-    // Store invitation in database
+    // Store invitation in database with proper user ID
+    const { data: { user } } = await supabase.auth.getUser(req.headers.get('authorization')?.replace('Bearer ', '') || '');
+    
     const { error: insertError } = await supabase
       .from('invitation_tokens')
       .insert({
-        email: data.email,
+        email,
         token,
-        created_by: data.createdBy,
-        user_data: {
-          full_name: data.fullName,
-          role: data.role,
-          center_id: data.centerId
-        }
+        user_data: userData,
+        created_by: user?.id || null,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       });
 
     if (insertError) {
@@ -250,16 +234,24 @@ serve(async (req) => {
     }
 
     // Send invitation email
-    const emailHtml = getEmailTemplate({ ...data, token, inviteUrl });
+    const emailHtml = getEmailTemplate({ 
+      email, 
+      fullName: userData.full_name, 
+      role: userData.role, 
+      centerId: userData.center_id,
+      message,
+      token, 
+      inviteUrl 
+    });
 
     const emailPayload = {
-      from: "noreply@resend.dev",
-      to: [data.email],
-      subject: `Invitación a Aerocam App - ${data.role === 'admin' ? 'Administrador' : 'Supervisor'}`,
+      from: "Aerocam App <noreply@resend.dev>",
+      to: [email],
+      subject: `Invitación a Aerocam App - ${userData.role === 'admin' ? 'Administrador' : 'Supervisor'}`,
       html: emailHtml,
     };
 
-    console.log("Sending invitation email to:", data.email);
+    console.log("Sending invitation email to:", email);
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
