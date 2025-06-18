@@ -1,165 +1,111 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthProvider";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import ProtectedLayout from "@/components/ProtectedLayout";
+import { Toaster } from "@/components/ui/toaster";
+
+import { Auth } from "@/pages/Auth";
+import { Index } from "@/pages/Index";
+import Dashboard from "@/pages/Dashboard";
+import AllDiveLogsPage from "@/pages/AllDiveLogs";
+import NewDiveLog from "@/pages/NewDiveLog";
+import DiveLogDetails from "@/pages/DiveLogDetails";
+import Reports from "@/pages/Reports";
+import UserSettings from "@/pages/UserSettings";
+import Admin from "@/pages/Admin";
+
+import { AuthProvider, useAuth } from "@/contexts/AuthProvider";
+import { Loading } from "@/components/Loading";
+import { QueryClient } from "@/contexts/QueryProvider";
 import NavigationLoader from "@/components/NavigationLoader";
-import { Suspense, lazy } from "react";
-
-// Lazy load pages
-const LandingPage = lazy(() => import("@/pages/LandingPage"));
-const Index = lazy(() => import("@/pages/Index"));
-const Auth = lazy(() => import("@/pages/Auth"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const AllDiveLogs = lazy(() => import("@/pages/AllDiveLogs"));
-const NewDiveLog = lazy(() => import("@/pages/NewDiveLog"));
-const EditDiveLog = lazy(() => import("@/pages/EditDiveLog"));
-const DiveLogDetail = lazy(() => import("@/pages/DiveLogDetail"));
-const SignDiveLog = lazy(() => import("@/pages/SignDiveLog"));
-const Admin = lazy(() => import("@/pages/Admin"));
-const Reports = lazy(() => import("@/pages/Reports"));
-const UserSettings = lazy(() => import("@/pages/UserSettings"));
-const NotFound = lazy(() => import("@/pages/NotFound"));
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { LoadingProvider } from "@/contexts/LoadingProvider";
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+    <BrowserRouter>
+      <QueryClient>
         <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={
-                <Suspense fallback={<NavigationLoader />}>
-                  <LandingPage />
-                </Suspense>
-              } />
-              <Route path="/auth" element={
-                <Suspense fallback={<NavigationLoader />}>
-                  <Auth />
-                </Suspense>
-              } />
-
-              {/* Protected routes with layout */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <ProtectedLayout>
-                    <Suspense fallback={<NavigationLoader />}>
-                      <Dashboard />
-                    </Suspense>
-                  </ProtectedLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/dive-logs" element={
-                <ProtectedRoute>
-                  <ProtectedLayout>
-                    <Suspense fallback={<NavigationLoader />}>
-                      <AllDiveLogs />
-                    </Suspense>
-                  </ProtectedLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/dive-logs/:id" element={
-                <ProtectedRoute>
-                  <ProtectedLayout>
-                    <Suspense fallback={<NavigationLoader />}>
-                      <DiveLogDetail />
-                    </Suspense>
-                  </ProtectedLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/dive-logs/:id/edit" element={
-                <ProtectedRoute>
-                  <ProtectedLayout>
-                    <Suspense fallback={<NavigationLoader />}>
-                      <EditDiveLog />
-                    </Suspense>
-                  </ProtectedLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/dive-logs/:id/sign" element={
-                <ProtectedRoute>
-                  <ProtectedLayout>
-                    <Suspense fallback={<NavigationLoader />}>
-                      <SignDiveLog />
-                    </Suspense>
-                  </ProtectedLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/new-dive-log" element={
-                <ProtectedRoute>
-                  <ProtectedLayout>
-                    <Suspense fallback={<NavigationLoader />}>
-                      <NewDiveLog />
-                    </Suspense>
-                  </ProtectedLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/admin" element={
-                <ProtectedRoute requiredRole="admin">
-                  <ProtectedLayout>
-                    <Suspense fallback={<NavigationLoader />}>
-                      <Admin />
-                    </Suspense>
-                  </ProtectedLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/reports" element={
-                <ProtectedRoute>
-                  <ProtectedLayout>
-                    <Suspense fallback={<NavigationLoader />}>
-                      <Reports />
-                    </Suspense>
-                  </ProtectedLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <ProtectedLayout>
-                    <Suspense fallback={<NavigationLoader />}>
+        <AuthProvider>
+          <LoadingProvider>
+            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-gray-900">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <ProtectedLayout>
                       <UserSettings />
-                    </Suspense>
-                  </ProtectedLayout>
-                </ProtectedRoute>
-              } />
+                    </ProtectedLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <ProtectedLayout>
+                      <Dashboard />
+                    </ProtectedLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/dive-logs" element={
+                  <ProtectedRoute>
+                    <ProtectedLayout>
+                      <AllDiveLogsPage />
+                    </ProtectedLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/new-dive-log" element={
+                  <ProtectedRoute>
+                    <ProtectedLayout>
+                      <NewDiveLog />
+                    </ProtectedLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/dive-logs/:id" element={
+                  <ProtectedRoute>
+                    <ProtectedLayout>
+                      <DiveLogDetails />
+                    </ProtectedLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/reports" element={
+                  <ProtectedRoute>
+                    <ProtectedLayout>
+                      <Reports />
+                    </ProtectedLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <ProtectedLayout>
+                      <Admin />
+                    </ProtectedLayout>
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </div>
+          </LoadingProvider>
+        </AuthProvider>
+      </QueryClient>
+    </BrowserRouter>
+  );
+}
 
-              {/* Legacy route redirect */}
-              <Route path="/index" element={<Navigate to="/dashboard" replace />} />
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth();
 
-              {/* 404 */}
-              <Route path="*" element={
-                <Suspense fallback={<NavigationLoader />}>
-                  <NotFound />
-                </Suspense>
-              } />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+  if (isLoading) {
+    return <NavigationLoader />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return children;
+}
+
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-screen antialiased text-foreground">
+      {children}
+    </div>
   );
 }
 

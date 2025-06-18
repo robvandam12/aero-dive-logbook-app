@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -21,17 +20,18 @@ interface EmailData {
   includePDF?: boolean;
 }
 
-const generatePDF = (diveLog: any) => {
+const generatePDFContent = (diveLog: any) => {
   const diversList = Array.isArray(diveLog.divers_manifest) 
     ? diveLog.divers_manifest.map((diver: any, index: number) => `
-        <tr>
-          <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
+        <tr style="border: 1px solid #ddd;">
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${diver.name || 'N/A'}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${diver.role || 'buzo'}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${diver.certification || 'N/A'}</td>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${diver.role || 'buzo'}</td>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${diver.license || 'N/A'}</td>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${diver.working_depth || 'N/A'}</td>
         </tr>
       `).join('')
-    : '<tr><td colspan="4" style="border: 1px solid #ddd; padding: 8px;">No hay buzos registrados</td></tr>';
+    : '<tr><td colspan="5" style="border: 1px solid #ddd; padding: 8px; text-align: center;">No hay buzos registrados</td></tr>';
 
   return `
     <!DOCTYPE html>
@@ -52,6 +52,13 @@ const generatePDF = (diveLog: any) => {
           margin-bottom: 20px;
           border-bottom: 2px solid #6555FF;
           padding-bottom: 15px;
+        }
+        .logo-section {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 10px;
         }
         .logo { 
           color: #6555FF; 
@@ -125,7 +132,10 @@ const generatePDF = (diveLog: any) => {
     </head>
     <body>
       <div class="header">
-        <div class="logo">🚁 AEROCAM APP</div>
+        <div class="logo-section">
+          <img src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" alt="Logo" style="height: 40px; width: auto;">
+          <div class="logo">AEROCAM APP</div>
+        </div>
         <div style="font-size: 14px; color: #666;">Sistema de Bitácoras de Buceo</div>
         <div style="margin-top: 8px; font-weight: bold;">BITÁCORA DE BUCEO</div>
       </div>
@@ -189,8 +199,10 @@ const generatePDF = (diveLog: any) => {
               <th>Nombre</th>
               <th>Rol</th>
               <th>Certificación</th>
+              <th>Prof. Máx</th>
             </tr>
-          </thead>
+          </thea
+>
           <tbody>
             ${diversList}
           </tbody>
@@ -237,7 +249,20 @@ const getEmailTemplate = (diveLog: any, message?: string) => {
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #6555FF, #8B5CF6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .header { 
+          background: linear-gradient(135deg, #6555FF, #8B5CF6); 
+          color: white; 
+          padding: 30px; 
+          text-align: center; 
+          border-radius: 10px 10px 0 0; 
+        }
+        .logo-section {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
         .content { background: #f8fafc; padding: 30px; border-radius: 0 0 10px 10px; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
         .info-item { background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #6555FF; }
@@ -251,7 +276,10 @@ const getEmailTemplate = (diveLog: any, message?: string) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🚁 Aerocam App</h1>
+          <div class="logo-section">
+            <img src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" alt="Logo" style="height: 30px; width: auto;">
+            <h1 style="margin: 0;">Aerocam App</h1>
+          </div>
           <p>Bitácora de Buceo</p>
         </div>
         
@@ -360,18 +388,19 @@ serve(async (req) => {
     const subject = `Bitácora de Buceo - ${diveLog.log_date} - ${diveLog.centers?.name || 'Centro'}`;
 
     const emailPayload: any = {
-      from: "noreply@resend.dev",
+      from: "Aerocam App <noreply@resend.dev>",
       to: [data.recipientEmail],
       subject,
       html: emailHtml,
     };
 
-    // Si se solicita PDF, generar y adjuntar
+    // Si se solicita PDF, generar PDF real
     if (data.includePDF) {
       console.log("Generating PDF attachment");
-      const pdfHtml = generatePDF(diveLog);
+      const pdfHtml = generatePDFContent(diveLog);
       
-      // Convertir HTML a base64
+      // Para un PDF real, necesitaríamos usar una librería como puppeteer
+      // Por ahora, enviamos HTML con formato PDF
       const htmlBuffer = new TextEncoder().encode(pdfHtml);
       const base64Html = btoa(String.fromCharCode(...htmlBuffer));
       

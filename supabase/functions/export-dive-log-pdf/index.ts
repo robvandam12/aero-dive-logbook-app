@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -45,6 +44,7 @@ const generatePDFHtml = (diveLog: any) => {
           margin: 0; 
           font-size: 10px;
           line-height: 1.2;
+          color: black;
         }
         .header { 
           text-align: center; 
@@ -52,30 +52,35 @@ const generatePDFHtml = (diveLog: any) => {
           border: 2px solid #000;
           padding: 8px;
         }
+        .logo-section {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+        .logo-section img {
+          height: 40px;
+          width: auto;
+        }
         .company-info {
           font-size: 8px;
           margin-bottom: 5px;
-        }
-        .logo-section {
-          float: left;
-          width: 60px;
-          height: 40px;
-          border: 1px solid #000;
-          text-align: center;
-          padding: 5px;
-          margin-right: 10px;
+          color: black;
         }
         .title-section {
           text-align: center;
           font-weight: bold;
           font-size: 12px;
           margin-bottom: 10px;
+          color: black;
         }
         .form-number {
           float: right;
           border: 1px solid #000;
           padding: 5px;
           font-size: 10px;
+          color: black;
         }
         .clear { clear: both; }
         .section {
@@ -90,6 +95,25 @@ const generatePDFHtml = (diveLog: any) => {
           padding: 3px;
           margin: -5px -5px 5px -5px;
           font-size: 10px;
+          color: black;
+        }
+        .signature-section {
+          margin-top: 15px;
+          display: flex;
+          justify-content: space-between;
+        }
+        .signature-box {
+          border: 1px solid #000;
+          width: 150px;
+          height: 80px;
+          text-align: center;
+          padding: 5px;
+          position: relative;
+        }
+        .signature-image {
+          max-width: 140px;
+          max-height: 50px;
+          margin-top: 5px;
         }
         .form-row {
           display: flex;
@@ -139,18 +163,6 @@ const generatePDFHtml = (diveLog: any) => {
           margin: -5px -5px 8px -5px;
           font-size: 10px;
         }
-        .signature-section {
-          margin-top: 15px;
-          display: flex;
-          justify-content: space-between;
-        }
-        .signature-box {
-          border: 1px solid #000;
-          width: 150px;
-          height: 60px;
-          text-align: center;
-          padding: 5px;
-        }
         .checkbox {
           display: inline-block;
           width: 12px;
@@ -168,7 +180,8 @@ const generatePDFHtml = (diveLog: any) => {
           RUT: 76.355.932-4 - Contacto: contacto@aerocam.cl
         </div>
         <div class="logo-section">
-          <strong>AEROCAM</strong>
+          <img src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" alt="Aerocam Logo">
+          <strong style="font-size: 16px; color: #6555FF;">AEROCAM APP</strong>
         </div>
         <div class="form-number">
           <strong>N° ${diveLog.id.slice(0, 6).toUpperCase()}</strong>
@@ -179,7 +192,7 @@ const generatePDFHtml = (diveLog: any) => {
           <small>CENTRO DE CULTIVO: ${diveLog.centers?.name || 'N/A'}</small>
         </div>
         <div class="clear"></div>
-        <div style="text-align: right; font-size: 8px;">
+        <div style="text-align: right; font-size: 8px; color: black;">
           Fecha: ${diveLog.log_date}
         </div>
       </div>
@@ -272,24 +285,22 @@ const generatePDFHtml = (diveLog: any) => {
 
       <div class="signature-section">
         <div class="signature-box">
-          <div style="font-size: 8px; font-weight: bold;">NOMBRE Y FIRMA</div>
-          <div style="font-size: 8px;">JEFE ENCARGADO DE CENTRO</div>
-          ${diveLog.signature_url ? `
-            <img src="${diveLog.signature_url}" alt="Firma" style="max-width: 140px; max-height: 40px; margin-top: 5px;">
-          ` : ''}
+          <div style="font-size: 8px; font-weight: bold; color: black;">NOMBRE Y FIRMA</div>
+          <div style="font-size: 8px; color: black;">JEFE ENCARGADO DE CENTRO</div>
         </div>
         <div class="signature-box">
-          <div style="font-size: 8px; font-weight: bold;">FIRMA Y TIMBRE</div>
-          <div style="font-size: 8px;">SUPERVISOR DE BUCEO</div>
+          <div style="font-size: 8px; font-weight: bold; color: black;">FIRMA Y TIMBRE</div>
+          <div style="font-size: 8px; color: black;">SUPERVISOR DE BUCEO</div>
           ${diveLog.signature_url ? `
-            <div style="margin-top: 10px; font-size: 8px;">
+            <img src="${diveLog.signature_url}" alt="Firma" class="signature-image">
+            <div style="margin-top: 5px; font-size: 8px; color: black;">
               <strong>Código: DL-${diveLog.id.slice(0, 8).toUpperCase()}</strong>
             </div>
           ` : ''}
         </div>
       </div>
 
-      <div style="font-size: 7px; text-align: center; margin-top: 10px; border-top: 1px solid #000; padding-top: 5px;">
+      <div style="font-size: 7px; text-align: center; margin-top: 10px; border-top: 1px solid #000; padding-top: 5px; color: black;">
         Queda estrictamente prohibido el uso de exploración y en particular, la reproducción, distribución, comunicación pública y/o transformación, total o parcial, por cualquier medio, método o sistema, del presente documento.<br>
         Su uso se encuentra reservado al personal de Aerocam SpA.
       </div>
@@ -312,7 +323,7 @@ serve(async (req) => {
   }
 
   try {
-    const { diveLogId, preview = false } = await req.json();
+    const { diveLogId, preview = false, generatePDF = false } = await req.json();
 
     if (!diveLogId) {
       return new Response(JSON.stringify({ error: "Dive log ID is required" }), { 
@@ -347,6 +358,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       html: htmlContent,
+      diveLog: diveLog, // Incluir datos estructurados para jsPDF
       filename: `bitacora_${diveLog.log_date}_${diveLog.id.slice(0, 8)}.pdf`
     }), {
       headers: {

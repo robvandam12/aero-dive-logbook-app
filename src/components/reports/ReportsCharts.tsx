@@ -1,329 +1,230 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from "recharts";
-import { LoadingSkeleton } from "@/components/LoadingSkeleton";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { TrendingUp, Calendar, MapPin, Ship } from "lucide-react";
 
 interface ReportsChartsProps {
-  dateRange: { from?: Date; to?: Date };
-  selectedCenter: string;
+  monthlyData: any[];
+  centerData: any[];
+  siteData: any[];
+  totalLogs: number;
+  signedLogs: number;
+  draftLogs: number;
 }
 
-const COLORS = ['#6555FF', '#10b981', '#eab308', '#f43f5e', '#8b5cf6', '#06b6d4', '#f97316'];
+const COLORS = ['#6555FF', '#8B5CF6', '#A855F7', '#C084FC', '#D8B4FE'];
 
-// Custom label component for pie charts with white text
-const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
-  const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+const chartConfig = {
+  total: {
+    label: "Total Bitácoras",
+    color: "#6555FF",
+  },
+  signed: {
+    label: "Firmadas",
+    color: "#10B981",
+  },
+  draft: {
+    label: "Borradores",
+    color: "#F59E0B",
+  },
+} satisfies any;
 
-  return (
-    <text 
-      x={x} 
-      y={y} 
-      fill="#ffffff" 
-      textAnchor={x > cx ? 'start' : 'end'} 
-      dominantBaseline="central"
-      fontSize="12px"
-    >
-      {`${name} ${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-};
-
-export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps) => {
-  const { data: chartData, isLoading } = useQuery({
-    queryKey: ['reportsCharts', dateRange, selectedCenter],
-    queryFn: async () => {
-      let query = supabase
-        .from('dive_logs')
-        .select(`
-          id,
-          log_date,
-          divers_manifest,
-          weather_conditions,
-          water_temperature,
-          visibility,
-          current_strength,
-          center_id,
-          status,
-          created_at,
-          centers(name),
-          dive_sites(name)
-        `);
-
-      // Aplicar filtros
-      if (dateRange.from) {
-        query = query.gte('log_date', dateRange.from.toISOString().split('T')[0]);
-      }
-      if (dateRange.to) {
-        query = query.lte('log_date', dateRange.to.toISOString().split('T')[0]);
-      }
-      if (selectedCenter !== 'all') {
-        query = query.eq('center_id', selectedCenter);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      // Procesar datos para gráficos
-      const logsByCenter = data?.reduce((acc, log) => {
-        const centerName = log.centers?.name || 'Sin Centro';
-        acc[centerName] = (acc[centerName] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const logsByMonth = data?.reduce((acc, log) => {
-        const month = new Date(log.log_date).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
-        acc[month] = (acc[month] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const diversByRole = data?.reduce((acc, log) => {
-        const manifest = Array.isArray(log.divers_manifest) ? log.divers_manifest : [];
-        manifest.forEach((diver: any) => {
-          const role = diver.role || 'buzo';
-          acc[role] = (acc[role] || 0) + 1;
-        });
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const statusDistribution = data?.reduce((acc, log) => {
-        const status = log.status || 'draft';
-        acc[status] = (acc[status] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const weatherDistribution = data?.reduce((acc, log) => {
-        const weather = log.weather_conditions || 'No especificado';
-        acc[weather] = (acc[weather] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      // Operaciones por hora del día
-      const operationsByHour = data?.reduce((acc, log) => {
-        const hour = new Date(log.created_at).getHours();
-        const hourLabel = `${hour}:00`;
-        acc[hourLabel] = (acc[hourLabel] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      // Datos de condiciones ambientales
-      const environmentalData = data?.filter(log => log.water_temperature || log.visibility).map(log => ({
-        date: new Date(log.log_date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }),
-        temperatura: log.water_temperature || 0,
-        visibilidad: log.visibility || 0,
-        corriente: log.current_strength || 0
-      })) || [];
-
-      return {
-        centerData: Object.entries(logsByCenter).map(([name, value]) => ({ name, value })),
-        monthlyData: Object.entries(logsByMonth).map(([name, value]) => ({ name, value })),
-        roleData: Object.entries(diversByRole).map(([name, value]) => ({ name, value })),
-        statusData: Object.entries(statusDistribution).map(([name, value]) => ({ 
-          name: name === 'draft' ? 'Borrador' : name === 'signed' ? 'Firmado' : name, 
-          value 
-        })),
-        weatherData: Object.entries(weatherDistribution).map(([name, value]) => ({ name, value })),
-        hourlyData: Object.entries(operationsByHour).map(([name, value]) => ({ name, value })),
-        environmentalData
-      };
-    }
-  });
-
-  if (isLoading) {
-    return <LoadingSkeleton type="dashboard" count={6} />;
-  }
-
-  const customTooltipStyle = {
-    backgroundColor: '#1f2937',
-    border: '1px solid #374151',
-    borderRadius: '8px',
-    color: '#ffffff'
-  };
+export const ReportsCharts = ({ 
+  monthlyData, 
+  centerData, 
+  siteData, 
+  totalLogs, 
+  signedLogs, 
+  draftLogs 
+}: ReportsChartsProps) => {
+  const statusData = [
+    { name: 'Firmadas', value: signedLogs, color: '#10B981' },
+    { name: 'Borradores', value: draftLogs, color: '#F59E0B' },
+  ];
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {/* Bitácoras por Centro */}
+      {/* Bitácoras por Mes */}
       <Card className="glass">
         <CardHeader>
-          <CardTitle className="text-white">Bitácoras por Centro</CardTitle>
+          <CardTitle className="text-white flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Bitácoras por Mes
+          </CardTitle>
+          <CardDescription className="text-ocean-300">
+            Tendencia mensual de bitácoras creadas
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData?.centerData || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="name" stroke="#d1d5db" fontSize={12} />
-              <YAxis stroke="#d1d5db" fontSize={12} />
-              <Tooltip contentStyle={customTooltipStyle} />
-              <Bar dataKey="value" fill="#6555FF" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Distribución por Roles */}
-      <Card className="glass">
-        <CardHeader>
-          <CardTitle className="text-white">Distribución de Buzos por Rol</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={chartData?.roleData || []}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={CustomLabel}
-                outerRadius={80}
-                dataKey="value"
-              >
-                {chartData?.roleData?.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={customTooltipStyle} />
-            </PieChart>
-          </ResponsiveContainer>
+          <ChartContainer config={chartConfig} className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#9CA3AF"
+                  fontSize={12}
+                />
+                <YAxis 
+                  stroke="#9CA3AF"
+                  fontSize={12}
+                />
+                <ChartTooltip 
+                  content={<ChartTooltipContent />}
+                  cursor={{ fill: 'rgba(101, 85, 255, 0.1)' }}
+                />
+                <Bar 
+                  dataKey="total" 
+                  fill="#6555FF" 
+                  radius={[4, 4, 0, 0]}
+                  name="Total Bitácoras"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </CardContent>
       </Card>
 
       {/* Estado de Bitácoras */}
       <Card className="glass">
         <CardHeader>
-          <CardTitle className="text-white">Estado de Bitácoras</CardTitle>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
+            Estado de Bitácoras
+          </CardTitle>
+          <CardDescription className="text-ocean-300">
+            Distribución por estado de validación
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={chartData?.statusData || []}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={CustomLabel}
-                outerRadius={80}
-                dataKey="value"
-              >
-                {chartData?.statusData?.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={customTooltipStyle} />
-            </PieChart>
-          </ResponsiveContainer>
+          <ChartContainer config={chartConfig} className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <ChartTooltip 
+                  content={<ChartTooltipContent />}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+          <div className="flex justify-center gap-4 mt-4">
+            {statusData.map((entry, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-sm text-ocean-200">
+                  {entry.name}: {entry.value}
+                </span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Condiciones Climáticas */}
+      {/* Bitácoras por Centro */}
       <Card className="glass">
         <CardHeader>
-          <CardTitle className="text-white">Condiciones Climáticas</CardTitle>
+          <CardTitle className="text-white flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Bitácoras por Centro
+          </CardTitle>
+          <CardDescription className="text-ocean-300">
+            Distribución por centro de cultivo
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData?.weatherData || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="name" stroke="#d1d5db" fontSize={12} />
-              <YAxis stroke="#d1d5db" fontSize={12} />
-              <Tooltip contentStyle={customTooltipStyle} />
-              <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Operaciones por Hora */}
-      <Card className="glass">
-        <CardHeader>
-          <CardTitle className="text-white">Operaciones por Hora del Día</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData?.hourlyData || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="name" stroke="#d1d5db" fontSize={12} />
-              <YAxis stroke="#d1d5db" fontSize={12} />
-              <Tooltip contentStyle={customTooltipStyle} />
-              <Area 
-                type="monotone" 
-                dataKey="value" 
-                stroke="#eab308" 
-                fill="#eab308" 
-                fillOpacity={0.3}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Tendencia Mensual */}
-      <Card className="glass">
-        <CardHeader>
-          <CardTitle className="text-white">Tendencia Mensual de Bitácoras</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData?.monthlyData || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="name" stroke="#d1d5db" fontSize={12} />
-              <YAxis stroke="#d1d5db" fontSize={12} />
-              <Tooltip contentStyle={customTooltipStyle} />
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                stroke="#6555FF" 
-                strokeWidth={3}
-                dot={{ fill: '#6555FF', r: 6 }}
-                activeDot={{ r: 8, fill: '#6555FF' }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Condiciones Ambientales */}
-      {chartData?.environmentalData && chartData.environmentalData.length > 0 && (
-        <Card className="glass md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-white">Condiciones Ambientales</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData.environmentalData}>
+          <ChartContainer config={chartConfig} className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={centerData} layout="horizontal">
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="date" stroke="#d1d5db" fontSize={12} />
-                <YAxis stroke="#d1d5db" fontSize={12} />
-                <Tooltip contentStyle={customTooltipStyle} />
-                <Line 
-                  type="monotone" 
-                  dataKey="temperatura" 
-                  stroke="#f43f5e" 
-                  strokeWidth={2}
-                  name="Temperatura (°C)"
+                <XAxis 
+                  type="number"
+                  stroke="#9CA3AF"
+                  fontSize={12}
+                />
+                <YAxis 
+                  type="category"
+                  dataKey="name" 
+                  stroke="#9CA3AF"
+                  fontSize={12}
+                  width={100}
+                />
+                <ChartTooltip 
+                  content={<ChartTooltipContent />}
+                  cursor={{ fill: 'rgba(101, 85, 255, 0.1)' }}
+                />
+                <Bar 
+                  dataKey="total" 
+                  fill="#8B5CF6" 
+                  radius={[0, 4, 4, 0]}
+                  name="Total Bitácoras"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      {/* Bitácoras por Sitio */}
+      <Card className="glass">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Ship className="w-5 h-5" />
+            Sitios Más Utilizados
+          </CardTitle>
+          <CardDescription className="text-ocean-300">
+            Top sitios de buceo por actividad
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={siteData.slice(0, 6)}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#9CA3AF"
+                  fontSize={11}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis 
+                  stroke="#9CA3AF"
+                  fontSize={12}
+                />
+                <ChartTooltip 
+                  content={<ChartTooltipContent />}
                 />
                 <Line 
                   type="monotone" 
-                  dataKey="visibilidad" 
-                  stroke="#06b6d4" 
-                  strokeWidth={2}
-                  name="Visibilidad (m)"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="corriente" 
-                  stroke="#f97316" 
-                  strokeWidth={2}
-                  name="Corriente"
+                  dataKey="total" 
+                  stroke="#A855F7" 
+                  strokeWidth={3}
+                  dot={{ fill: '#A855F7', strokeWidth: 2, r: 6 }}
+                  activeDot={{ r: 8, fill: '#6555FF' }}
+                  name="Total Bitácoras"
                 />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
+          </ChartContainer>
+        </CardContent>
+      </Card>
     </div>
   );
 };
