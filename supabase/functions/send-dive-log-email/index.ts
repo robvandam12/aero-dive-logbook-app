@@ -26,16 +26,19 @@ serve(async (req) => {
   }
 
   try {
-    const { diveLogId, recipients, subject, message, includeSignature = true } = await req.json();
-    console.log("Sending dive log email:", { diveLogId, recipients });
+    const { diveLogId, recipientEmail, recipientName, message, includePDF = true } = await req.json();
+    console.log("Sending dive log email:", { diveLogId, recipientEmail, includePDF });
 
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY no configurado");
     }
 
-    if (!diveLogId || !recipients || !Array.isArray(recipients) || recipients.length === 0) {
-      throw new Error("diveLogId y recipients son requeridos");
+    if (!diveLogId || !recipientEmail) {
+      throw new Error("diveLogId y recipientEmail son requeridos");
     }
+
+    // Prepare recipients array
+    const recipients = [recipientEmail];
 
     // Fetch dive log data from export function
     const exportResponse = await fetch(`${supabaseUrl}/functions/v1/export-dive-log-pdf`, {
@@ -46,7 +49,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         diveLogId,
-        includeSignature,
+        includeSignature: true,
         generatePDF: true
       }),
     });
@@ -64,14 +67,14 @@ serve(async (req) => {
     const { diveLog, filename } = exportData;
 
     // Generate simplified PDF content for email attachment
-    const pdfContent = generateSimplePDFContent(diveLog, includeSignature);
+    const pdfContent = generateSimplePDFContent(diveLog, true);
     
     // Convert to base64 for attachment
     const pdfBuffer = new TextEncoder().encode(pdfContent);
     const base64PDF = btoa(String.fromCharCode(...pdfBuffer));
 
     // Prepare email content
-    const emailSubject = subject || `Bitácora de Buceo - ${diveLog.centers?.name || 'Sin Centro'} - ${diveLog.log_date || 'Sin Fecha'}`;
+    const emailSubject = `Bitácora de Buceo - ${diveLog.centers?.name || 'Sin Centro'} - ${diveLog.log_date || 'Sin Fecha'}`;
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #6555FF, #8B5CF6); color: white; padding: 30px; text-align: center;">
@@ -92,9 +95,9 @@ serve(async (req) => {
             <h3 style="margin-top: 0; color: #6555FF;">Detalles de la Bitácora</h3>
             <p><strong>Centro:</strong> ${diveLog.centers?.name || 'N/A'}</p>
             <p><strong>Fecha:</strong> ${diveLog.log_date || 'N/A'}</p>
-            <p><strong>Supervisor:</strong> ${diveLog.profiles?.username || 'N/A'}</p>
+            <p><strong>Supervisor:</strong> ${diveLog.supervisor_name || 'N/A'}</p>
             <p><strong>ID:</strong> ${diveLog.id?.slice(-8).toUpperCase() || 'N/A'}</p>
-            ${diveLog.signature_url && includeSignature ? '<p><strong>Estado:</strong> ✅ Firmada digitalmente</p>' : ''}
+            ${diveLog.signature_url ? '<p><strong>Estado:</strong> ✅ Firmada digitalmente</p>' : ''}
           </div>
           
           <p style="color: #64748b; font-size: 14px;">
@@ -213,7 +216,7 @@ BT
 0 -20 Td
 (Fecha: ${diveLog.log_date || 'N/A'}) Tj
 0 -20 Td
-(Supervisor: ${diveLog.profiles?.username || 'N/A'}) Tj
+(Supervisor: ${diveLog.supervisor_name || 'N/A'}) Tj
 0 -20 Td
 (ID: ${diveLog.id?.slice(-8) || 'N/A'}) Tj
 ${includeSignature && diveLog.signature_url ? `

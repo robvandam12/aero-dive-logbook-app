@@ -41,7 +41,7 @@ export const Header = () => {
           </Button>
           <div className="flex items-center ml-4 lg:ml-0">
             <img 
-              src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/logo.png" 
+              src="/lovable-uploads/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" 
               alt="Aerocam Logo" 
               className="h-8 w-16 object-contain mr-3"
             />

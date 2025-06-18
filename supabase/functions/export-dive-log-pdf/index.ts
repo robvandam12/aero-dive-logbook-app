@@ -33,13 +33,13 @@ serve(async (req) => {
       throw new Error("diveLogId es requerido");
     }
 
-    // Fetch dive log with related data
+    // Fetch dive log with related data using proper join syntax
     const { data: diveLog, error } = await supabase
       .from('dive_logs')
       .select(`
         *,
-        profiles!dive_logs_user_id_fkey (username),
-        centers (name)
+        profiles!inner(username),
+        centers(name)
       `)
       .eq('id', diveLogId)
       .single();

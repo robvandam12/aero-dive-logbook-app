@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Home, FileText, Plus, BarChart3, Settings, LogOut, ChevronsUpDown, PanelLeft } from "lucide-react"
+import { Home, FileText, Plus, BarChart3, Settings, LogOut, ChevronsUpDown } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 import { useAuth } from "@/contexts/AuthProvider"
@@ -112,9 +112,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton size="lg" asChild>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                   <img 
-                    src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/logo.png" 
+                    src="/lovable-uploads/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" 
                     alt="Aerocam Logo" 
-                    className="size-8"
+                    className={isCollapsed ? "size-8" : "size-8"}
                   />
                   {!isCollapsed && (
                     <div className="grid flex-1 text-left text-sm leading-tight ml-2">

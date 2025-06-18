@@ -1,11 +1,11 @@
 
 import { useFormContext } from "react-hook-form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCenters } from "@/hooks/useCenters";
 import { useDiveSites } from "@/hooks/useDiveSites";
-import { useUserManagement } from "@/hooks/useUserManagement";
+import { useBoats } from "@/hooks/useBoats";
 import { useAuth } from "@/contexts/AuthProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useEffect } from "react";
@@ -14,57 +14,61 @@ export const Step1GeneralData = () => {
   const { control, setValue, watch } = useFormContext();
   const { user } = useAuth();
   const { data: userProfile } = useUserProfile();
-  const { data: centers, isLoading: isLoadingCenters, error: centersError } = useCenters();
-  const { data: diveSites, isLoading: isLoadingDiveSites, error: diveSitesError } = useDiveSites();
-  const { data: users, isLoading: isLoadingUsers } = useUserManagement();
-
-  const isAdmin = userProfile?.role === 'admin';
-  const supervisors = users?.filter(user => user.role === 'supervisor' && user.is_active) || [];
-
-  // Auto-fill supervisor name for non-admin users
+  const { data: centers } = useCenters();
+  const { data: diveSites } = useDiveSites();
+  const { data: boats } = useBoats();
+  
+  const selectedCenterId = watch("center_id");
+  
+  // Auto-fill supervisor name with user's username when component mounts
   useEffect(() => {
-    if (!isAdmin && userProfile?.username && !watch("supervisor_name")) {
+    if (userProfile?.username && !watch("supervisor_name")) {
       setValue("supervisor_name", userProfile.username);
     }
-  }, [isAdmin, userProfile, setValue, watch]);
+  }, [userProfile?.username, setValue, watch]);
+
+  // Filter dive sites and boats by selected center
+  const filteredDiveSites = diveSites?.filter(site => site.center_id === selectedCenterId) || [];
+  const filteredBoats = boats?.filter(boat => boat.center_id === selectedCenterId) || [];
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
           control={control}
           name="log_date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-ocean-300">Fecha</FormLabel>
+              <FormLabel className="text-white">Fecha de la Bitácora</FormLabel>
               <FormControl>
                 <Input 
                   type="date" 
                   {...field} 
-                  className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  className="bg-slate-800 border-slate-600 text-white"
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={control}
           name="center_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-ocean-300">Centro</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingCenters}>
+              <FormLabel className="text-white">Centro de Cultivo</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors">
+                  <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
                     <SelectValue placeholder="Seleccionar centro" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
-                  {isLoadingCenters && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
-                  {centersError && <SelectItem value="error" disabled>Error al cargar</SelectItem>}
-                  {centers?.map(center => (
-                    <SelectItem key={center.id} value={center.id} className="hover:bg-ocean-800 focus:bg-ocean-800">{center.name}</SelectItem>
+                <SelectContent className="bg-slate-800 border-slate-600">
+                  {centers?.map((center) => (
+                    <SelectItem key={center.id} value={center.id} className="text-white hover:bg-slate-700">
+                      {center.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -73,23 +77,72 @@ export const Step1GeneralData = () => {
           )}
         />
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={control}
+          name="supervisor_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Supervisor de Buceo</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="Nombre del supervisor de buceo"
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="dive_site_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Sitio de Buceo</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                    <SelectValue placeholder="Seleccionar sitio de buceo" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-slate-800 border-slate-600">
+                  {filteredDiveSites.map((site) => (
+                    <SelectItem key={site.id} value={site.id} className="text-white hover:bg-slate-700">
+                      {site.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
       <FormField
         control={control}
-        name="dive_site_id"
+        name="boat_id"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-ocean-300">Punto de Buceo</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingDiveSites}>
+            <FormLabel className="text-white">Embarcación (Opcional)</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
-                <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors">
-                  <SelectValue placeholder="Seleccionar punto de buceo" />
+                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                  <SelectValue placeholder="Seleccionar embarcación" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
-                {isLoadingDiveSites && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
-                {diveSitesError && <SelectItem value="error" disabled>Error al cargar</SelectItem>}
-                {diveSites?.map(site => (
-                  <SelectItem key={site.id} value={site.id} className="hover:bg-ocean-800 focus:bg-ocean-800">{site.name}</SelectItem>
+              <SelectContent className="bg-slate-800 border-slate-600">
+                <SelectItem value="none" className="text-white hover:bg-slate-700">
+                  Sin embarcación
+                </SelectItem>
+                {filteredBoats.map((boat) => (
+                  <SelectItem key={boat.id} value={boat.id} className="text-white hover:bg-slate-700">
+                    {boat.name} - {boat.registration}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -97,51 +150,44 @@ export const Step1GeneralData = () => {
           </FormItem>
         )}
       />
-      <FormField
-        control={control}
-        name="supervisor_name"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-ocean-300">Supervisor de Buceo</FormLabel>
-            <FormControl>
-              {isAdmin ? (
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                  disabled={isLoadingUsers}
-                >
-                  <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors">
-                    <SelectValue placeholder="Seleccionar supervisor" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
-                    {isLoadingUsers && <SelectItem value="loading" disabled>Cargando...</SelectItem>}
-                    {supervisors.map(supervisor => {
-                      const supervisorName = supervisor.full_name || supervisor.email || `Usuario ${supervisor.id.slice(0, 8)}`;
-                      return (
-                        <SelectItem 
-                          key={supervisor.id} 
-                          value={supervisorName}
-                          className="hover:bg-ocean-800 focus:bg-ocean-800"
-                        >
-                          {supervisorName}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              ) : (
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={control}
+          name="departure_time"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Hora de Salida</FormLabel>
+              <FormControl>
                 <Input 
-                  placeholder="Nombre del supervisor" 
+                  type="time" 
                   {...field} 
-                  className="bg-ocean-950/50 border-ocean-700 text-white hover:border-ocean-600 focus:border-ocean-500 transition-colors placeholder:text-ocean-400"
-                  readOnly={!isAdmin}
+                  className="bg-slate-800 border-slate-600 text-white"
                 />
-              )}
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="arrival_time"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Hora de Llegada</FormLabel>
+              <FormControl>
+                <Input 
+                  type="time" 
+                  {...field} 
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
     </div>
   );
 };

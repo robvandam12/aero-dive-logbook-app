@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -169,7 +168,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
                   <div>
                     <div class="flex items-center space-x-1">
                       <img 
-                        src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" 
+                        src="/lovable-uploads/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" 
                         alt="Aerocam Logo" 
                         class="h-10 w-20 object-contain"
                       />
