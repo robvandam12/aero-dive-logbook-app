@@ -41,7 +41,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
       email: "",
       full_name: "",
       role: "supervisor",
-      center_id: undefined, // Cambio de "" a undefined
+      center_id: undefined,
       message: "",
     },
   });
@@ -49,44 +49,42 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
   const onSubmit = async (data: InviteUserForm) => {
     try {
       setIsLoading(true);
+      console.log("Submitting invitation form with data:", data);
 
-      // Generar token único
-      const token = crypto.randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
+      // Get current user
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuario no autenticado');
+      }
 
-      // Crear invitación en la base de datos
-      const { error: insertError } = await supabase
-        .from('invitation_tokens')
-        .insert({
-          email: data.email,
-          token,
-          expires_at: expiresAt.toISOString(),
-          user_data: {
-            full_name: data.full_name,
-            role: data.role,
-            center_id: data.center_id || null,
-          },
-          created_by: (await supabase.auth.getUser()).data.user?.id || '',
-        });
+      // Preparar datos para la función edge con el mapeo correcto
+      const invitationData = {
+        email: data.email,
+        fullName: data.full_name, // Usar fullName para coincidir con la función edge
+        role: data.role,
+        centerId: data.center_id || null, // Usar centerId para coincidir con la función edge
+        message: data.message || "",
+        createdBy: userData.user.id // Usar createdBy para coincidir con la función edge
+      };
 
-      if (insertError) throw insertError;
+      console.log("Sending invitation data:", invitationData);
 
-      // Enviar email de invitación
-      const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
-        body: {
-          email: data.email,
-          token,
-          userData: {
-            full_name: data.full_name,
-            role: data.role,
-            center_id: data.center_id,
-          },
-          message: data.message,
-        },
+      // Enviar invitación usando la función edge
+      const { data: result, error } = await supabase.functions.invoke('send-invitation-email', {
+        body: invitationData,
       });
 
-      if (emailError) throw emailError;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message);
+      }
+
+      if (!result?.success) {
+        console.error('Function returned error:', result?.error);
+        throw new Error(result?.error || 'Error al enviar la invitación');
+      }
+
+      console.log("Invitation sent successfully:", result);
 
       toast({
         title: "Invitación enviada",
@@ -95,11 +93,11 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
 
       form.reset();
       onSuccess?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending invitation:', error);
       toast({
         title: "Error",
-        description: "No se pudo enviar la invitación. Inténtalo de nuevo.",
+        description: error.message || "No se pudo enviar la invitación. Inténtalo de nuevo.",
         variant: "destructive",
       });
     } finally {
@@ -193,7 +191,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-ocean-900 border-ocean-700">
-                        <SelectItem value="none" className="text-white">Sin centro asignado</SelectItem>
+                        <SelectItem value="" className="text-white">Sin centro asignado</SelectItem>
                         {centers?.map((center) => (
                           <SelectItem key={center.id} value={center.id} className="text-white">
                             {center.name}

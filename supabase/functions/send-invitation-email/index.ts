@@ -15,11 +15,11 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface InvitationData {
   email: string;
-  fullName: string;
+  full_name: string;
   role: 'admin' | 'supervisor';
-  centerId?: string;
+  center_id?: string;
   message?: string;
-  createdBy: string;
+  created_by: string;
 }
 
 const generateInvitationToken = () => {
@@ -133,7 +133,7 @@ const getEmailTemplate = (data: InvitationData & { token: string; inviteUrl: str
         <div class="content">
           <div class="welcome-message">¡Has sido invitado!</div>
           
-          <p>Hola <strong>${data.fullName}</strong>,</p>
+          <p>Hola <strong>${data.full_name}</strong>,</p>
           
           <p>Has sido invitado a formar parte del equipo de Aerocam App, el sistema profesional para la gestión de bitácoras de buceo.</p>
           
@@ -145,13 +145,13 @@ const getEmailTemplate = (data: InvitationData & { token: string; inviteUrl: str
             </div>
             <div class="detail-row">
               <span class="detail-label">Nombre completo:</span>
-              <span class="detail-value">${data.fullName}</span>
+              <span class="detail-value">${data.full_name}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Rol asignado:</span>
               <span class="detail-value">${data.role === 'admin' ? 'Administrador' : 'Supervisor'}</span>
             </div>
-            ${data.centerId ? `
+            ${data.center_id ? `
               <div class="detail-row">
                 <span class="detail-label">Centro asignado:</span>
                 <span class="detail-value">Configurado automáticamente</span>
@@ -219,8 +219,18 @@ serve(async (req) => {
   }
 
   try {
-    const data: InvitationData = await req.json();
-    console.log("Received invitation request:", data);
+    const requestData = await req.json();
+    console.log("Received invitation request:", requestData);
+
+    // Mapear los datos correctamente según lo que envía el frontend
+    const data: InvitationData = {
+      email: requestData.email,
+      full_name: requestData.fullName || requestData.full_name,
+      role: requestData.role,
+      center_id: requestData.centerId || requestData.center_id,
+      message: requestData.message,
+      created_by: requestData.createdBy || requestData.created_by
+    };
 
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY no configurado");
@@ -236,24 +246,24 @@ serve(async (req) => {
       .insert({
         email: data.email,
         token,
-        created_by: data.createdBy,
+        created_by: data.created_by,
         user_data: {
-          full_name: data.fullName,
+          full_name: data.full_name,
           role: data.role,
-          center_id: data.centerId
+          center_id: data.center_id
         }
       });
 
     if (insertError) {
       console.error("Error storing invitation:", insertError);
-      throw new Error("Error almacenando invitación");
+      throw new Error("Error almacenando invitación: " + insertError.message);
     }
 
     // Send invitation email
     const emailHtml = getEmailTemplate({ ...data, token, inviteUrl });
 
     const emailPayload = {
-      from: "noreply@resend.dev",
+      from: "Aerocam App <noreply@resend.dev>",
       to: [data.email],
       subject: `Invitación a Aerocam App - ${data.role === 'admin' ? 'Administrador' : 'Supervisor'}`,
       html: emailHtml,
