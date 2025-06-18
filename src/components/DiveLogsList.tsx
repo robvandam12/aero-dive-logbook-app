@@ -132,7 +132,8 @@ export const DiveLogsList = ({ dateRange, selectedCenter }: DiveLogsListProps) =
     count: diveLogsResponse.count
   } : null;
 
-  const hasActiveFilters = statusFilter !== "all" || centerFilter !== "all" || search.trim() !== "" || dateRange?.from || dateRange?.to;
+  const hasActiveFilters = statusFilter !== "all" || centerFilter !== "all" || search.trim() !== "" || 
+    Boolean(dateRange?.from) || Boolean(dateRange?.to);
 
   return (
     <>

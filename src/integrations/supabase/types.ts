@@ -120,6 +120,8 @@ export type Database = {
           visibility: number | null
           water_temperature: number | null
           weather_conditions: string | null
+          work_details: string | null
+          work_type: string | null
         }
         Insert: {
           arrival_time?: string | null
@@ -143,6 +145,8 @@ export type Database = {
           visibility?: number | null
           water_temperature?: number | null
           weather_conditions?: string | null
+          work_details?: string | null
+          work_type?: string | null
         }
         Update: {
           arrival_time?: string | null
@@ -166,6 +170,8 @@ export type Database = {
           visibility?: number | null
           water_temperature?: number | null
           weather_conditions?: string | null
+          work_details?: string | null
+          work_type?: string | null
         }
         Relationships: [
           {
@@ -296,24 +302,51 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           center_id: string | null
+          email_notifications: boolean | null
+          full_name: string | null
           id: string
+          language: string | null
+          phone: string | null
+          push_notifications: boolean | null
           role: Database["public"]["Enums"]["user_role"]
+          theme: string | null
+          timezone: string | null
           username: string | null
+          weekly_reports: boolean | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           center_id?: string | null
+          email_notifications?: boolean | null
+          full_name?: string | null
           id: string
+          language?: string | null
+          phone?: string | null
+          push_notifications?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
+          theme?: string | null
+          timezone?: string | null
           username?: string | null
+          weekly_reports?: boolean | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           center_id?: string | null
+          email_notifications?: boolean | null
+          full_name?: string | null
           id?: string
+          language?: string | null
+          phone?: string | null
+          push_notifications?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
+          theme?: string | null
+          timezone?: string | null
           username?: string | null
+          weekly_reports?: boolean | null
         }
         Relationships: [
           {

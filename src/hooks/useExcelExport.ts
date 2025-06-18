@@ -4,25 +4,39 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DiveLogWithFullDetails } from './useDiveLog';
 
+// Define the diver manifest type for proper type checking
+interface DiverManifest {
+  name: string;
+  role: string;
+  [key: string]: any;
+}
+
 export const useExcelExport = () => {
   const { toast } = useToast();
 
   const exportSingleDiveLog = async (diveLog: DiveLogWithFullDetails) => {
     try {
+      // Parse divers manifest safely
+      const diversManifest = Array.isArray(diveLog.divers_manifest) 
+        ? diveLog.divers_manifest as DiverManifest[]
+        : [];
+
       // Format dive log data according to the Excel structure shown in the image
       const excelData = [{
         'Fecha': diveLog.log_date,
         'N° Boleta': diveLog.id.slice(-6),
         'Centro\nEmbarcacion': `${diveLog.centers?.name || 'N/A'}\n${diveLog.boats?.name || 'N/A'}`,
-        'Trabajo realizado': diveLog.work_type || 'MANTENCIÓN',
+        'Trabajo realizado': (diveLog as any).work_type || 'MANTENCIÓN',
         'Supervisor de Buceo': diveLog.profiles?.username || 'N/A',
-        'Buzos': diveLog.divers_manifest && Array.isArray(diveLog.divers_manifest) 
-          ? diveLog.divers_manifest.filter(d => d.role !== 'BB.EE').map(d => d.name).join('\n') 
-          : '',
-        'Buzo de Emergencia': diveLog.divers_manifest && Array.isArray(diveLog.divers_manifest)
-          ? diveLog.divers_manifest.filter(d => d.role === 'BB.EE').map(d => d.name).join('\n')
-          : '',
-        'Detalle trabajos realizados / Observaciones': diveLog.work_details || diveLog.observations || ''
+        'Buzos': diversManifest
+          .filter(d => d.role !== 'BB.EE')
+          .map(d => d.name)
+          .join('\n'),
+        'Buzo de Emergencia': diversManifest
+          .filter(d => d.role === 'BB.EE')
+          .map(d => d.name)
+          .join('\n'),
+        'Detalle trabajos realizados / Observaciones': (diveLog as any).work_details || diveLog.observations || ''
       }];
 
       // Convert to CSV format for download
@@ -103,20 +117,28 @@ export const useExcelExport = () => {
       }
 
       // Format data according to format type
-      const excelData = diveLogs.map(diveLog => ({
-        'Fecha': diveLog.log_date,
-        'N° Boleta': diveLog.id.slice(-6),
-        'Centro\nEmbarcacion': `${diveLog.centers?.name || 'N/A'}\n${diveLog.boats?.name || 'N/A'}`,
-        'Trabajo realizado': diveLog.work_type || 'MANTENCIÓN',
-        'Supervisor de Buceo': diveLog.profiles?.username || 'N/A',
-        'Buzos': diveLog.divers_manifest && Array.isArray(diveLog.divers_manifest) 
-          ? diveLog.divers_manifest.filter(d => d.role !== 'BB.EE').map(d => d.name).join('\n') 
-          : '',
-        'Buzo de Emergencia': diveLog.divers_manifest && Array.isArray(diveLog.divers_manifest)
-          ? diveLog.divers_manifest.filter(d => d.role === 'BB.EE').map(d => d.name).join('\n')
-          : '',
-        'Detalle trabajos realizados / Observaciones': diveLog.work_details || diveLog.observations || ''
-      }));
+      const excelData = diveLogs.map(diveLog => {
+        const diversManifest = Array.isArray(diveLog.divers_manifest) 
+          ? diveLog.divers_manifest as DiverManifest[]
+          : [];
+
+        return {
+          'Fecha': diveLog.log_date,
+          'N° Boleta': diveLog.id.slice(-6),
+          'Centro\nEmbarcacion': `${(diveLog.centers as any)?.name || 'N/A'}\n${(diveLog.boats as any)?.name || 'N/A'}`,
+          'Trabajo realizado': diveLog.work_type || 'MANTENCIÓN',
+          'Supervisor de Buceo': (diveLog.profiles as any)?.username || 'N/A',
+          'Buzos': diversManifest
+            .filter(d => d.role !== 'BB.EE')
+            .map(d => d.name)
+            .join('\n'),
+          'Buzo de Emergencia': diversManifest
+            .filter(d => d.role === 'BB.EE')
+            .map(d => d.name)
+            .join('\n'),
+          'Detalle trabajos realizados / Observaciones': diveLog.work_details || diveLog.observations || ''
+        };
+      });
 
       // Convert to CSV format for download
       const headers = Object.keys(excelData[0]);
