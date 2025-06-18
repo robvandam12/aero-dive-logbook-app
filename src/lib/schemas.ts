@@ -42,5 +42,23 @@ export const diveLogSchema = z.object({
   signature_data: z.string().optional(),
 });
 
+export const centerSchema = z.object({
+  name: z.string().min(1, "Nombre del centro es requerido"),
+  location: z.string().optional(),
+});
+
+export const boatSchema = z.object({
+  name: z.string().min(1, "Nombre de la embarcación es requerido"),
+  registration_number: z.string().min(1, "Número de matrícula es requerido"),
+});
+
+export const diveSiteSchema = z.object({
+  name: z.string().min(1, "Nombre del punto de buceo es requerido"),
+  location: z.string().optional(),
+});
+
 export type DiverFormValues = z.infer<typeof diverSchema>;
 export type DiveLogFormValues = z.infer<typeof diveLogSchema>;
+export type CenterFormValues = z.infer<typeof centerSchema>;
+export type BoatFormValues = z.infer<typeof boatSchema>;
+export type DiveSiteFormValues = z.infer<typeof diveSiteSchema>;

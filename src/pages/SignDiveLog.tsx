@@ -40,15 +40,23 @@ const SignDiveLogPage = () => {
     const diversManifest = Array.isArray(diveLog.divers_manifest) 
       ? diveLog.divers_manifest as Array<{
           name?: string;
-          role?: "supervisor" | "buzo" | "buzo-emergencia";
+          role?: "buzo" | "asistente" | "supervisor_equipo";
           license?: string;
           working_depth?: number;
+          standard_depth?: boolean;
+          start_time?: string;
+          end_time?: string;
+          dive_time?: string;
         }>
       : [];
 
     const formData = {
       log_date: diveLog.log_date,
       center_id: diveLog.center_id,
+      supervisor_name: diveLog.supervisor_name || '',
+      supervisor_license: '',
+      center_manager: '',
+      center_assistant: '',
       dive_site_id: diveLog.dive_site_id,
       boat_id: diveLog.boat_id || '',
       weather_condition: 'N/A' as any,

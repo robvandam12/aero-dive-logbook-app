@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -46,7 +46,7 @@ export const UserEditDialog = ({ user, open, onOpenChange }: UserEditDialogProps
   });
 
   // Reset form when user changes
-  useState(() => {
+  useEffect(() => {
     if (user) {
       form.reset({
         full_name: user.full_name || "",

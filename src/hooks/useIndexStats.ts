@@ -2,40 +2,54 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-const fetchIndexStats = async () => {
-  const { count: totalDiveLogs, error: totalDiveLogsError } = await supabase
-    .from('dive_logs')
-    .select('*', { count: 'exact', head: true });
-
-  if (totalDiveLogsError) throw new Error(totalDiveLogsError.message);
-  
-  const { count: signedDiveLogs, error: signedDiveLogsError } = await supabase
-    .from('dive_logs')
-    .select('*', { count: 'exact', head: true })
-    .not('signature_url', 'is', null);
-
-  if (signedDiveLogsError) throw new Error(signedDiveLogsError.message);
-
-  const sentDiveLogs = 0; // No data for this yet
-
-  const { count: activeSupervisors, error: activeSupervisorsError } = await supabase
-    .from('profiles')
-    .select('*', { count: 'exact', head: true })
-    .eq('role', 'supervisor');
-
-  if (activeSupervisorsError) throw new Error(activeSupervisorsError.message);
-
-  return {
-    totalDiveLogs: totalDiveLogs ?? 0,
-    signedDiveLogs: signedDiveLogs ?? 0,
-    sentDiveLogs: sentDiveLogs,
-    activeSupervisors: activeSupervisors ?? 0,
-  };
-};
-
 export const useIndexStats = () => {
   return useQuery({
-    queryKey: ['indexStats'],
-    queryFn: fetchIndexStats,
+    queryKey: ['index-stats'],
+    queryFn: async () => {
+      // Obtener estadísticas de bitácoras
+      const { data: diveLogs, error: diveLogsError } = await supabase
+        .from('dive_logs')
+        .select('id, status, log_date');
+
+      if (diveLogsError) throw diveLogsError;
+
+      // Obtener estadísticas de usuarios
+      const { data: users, error: usersError } = await supabase
+        .from('profiles')
+        .select('id, role');
+
+      if (usersError) throw usersError;
+
+      // Obtener estadísticas de centros
+      const { data: centers, error: centersError } = await supabase
+        .from('centers')
+        .select('id');
+
+      if (centersError) throw centersError;
+
+      // Calcular estadísticas
+      const totalDiveLogs = diveLogs?.length || 0;
+      const totalUsers = users?.length || 0;
+      const totalCenters = centers?.length || 0;
+      const adminUsers = users?.filter(user => user.role === 'admin').length || 0;
+      const regularUsers = users?.filter(user => user.role === 'usuario').length || 0;
+
+      // Bitácoras del mes actual
+      const currentMonth = new Date();
+      const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const thisMonthLogs = diveLogs?.filter(log => {
+        const logDate = new Date(log.log_date);
+        return logDate >= startOfMonth;
+      }).length || 0;
+
+      return {
+        totalDiveLogs,
+        totalUsers,
+        totalCenters,
+        thisMonthLogs,
+        adminUsers,
+        regularUsers,
+      };
+    },
   });
 };
