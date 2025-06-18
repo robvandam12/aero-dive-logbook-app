@@ -24,8 +24,7 @@ export const Header = () => {
   };
 
   const handleProfileClick = () => {
-    // Navegar a perfil cuando esté implementado
-    console.log("Ir a perfil");
+    navigate("/settings");
   };
 
   return (
@@ -40,9 +39,19 @@ export const Header = () => {
           >
             {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
-          <h1 className="text-xl font-bold text-white ml-4 lg:ml-0">
-            Sistema de Bitácoras
-          </h1>
+          <div className="flex items-center ml-4 lg:ml-0">
+            <img 
+              src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/logo.png" 
+              alt="Aerocam Logo" 
+              className="h-8 w-16 object-contain mr-3"
+            />
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                Aerocam App
+              </h1>
+              <p className="text-xs text-ocean-300">Sistema de Bitácoras</p>
+            </div>
+          </div>
         </div>
         
         <div className="flex items-center space-x-4">

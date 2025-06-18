@@ -191,7 +191,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-ocean-900 border-ocean-700">
-                        <SelectItem value="" className="text-white">Sin centro asignado</SelectItem>
+                        <SelectItem value="none" className="text-white">Sin centro asignado</SelectItem>
                         {centers?.map((center) => (
                           <SelectItem key={center.id} value={center.id} className="text-white">
                             {center.name}
