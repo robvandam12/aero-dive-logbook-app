@@ -17,7 +17,7 @@ import { Loader2, Mail } from "lucide-react";
 const inviteUserSchema = z.object({
   email: z.string().email("Email inválido"),
   full_name: z.string().min(1, "Nombre completo requerido"),
-  role: z.enum(['admin', 'supervisor'], {
+  role: z.enum(['admin', 'usuario'], {
     required_error: "Rol requerido",
   }),
   center_id: z.string().optional(),
@@ -40,16 +40,38 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
     defaultValues: {
       email: "",
       full_name: "",
-      role: "supervisor",
+      role: "usuario",
       center_id: undefined,
       message: "",
     },
   });
 
+  const checkUserExists = async (email: string) => {
+    // Verificar en auth.users a través de user_management
+    const { data: existingUser } = await supabase
+      .from('user_management')
+      .select('email')
+      .eq('email', email)
+      .single();
+
+    return !!existingUser;
+  };
+
   const onSubmit = async (data: InviteUserForm) => {
     try {
       setIsLoading(true);
       console.log("Submitting invitation form with data:", data);
+
+      // Verificar si el usuario ya existe
+      const userExists = await checkUserExists(data.email);
+      if (userExists) {
+        toast({
+          title: "Usuario ya existe",
+          description: `Ya existe un usuario registrado con el email ${data.email}`,
+          variant: "destructive"
+        });
+        return;
+      }
 
       // Get current user
       const { data: userData } = await supabase.auth.getUser();
@@ -60,11 +82,11 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
       // Preparar datos para la función edge con el mapeo correcto
       const invitationData = {
         email: data.email,
-        fullName: data.full_name, // Usar fullName para coincidir con la función edge
+        fullName: data.full_name,
         role: data.role,
-        centerId: data.center_id || null, // Usar centerId para coincidir con la función edge
+        centerId: data.center_id || null,
         message: data.message || "",
-        createdBy: userData.user.id // Usar createdBy para coincidir con la función edge
+        createdBy: userData.user.id
       };
 
       console.log("Sending invitation data:", invitationData);
@@ -169,7 +191,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-ocean-900 border-ocean-700">
-                        <SelectItem value="supervisor" className="text-white">Supervisor</SelectItem>
+                        <SelectItem value="usuario" className="text-white">Usuario</SelectItem>
                         <SelectItem value="admin" className="text-white">Administrador</SelectItem>
                       </SelectContent>
                     </Select>

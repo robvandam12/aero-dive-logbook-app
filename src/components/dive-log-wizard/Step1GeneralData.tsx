@@ -20,14 +20,13 @@ export const Step1GeneralData = () => {
   const selectedCenterId = watch("center_id");
   const { data: boats } = useBoats(selectedCenterId);
   
-  // Auto-fill supervisor name with user's username when component mounts
+  // Auto-fill supervisor name with user's username when component mounts but allow editing
   useEffect(() => {
     if (userProfile?.username && !watch("supervisor_name")) {
       setValue("supervisor_name", userProfile.username);
     }
   }, [userProfile?.username, setValue, watch]);
 
-  // Filter dive sites by selected center - we'll need to add center_id to dive_sites or use a different approach
   const filteredDiveSites = diveSites || [];
   const filteredBoats = boats || [];
 
@@ -39,12 +38,12 @@ export const Step1GeneralData = () => {
           name="log_date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white">Fecha de la Bitácora</FormLabel>
+              <FormLabel className="text-ocean-200">Fecha de la Bitácora</FormLabel>
               <FormControl>
                 <Input 
                   type="date" 
                   {...field} 
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
@@ -57,16 +56,16 @@ export const Step1GeneralData = () => {
           name="center_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white">Centro de Cultivo</FormLabel>
+              <FormLabel className="text-ocean-200">Centro de Cultivo</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                  <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]">
                     <SelectValue placeholder="Seleccionar centro" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="bg-slate-800 border-slate-600">
+                <SelectContent className="bg-ocean-900 border-ocean-700">
                   {centers?.map((center) => (
-                    <SelectItem key={center.id} value={center.id} className="text-white hover:bg-slate-700">
+                    <SelectItem key={center.id} value={center.id} className="text-white hover:bg-ocean-700">
                       {center.name}
                     </SelectItem>
                   ))}
@@ -84,12 +83,12 @@ export const Step1GeneralData = () => {
           name="supervisor_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white">Supervisor de Buceo</FormLabel>
+              <FormLabel className="text-ocean-200">Supervisor de Buceo</FormLabel>
               <FormControl>
                 <Input 
                   {...field} 
                   placeholder="Nombre del supervisor de buceo"
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
@@ -99,20 +98,106 @@ export const Step1GeneralData = () => {
 
         <FormField
           control={control}
+          name="supervisor_license"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-ocean-200">N° Matrícula Supervisor</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="Número de matrícula"
+                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={control}
+          name="center_manager"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-ocean-200">Jefe de Centro</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="Nombre del jefe de centro"
+                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="center_assistant"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-ocean-200">Asistente de Centro</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="Nombre del asistente de centro"
+                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={control}
           name="dive_site_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white">Sitio de Buceo</FormLabel>
+              <FormLabel className="text-ocean-200">Sitio de Buceo</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                  <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]">
                     <SelectValue placeholder="Seleccionar sitio de buceo" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="bg-slate-800 border-slate-600">
+                <SelectContent className="bg-ocean-900 border-ocean-700">
                   {filteredDiveSites.map((site) => (
-                    <SelectItem key={site.id} value={site.id} className="text-white hover:bg-slate-700">
+                    <SelectItem key={site.id} value={site.id} className="text-white hover:bg-ocean-700">
                       {site.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="boat_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-ocean-200">Embarcación (Opcional)</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]">
+                    <SelectValue placeholder="Seleccionar embarcación" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-ocean-900 border-ocean-700">
+                  <SelectItem value="none" className="text-white hover:bg-ocean-700">
+                    Sin embarcación
+                  </SelectItem>
+                  {filteredBoats.map((boat) => (
+                    <SelectItem key={boat.id} value={boat.id} className="text-white hover:bg-ocean-700">
+                      {boat.name} - {boat.registration_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -123,46 +208,18 @@ export const Step1GeneralData = () => {
         />
       </div>
 
-      <FormField
-        control={control}
-        name="boat_id"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-white">Embarcación (Opcional)</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
-                  <SelectValue placeholder="Seleccionar embarcación" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent className="bg-slate-800 border-slate-600">
-                <SelectItem value="none" className="text-white hover:bg-slate-700">
-                  Sin embarcación
-                </SelectItem>
-                {filteredBoats.map((boat) => (
-                  <SelectItem key={boat.id} value={boat.id} className="text-white hover:bg-slate-700">
-                    {boat.name} - {boat.registration_number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
           control={control}
           name="departure_time"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white">Hora de Salida</FormLabel>
+              <FormLabel className="text-ocean-200">Hora de Salida</FormLabel>
               <FormControl>
                 <Input 
                   type="time" 
                   {...field} 
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
@@ -175,12 +232,12 @@ export const Step1GeneralData = () => {
           name="arrival_time"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white">Hora de Llegada</FormLabel>
+              <FormLabel className="text-ocean-200">Hora de Llegada</FormLabel>
               <FormControl>
                 <Input 
                   type="time" 
                   {...field} 
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />

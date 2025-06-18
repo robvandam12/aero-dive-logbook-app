@@ -31,12 +31,24 @@ const getDefaultValues = (isEditMode: boolean, diveLog?: DiveLogWithFullDetails)
       log_date: diveLog.log_date,
       center_id: diveLog.center_id,
       supervisor_name: diveLog.supervisor_name || diveLog.profiles?.username || '',
+      supervisor_license: diveLog.supervisor_license || '',
+      center_manager: diveLog.center_manager || '',
+      center_assistant: diveLog.center_assistant || '',
       dive_site_id: diveLog.dive_site_id,
       boat_id: diveLog.boat_id || '',
       weather_condition: weather.weather_condition as any,
       wind_knots: weather.wind_knots,
       wave_height_meters: weather.wave_height_meters,
-      divers_manifest: diversManifest.length > 0 ? diversManifest : [{ name: '', license: '', role: 'buzo', working_depth: 0 }],
+      divers_manifest: diversManifest.length > 0 ? diversManifest : [{ 
+        name: '', 
+        license: '', 
+        role: 'buzo', 
+        working_depth: 0,
+        standard_depth: true,
+        start_time: '',
+        end_time: '',
+        dive_time: ''
+      }],
       observations: diveLog.observations || '',
       departure_time: diveLog.departure_time || '',
       arrival_time: diveLog.arrival_time || '',
@@ -45,11 +57,23 @@ const getDefaultValues = (isEditMode: boolean, diveLog?: DiveLogWithFullDetails)
   }
 
   return {
-    divers_manifest: [{ name: '', license: '', role: 'buzo', working_depth: 0 }],
+    divers_manifest: [{ 
+      name: '', 
+      license: '', 
+      role: 'buzo', 
+      working_depth: 0,
+      standard_depth: true,
+      start_time: '',
+      end_time: '',
+      dive_time: ''
+    }],
     log_date: new Date().toISOString().split('T')[0],
     center_id: '',
     dive_site_id: '',
     supervisor_name: '', // Será llenado automáticamente por el componente
+    supervisor_license: '',
+    center_manager: '',
+    center_assistant: '',
   };
 };
 

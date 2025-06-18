@@ -16,7 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 interface InvitationData {
   email: string;
   full_name: string;
-  role: 'admin' | 'supervisor';
+  role: 'admin' | 'usuario';
   center_id?: string;
   message?: string;
   created_by: string;
@@ -29,98 +29,204 @@ const generateInvitationToken = () => {
 const getEmailTemplate = (data: InvitationData & { token: string; inviteUrl: string }) => {
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="es">
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Invitación a Aerocam App</title>
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+          line-height: 1.6; 
+          color: #334155; 
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+          margin: 0; 
+          padding: 20px;
+        }
+        .container { 
+          max-width: 600px; 
+          margin: 0 auto; 
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
         .header { 
-          background: linear-gradient(135deg, #6555FF, #8B5CF6); 
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%); 
           color: white; 
           padding: 40px 30px; 
           text-align: center; 
-          border-radius: 10px 10px 0 0; 
         }
-        .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
-        .subtitle { font-size: 16px; opacity: 0.9; }
+        .logo { 
+          font-size: 32px; 
+          font-weight: 800; 
+          margin-bottom: 8px;
+          background: linear-gradient(45deg, #ffffff, #e2e8f0);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .subtitle { 
+          font-size: 16px; 
+          opacity: 0.9; 
+          font-weight: 500;
+        }
         .content { 
-          background: #f8fafc; 
           padding: 40px 30px; 
-          border-radius: 0 0 10px 10px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .welcome-message { 
-          font-size: 24px; 
-          font-weight: bold; 
-          color: #1e293b; 
+          font-size: 28px; 
+          font-weight: 700; 
+          color: #0f172a; 
           margin-bottom: 20px; 
+          text-align: center;
         }
-        .invitation-details {
-          background: white;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
-          padding: 20px;
+        .intro-text {
+          font-size: 16px;
+          color: #475569;
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .invitation-card {
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 24px;
           margin: 25px 0;
+        }
+        .invitation-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #6366f1;
+          margin-bottom: 16px;
+          text-align: center;
         }
         .detail-row {
           display: flex;
           justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px solid #f1f5f9;
+          align-items: center;
+          padding: 12px 0;
+          border-bottom: 1px solid #e2e8f0;
         }
         .detail-row:last-child { border-bottom: none; }
-        .detail-label { font-weight: bold; color: #6555FF; }
-        .detail-value { color: #334155; }
+        .detail-label { 
+          font-weight: 600; 
+          color: #6366f1; 
+          font-size: 14px;
+        }
+        .detail-value { 
+          color: #334155; 
+          font-weight: 500;
+        }
+        .cta-section {
+          text-align: center;
+          margin: 40px 0;
+        }
         .cta-button { 
           display: inline-block; 
-          background: linear-gradient(135deg, #6555FF, #8B5CF6); 
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); 
           color: white; 
-          padding: 18px 40px; 
+          padding: 16px 32px; 
           text-decoration: none; 
-          border-radius: 8px; 
-          margin: 30px 0; 
-          font-weight: bold;
+          border-radius: 12px; 
+          font-weight: 600;
           font-size: 16px;
-          box-shadow: 0 4px 12px rgba(101, 85, 255, 0.3);
-          transition: transform 0.2s;
+          box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+          transition: all 0.2s ease;
+          border: none;
         }
-        .cta-button:hover { transform: translateY(-2px); }
+        .cta-button:hover { 
+          transform: translateY(-2px); 
+          box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.5);
+        }
         .backup-link {
-          background: #f1f5f9;
+          background: #f8fafc;
           border: 1px solid #e2e8f0;
-          border-radius: 6px;
-          padding: 15px;
-          margin: 20px 0;
-          font-size: 14px;
+          border-radius: 8px;
+          padding: 20px;
+          margin: 25px 0;
+          font-size: 13px;
+          color: #64748b;
+        }
+        .backup-link a {
+          color: #6366f1;
           word-break: break-all;
+          text-decoration: none;
         }
         .message-box {
-          background: #e0f2fe;
-          border-left: 4px solid #0284c7;
+          background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%);
+          border-left: 4px solid #3b82f6;
           padding: 20px;
           margin: 25px 0;
           border-radius: 0 8px 8px 0;
         }
-        .message-title { font-weight: bold; color: #0284c7; margin-bottom: 10px; }
+        .message-title { 
+          font-weight: 600; 
+          color: #1e40af; 
+          margin-bottom: 10px; 
+        }
+        .features-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 16px;
+          margin: 30px 0;
+        }
+        .feature-item {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 16px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .feature-icon {
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 12px;
+          color: white;
+          font-weight: bold;
+        }
         .footer { 
+          background: #0f172a;
+          color: #94a3b8;
           text-align: center; 
-          margin-top: 40px; 
-          color: #64748b; 
+          padding: 30px;
           font-size: 14px;
-          line-height: 1.5;
+          line-height: 1.6;
+        }
+        .footer-logo {
+          color: #6366f1;
+          font-weight: 700;
+          font-size: 18px;
+          margin-bottom: 8px;
         }
         .security-note {
-          background: #fef7cd;
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
           border: 1px solid #f59e0b;
-          border-radius: 6px;
-          padding: 15px;
+          border-radius: 8px;
+          padding: 16px;
           margin: 20px 0;
           font-size: 14px;
         }
-        .security-title { font-weight: bold; color: #f59e0b; margin-bottom: 8px; }
+        .security-title { 
+          font-weight: 600; 
+          color: #d97706; 
+          margin-bottom: 8px; 
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        @media (max-width: 600px) {
+          .container { margin: 10px; border-radius: 12px; }
+          .content { padding: 30px 20px; }
+          .header { padding: 30px 20px; }
+          .features-grid { grid-template-columns: 1fr; }
+        }
       </style>
     </head>
     <body>
@@ -132,28 +238,27 @@ const getEmailTemplate = (data: InvitationData & { token: string; inviteUrl: str
         
         <div class="content">
           <div class="welcome-message">¡Has sido invitado!</div>
+          <div class="intro-text">
+            Hola <strong>${data.full_name}</strong>, has sido invitado a formar parte del equipo de Aerocam App.
+          </div>
           
-          <p>Hola <strong>${data.full_name}</strong>,</p>
-          
-          <p>Has sido invitado a formar parte del equipo de Aerocam App, el sistema profesional para la gestión de bitácoras de buceo.</p>
-          
-          <div class="invitation-details">
-            <h3 style="margin-top: 0; color: #1e293b;">Detalles de tu invitación:</h3>
+          <div class="invitation-card">
+            <div class="invitation-title">📋 Detalles de tu invitación</div>
             <div class="detail-row">
-              <span class="detail-label">Email:</span>
+              <span class="detail-label">📧 Email:</span>
               <span class="detail-value">${data.email}</span>
             </div>
             <div class="detail-row">
-              <span class="detail-label">Nombre completo:</span>
+              <span class="detail-label">👤 Nombre:</span>
               <span class="detail-value">${data.full_name}</span>
             </div>
             <div class="detail-row">
-              <span class="detail-label">Rol asignado:</span>
-              <span class="detail-value">${data.role === 'admin' ? 'Administrador' : 'Supervisor'}</span>
+              <span class="detail-label">🔑 Rol:</span>
+              <span class="detail-value">${data.role === 'admin' ? 'Administrador' : 'Usuario'}</span>
             </div>
             ${data.center_id ? `
               <div class="detail-row">
-                <span class="detail-label">Centro asignado:</span>
+                <span class="detail-label">🏢 Centro:</span>
                 <span class="detail-value">Configurado automáticamente</span>
               </div>
             ` : ''}
@@ -161,43 +266,60 @@ const getEmailTemplate = (data: InvitationData & { token: string; inviteUrl: str
           
           ${data.message ? `
             <div class="message-box">
-              <div class="message-title">Mensaje del administrador:</div>
-              <p style="margin: 0;">${data.message}</p>
+              <div class="message-title">💬 Mensaje del administrador:</div>
+              <p style="margin: 0; color: #1e40af;">${data.message}</p>
             </div>
           ` : ''}
           
-          <p>Para completar tu registro y acceder al sistema, haz clic en el siguiente botón:</p>
-          
-          <div style="text-align: center;">
-            <a href="${data.inviteUrl}" class="cta-button">Completar mi Registro</a>
+          <div class="cta-section">
+            <p style="margin-bottom: 20px; color: #475569;">Para completar tu registro y acceder al sistema:</p>
+            <a href="${data.inviteUrl}" class="cta-button">✨ Completar mi Registro</a>
           </div>
           
           <div class="backup-link">
-            <strong>Enlace alternativo:</strong><br>
+            <strong>🔗 Enlace alternativo:</strong><br>
             Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
             <a href="${data.inviteUrl}">${data.inviteUrl}</a>
           </div>
           
           <div class="security-note">
-            <div class="security-title">⚠️ Nota de seguridad:</div>
-            Esta invitación expira en 7 días por motivos de seguridad. Si no puedes acceder o tienes problemas, contacta a tu administrador.
+            <div class="security-title">
+              ⚠️ Nota de seguridad
+            </div>
+            Esta invitación expira en 7 días por motivos de seguridad. Si tienes problemas, contacta a tu administrador.
           </div>
           
-          <p><strong>¿Qué puedes hacer con Aerocam App?</strong></p>
-          <ul style="color: #475569; line-height: 1.7;">
-            <li>Crear y gestionar bitácoras de buceo digitales</li>
-            <li>Firmar digitalmente tus reportes</li>
-            <li>Exportar bitácoras en PDF y Excel</li>
-            <li>Enviar reportes por email</li>
-            <li>Gestionar equipos de buceo y sitios</li>
-            ${data.role === 'admin' ? '<li>Administrar usuarios y configuración del sistema</li>' : ''}
-          </ul>
+          <div style="margin: 30px 0;">
+            <h3 style="color: #0f172a; margin-bottom: 20px; text-align: center;">🚀 ¿Qué puedes hacer con Aerocam App?</h3>
+            <div class="features-grid">
+              <div class="feature-item">
+                <div class="feature-icon">📝</div>
+                <strong style="color: #0f172a;">Bitácoras Digitales</strong>
+                <p style="font-size: 14px; color: #64748b; margin: 8px 0 0 0;">Crear y gestionar bitácoras de buceo de forma digital</p>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">✍️</div>
+                <strong style="color: #0f172a;">Firmas Digitales</strong>
+                <p style="font-size: 14px; color: #64748b; margin: 8px 0 0 0;">Firmar digitalmente tus reportes de manera segura</p>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <strong style="color: #0f172a;">Exportar Reportes</strong>
+                <p style="font-size: 14px; color: #64748b; margin: 8px 0 0 0;">Generar PDFs y Excel de tus bitácoras</p>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">👥</div>
+                <strong style="color: #0f172a;">Gestión de Equipos</strong>
+                <p style="font-size: 14px; color: #64748b; margin: 8px 0 0 0;">Administrar equipos de buceo y sitios</p>
+              </div>
+            </div>
+          </div>
         </div>
         
         <div class="footer">
-          <p><strong>© 2025 Aerocam App</strong></p>
+          <div class="footer-logo">🚁 Aerocam App</div>
           <p>Sistema profesional de gestión de bitácoras de buceo</p>
-          <p>Esta invitación fue enviada a ${data.email}</p>
+          <p style="margin-top: 16px; font-size: 12px;">Esta invitación fue enviada a ${data.email}</p>
         </div>
       </div>
     </body>
@@ -265,7 +387,7 @@ serve(async (req) => {
     const emailPayload = {
       from: "Aerocam App <noreply@resend.dev>",
       to: [data.email],
-      subject: `Invitación a Aerocam App - ${data.role === 'admin' ? 'Administrador' : 'Supervisor'}`,
+      subject: `🚁 Invitación a Aerocam App - ${data.role === 'admin' ? 'Administrador' : 'Usuario'}`,
       html: emailHtml,
     };
 

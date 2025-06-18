@@ -109,7 +109,7 @@ export const usePDFExport = () => {
         doc.setFont('helvetica', 'bold');
         doc.text('SUPERVISOR:', margin + 2, yPos);
         doc.setFont('helvetica', 'normal');
-        doc.text(diveLog.profiles?.username || 'N/A', margin + 25, yPos);
+        doc.text(diveLog.supervisor_name || 'N/A', margin + 25, yPos);
 
         doc.setFont('helvetica', 'bold');
         doc.text('JEFE DE CENTRO:', pageWidth / 2 + 5, yPos);
@@ -242,16 +242,20 @@ export const usePDFExport = () => {
           doc.setFontSize(9);
           doc.text('FIRMA ENCARGADO DE CENTRO', margin + (contentWidth / 4 - 5), yPos + 25, { align: 'center' });
 
-          // Firma Supervisor
-          doc.rect(pageWidth / 2 + 5, yPos, contentWidth / 2 - 5, 30);
-          doc.text('FIRMA Y TIMBRE SUPERVISOR DE BUCEO', pageWidth / 2 + 5 + (contentWidth / 4 - 5), yPos + 25, { align: 'center' });
+          // Firma Supervisor - CENTRADA
+          const supervisorBoxX = pageWidth / 2 + 5;
+          const supervisorBoxWidth = contentWidth / 2 - 5;
+          const supervisorBoxCenterX = supervisorBoxX + (supervisorBoxWidth / 2);
+          
+          doc.rect(supervisorBoxX, yPos, supervisorBoxWidth, 30);
+          doc.text('FIRMA Y TIMBRE SUPERVISOR DE BUCEO', supervisorBoxCenterX, yPos + 25, { align: 'center' });
           
           if (diveLog.signature_url && includeSignature) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7);
             doc.setTextColor(0, 128, 0);
-            doc.text('FIRMADO DIGITALMENTE', pageWidth / 2 + 5 + (contentWidth / 4 - 5), yPos + 28, { align: 'center' });
-            doc.text(`Código: DL-${diveLog.id?.slice(0, 8).toUpperCase()}`, pageWidth / 2 + 5 + (contentWidth / 4 - 5), yPos + 31, { align: 'center' });
+            doc.text('FIRMADO DIGITALMENTE', supervisorBoxCenterX, yPos + 28, { align: 'center' });
+            doc.text(`Código: DL-${diveLog.id?.slice(0, 8).toUpperCase()}`, supervisorBoxCenterX, yPos + 31, { align: 'center' });
             doc.setTextColor(0, 0, 0);
           }
         }

@@ -13,13 +13,15 @@ import {
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Edit, Mail, Shield, Users, Settings } from "lucide-react";
-import { useUserManagement } from "@/hooks/useUserManagement";
+import { useUserManagement, UserManagement } from "@/hooks/useUserManagement";
 import { useUpdateUser } from "@/hooks/useUserMutations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InviteUserForm } from "./InviteUserForm";
+import { UserEditDialog } from "./UserEditDialog";
 
 export const UserManagementTable = () => {
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserManagement | null>(null);
   const { data: users, isLoading } = useUserManagement();
   const updateUser = useUpdateUser();
 
@@ -146,6 +148,7 @@ export const UserManagementTable = () => {
                           size="sm"
                           className="text-ocean-300 hover:text-white p-1"
                           title="Editar usuario"
+                          onClick={() => setEditingUser(user)}
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -154,6 +157,7 @@ export const UserManagementTable = () => {
                           size="sm"
                           className="text-blue-400 hover:text-blue-300 p-1"
                           title="Configurar permisos"
+                          onClick={() => setEditingUser(user)}
                         >
                           <Shield className="w-4 h-4" />
                         </Button>
@@ -162,6 +166,7 @@ export const UserManagementTable = () => {
                           size="sm"
                           className="text-purple-400 hover:text-purple-300 p-1"
                           title="Configuración avanzada"
+                          onClick={() => setEditingUser(user)}
                         >
                           <Settings className="w-4 h-4" />
                         </Button>
@@ -178,6 +183,12 @@ export const UserManagementTable = () => {
           )}
         </CardContent>
       </Card>
+
+      <UserEditDialog
+        user={editingUser}
+        open={!!editingUser}
+        onOpenChange={(open) => !open && setEditingUser(null)}
+      />
     </div>
   );
 };
