@@ -1,27 +1,30 @@
+
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 
-import { Auth } from "@/pages/Auth";
-import { Index } from "@/pages/Index";
+import Auth from "@/pages/Auth";
+import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
 import AllDiveLogsPage from "@/pages/AllDiveLogs";
 import NewDiveLog from "@/pages/NewDiveLog";
-import DiveLogDetails from "@/pages/DiveLogDetails";
+import DiveLogDetail from "@/pages/DiveLogDetail";
 import Reports from "@/pages/Reports";
 import UserSettings from "@/pages/UserSettings";
 import Admin from "@/pages/Admin";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthProvider";
-import { Loading } from "@/components/Loading";
-import { QueryClient } from "@/contexts/QueryProvider";
 import NavigationLoader from "@/components/NavigationLoader";
 import { LoadingProvider } from "@/contexts/LoadingProvider";
+import ProtectedLayout from "@/components/ProtectedLayout";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <BrowserRouter>
-      <QueryClient>
+      <QueryClientProvider client={queryClient}>
         <Toaster />
         <AuthProvider>
           <LoadingProvider>
@@ -60,7 +63,7 @@ function App() {
                 <Route path="/dive-logs/:id" element={
                   <ProtectedRoute>
                     <ProtectedLayout>
-                      <DiveLogDetails />
+                      <DiveLogDetail />
                     </ProtectedLayout>
                   </ProtectedRoute>
                 } />
@@ -82,31 +85,23 @@ function App() {
             </div>
           </LoadingProvider>
         </AuthProvider>
-      </QueryClient>
+      </QueryClientProvider>
     </BrowserRouter>
   );
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return <NavigationLoader />;
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
   return children;
-}
-
-function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex h-screen antialiased text-foreground">
-      {children}
-    </div>
-  );
 }
 
 export default App;
