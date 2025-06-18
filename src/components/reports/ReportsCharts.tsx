@@ -1,15 +1,14 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { TrendingUp, Calendar, MapPin, Ship } from "lucide-react";
+import { useReportsData } from "@/hooks/useReportsData";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 
 interface ReportsChartsProps {
   dateRange?: { from?: Date; to?: Date };
   selectedCenter?: string;
 }
-
-const COLORS = ['#6555FF', '#8B5CF6', '#A855F7', '#C084FC', '#D8B4FE'];
 
 const chartConfig = {
   total: {
@@ -27,40 +26,21 @@ const chartConfig = {
 } satisfies any;
 
 export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps) => {
-  // Mock data - in real implementation, this would come from hooks based on filters
-  const monthlyData = [
-    { month: 'Ene', total: 45 },
-    { month: 'Feb', total: 52 },
-    { month: 'Mar', total: 48 },
-    { month: 'Abr', total: 61 },
-    { month: 'May', total: 55 },
-    { month: 'Jun', total: 67 },
-  ];
+  const { data: reportsData, isLoading, error } = useReportsData({ dateRange, selectedCenter });
 
-  const centerData = [
-    { name: 'Centro A', total: 120 },
-    { name: 'Centro B', total: 98 },
-    { name: 'Centro C', total: 86 },
-    { name: 'Centro D', total: 74 },
-  ];
+  if (isLoading) {
+    return <LoadingSkeleton type="dashboard" count={4} />;
+  }
 
-  const siteData = [
-    { name: 'Sitio 1', total: 45 },
-    { name: 'Sitio 2', total: 38 },
-    { name: 'Sitio 3', total: 32 },
-    { name: 'Sitio 4', total: 28 },
-    { name: 'Sitio 5', total: 24 },
-    { name: 'Sitio 6', total: 20 },
-  ];
+  if (error || !reportsData) {
+    return (
+      <div className="text-center py-8 text-ocean-300">
+        Error al cargar los datos de reportes
+      </div>
+    );
+  }
 
-  const totalLogs = 328;
-  const signedLogs = 298;
-  const draftLogs = 30;
-
-  const statusData = [
-    { name: 'Firmadas', value: signedLogs, color: '#10B981' },
-    { name: 'Borradores', value: draftLogs, color: '#F59E0B' },
-  ];
+  const { monthlyData, centerData, siteData, statusData } = reportsData;
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -148,8 +128,9 @@ export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps)
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    <Cell fill="url(#colorSigned)" />
-                    <Cell fill="url(#colorDraft)" />
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
                   </Pie>
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
@@ -241,7 +222,7 @@ export const ReportsCharts = ({ dateRange, selectedCenter }: ReportsChartsProps)
           <div className="w-full h-80">
             <ChartContainer config={chartConfig} className="w-full h-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={siteData.slice(0, 6)} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                <LineChart data={siteData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                   <defs>
                     <linearGradient id="colorSite" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#A855F7" stopOpacity={0.8}/>

@@ -39,7 +39,13 @@ export const Step2Conditions = () => {
             <FormItem>
               <FormLabel className="text-ocean-300">Viento (nudos)</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="0" {...field} className="bg-ocean-950/50 border-ocean-700 text-white" />
+                <Input 
+                  type="number" 
+                  placeholder="0" 
+                  {...field} 
+                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                  className="bg-ocean-950/50 border-ocean-700 text-white" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -52,7 +58,14 @@ export const Step2Conditions = () => {
             <FormItem>
               <FormLabel className="text-ocean-300">Oleaje (m)</FormLabel>
               <FormControl>
-                <Input type="number" step="0.1" placeholder="0.0" {...field} className="bg-ocean-950/50 border-ocean-700 text-white" />
+                <Input 
+                  type="number" 
+                  step="0.1" 
+                  placeholder="0.0" 
+                  {...field} 
+                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                  className="bg-ocean-950/50 border-ocean-700 text-white" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

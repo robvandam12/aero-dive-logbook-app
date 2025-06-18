@@ -22,14 +22,14 @@ export const useCreateDiveLog = () => {
         }
       }
 
-      // Prepare insert data
+      // Prepare insert data - handle "none" values
       const insertData = {
         supervisor_id: userId,
-        supervisor_name: data.supervisor_name, // Agregar este campo
+        supervisor_name: data.supervisor_name,
         log_date: data.log_date,
         center_id: data.center_id,
         dive_site_id: data.dive_site_id,
-        boat_id: data.boat_id || null,
+        boat_id: data.boat_id === 'none' || !data.boat_id ? null : data.boat_id,
         weather_conditions: `${data.weather_condition || 'N/A'}, Viento: ${data.wind_knots || 'N/A'} nudos, Oleaje: ${data.wave_height_meters || 'N/A'} m`,
         divers_manifest: data.divers_manifest,
         observations: data.observations || "",

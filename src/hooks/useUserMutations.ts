@@ -36,31 +36,36 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (data: CreateUserData) => {
-      // Crear usuario en auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Use the service role key for admin operations
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
-        email_confirm: true,
-        user_metadata: {
-          username: data.full_name || data.email.split('@')[0]
+        options: {
+          data: {
+            username: data.full_name || data.email.split('@')[0]
+          }
         }
       });
 
       if (authError) throw authError;
 
-      // Crear perfil
+      if (!authData.user) {
+        throw new Error('No se pudo crear el usuario');
+      }
+
+      // Create profile
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
           id: authData.user.id,
           username: data.full_name || data.email.split('@')[0],
           role: data.role,
-          center_id: data.center_id || null
+          center_id: data.center_id === 'none' ? null : data.center_id
         });
 
       if (profileError) throw profileError;
 
-      // Crear registro en user_management
+      // Create user management record
       const { error: userMgmtError } = await supabase
         .from('user_management')
         .insert({
@@ -68,7 +73,7 @@ export const useCreateUser = () => {
           email: data.email,
           full_name: data.full_name,
           role: data.role,
-          center_id: data.center_id || null
+          center_id: data.center_id === 'none' ? null : data.center_id
         });
 
       if (userMgmtError) throw userMgmtError;
