@@ -16,9 +16,9 @@ export const Step1GeneralData = () => {
   const { data: userProfile } = useUserProfile();
   const { data: centers } = useCenters();
   const { data: diveSites } = useDiveSites();
-  const { data: boats } = useBoats();
   
   const selectedCenterId = watch("center_id");
+  const { data: boats } = useBoats(selectedCenterId);
   
   // Auto-fill supervisor name with user's username when component mounts
   useEffect(() => {
@@ -27,9 +27,9 @@ export const Step1GeneralData = () => {
     }
   }, [userProfile?.username, setValue, watch]);
 
-  // Filter dive sites and boats by selected center
-  const filteredDiveSites = diveSites?.filter(site => site.center_id === selectedCenterId) || [];
-  const filteredBoats = boats?.filter(boat => boat.center_id === selectedCenterId) || [];
+  // Filter dive sites by selected center - we'll need to add center_id to dive_sites or use a different approach
+  const filteredDiveSites = diveSites || [];
+  const filteredBoats = boats || [];
 
   return (
     <div className="space-y-6">
@@ -141,7 +141,7 @@ export const Step1GeneralData = () => {
                 </SelectItem>
                 {filteredBoats.map((boat) => (
                   <SelectItem key={boat.id} value={boat.id} className="text-white hover:bg-slate-700">
-                    {boat.name} - {boat.registration}
+                    {boat.name} - {boat.registration_number}
                   </SelectItem>
                 ))}
               </SelectContent>
