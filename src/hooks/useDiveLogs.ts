@@ -18,6 +18,7 @@ interface FetchDiveLogsParams {
   search?: string;
   status?: 'draft' | 'signed' | 'all';
   centerName?: string;
+  dateRange?: { from?: Date; to?: Date };
 }
 
 interface DiveLogsResponse {
@@ -36,6 +37,7 @@ const fetchDiveLogs = async ({
   search = '',
   status = 'all',
   centerName = 'all',
+  dateRange,
 }: FetchDiveLogsParams): Promise<DiveLogsResponse> => {
   if (!userId) {
     return { 
@@ -70,6 +72,14 @@ const fetchDiveLogs = async ({
   // Apply center filter
   if (centerName && centerName !== 'all') {
     query = query.eq('centers.name', centerName);
+  }
+
+  // Apply date range filter
+  if (dateRange?.from) {
+    query = query.gte('log_date', dateRange.from.toISOString().split('T')[0]);
+  }
+  if (dateRange?.to) {
+    query = query.lte('log_date', dateRange.to.toISOString().split('T')[0]);
   }
 
   // Apply search filter - search across multiple fields

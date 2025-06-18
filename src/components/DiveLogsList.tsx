@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useDiveLogs } from "@/hooks/useDiveLogs";
 import { useAuth } from "@/contexts/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DiveLogsPagination } from "@/components/DiveLogsPagination";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -14,24 +14,37 @@ import { useDeleteDiveLog } from "@/hooks/useDiveLogMutations";
 import { DiveLogsFilters } from "@/components/DiveLogsFilters";
 import { DiveLogsTableContent } from "@/components/DiveLogsTableContent";
 
-export const DiveLogsList = () => {
+interface DiveLogsListProps {
+  dateRange?: { from?: Date; to?: Date };
+  selectedCenter?: string;
+}
+
+export const DiveLogsList = ({ dateRange, selectedCenter }: DiveLogsListProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [centerFilter, setCenterFilter] = useState<string>("all");
+  const [centerFilter, setCenterFilter] = useState<string>(selectedCenter || "all");
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState<{ id: string; signatureUrl?: string | null } | null>(null);
   
+  // Update center filter when selectedCenter prop changes
+  useEffect(() => {
+    if (selectedCenter !== undefined) {
+      setCenterFilter(selectedCenter);
+    }
+  }, [selectedCenter]);
+
   const { data: diveLogsResponse, isLoading } = useDiveLogs({ 
     userId: user?.id,
     page: currentPage,
     perPage: 20,
     search,
     status: statusFilter as 'draft' | 'signed' | 'all',
-    centerName: centerFilter
+    centerName: centerFilter,
+    dateRange: dateRange
   });
 
   const deleteLogMutation = useDeleteDiveLog();
@@ -119,7 +132,7 @@ export const DiveLogsList = () => {
     count: diveLogsResponse.count
   } : null;
 
-  const hasActiveFilters = statusFilter !== "all" || centerFilter !== "all" || search.trim() !== "";
+  const hasActiveFilters = statusFilter !== "all" || centerFilter !== "all" || search.trim() !== "" || dateRange?.from || dateRange?.to;
 
   return (
     <>
@@ -131,6 +144,16 @@ export const DiveLogsList = () => {
               {pagination && (
                 <p className="text-sm text-ocean-300 mt-1">
                   {pagination.count} bitácora{pagination.count !== 1 ? 's' : ''} encontrada{pagination.count !== 1 ? 's' : ''}
+                  {dateRange?.from && dateRange?.to && (
+                    <span className="ml-2 text-ocean-400">
+                      (filtradas por fecha)
+                    </span>
+                  )}
+                  {centerFilter && centerFilter !== 'all' && (
+                    <span className="ml-2 text-ocean-400">
+                      (centro: {centerFilter})
+                    </span>
+                  )}
                 </p>
               )}
             </div>

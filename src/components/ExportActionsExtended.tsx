@@ -22,12 +22,14 @@ interface ExportActionsExtendedProps {
   diveLog?: DiveLogWithFullDetails;
   showMultipleExport?: boolean;
   dateRange?: { from?: Date; to?: Date };
+  selectedCenter?: string;
 }
 
 export const ExportActionsExtended = ({ 
   diveLog, 
   showMultipleExport = false,
-  dateRange 
+  dateRange,
+  selectedCenter 
 }: ExportActionsExtendedProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
@@ -70,7 +72,7 @@ export const ExportActionsExtended = ({
   const handleExportMultipleExcel = async (format: 'control-diario' | 'detalle-boletas' = 'control-diario') => {
     try {
       setIsExporting(true);
-      await exportMultipleDiveLogs(format, dateRange);
+      await exportMultipleDiveLogs(format, dateRange, selectedCenter);
     } catch (error) {
       console.error('Error exporting multiple Excel:', error);
     } finally {
@@ -161,12 +163,22 @@ export const ExportActionsExtended = ({
             <h4 className="text-ocean-200 font-medium flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Exportación Múltiple
-              {dateRange?.from && (
+              {(dateRange?.from || selectedCenter !== 'all') && (
                 <span className="text-xs text-ocean-400">
-                  (Filtrado por fechas)
+                  (Con filtros aplicados)
                 </span>
               )}
             </h4>
+            {(dateRange?.from || selectedCenter !== 'all') && (
+              <div className="text-xs text-ocean-400 space-y-1">
+                {dateRange?.from && (
+                  <p>• Filtrado por fechas: {dateRange.from.toLocaleDateString()} - {dateRange.to?.toLocaleDateString() || 'presente'}</p>
+                )}
+                {selectedCenter && selectedCenter !== 'all' && (
+                  <p>• Centro: {selectedCenter}</p>
+                )}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button
                 onClick={() => handleExportMultipleExcel('control-diario')}

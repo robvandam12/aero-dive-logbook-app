@@ -1,274 +1,158 @@
 
-import { useCallback } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DiveLogWithFullDetails } from '@/hooks/useDiveLog';
 import { useToast } from '@/hooks/use-toast';
+import { DiveLogWithFullDetails } from './useDiveLog';
 
 export const useExcelExport = () => {
   const { toast } = useToast();
 
-  const exportSingleDiveLog = useCallback(async (diveLog: DiveLogWithFullDetails) => {
+  const exportSingleDiveLog = async (diveLog: DiveLogWithFullDetails) => {
     try {
-      // Crear contenido XML para Excel
-      const xmlContent = `<?xml version="1.0"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
-<Worksheet ss:Name="Control Diario Buceo">
-<Table>
-  <Row><Cell><Data ss:Type="String">CONTROL DIARIO DE BUCEO</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">SOCIEDAD DE SERVICIOS AEROCAM SPA</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">RUT: 76.355.932-4</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">INFORMACIÓN GENERAL</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Fecha</Data></Cell><Cell><Data ss:Type="String">${diveLog.log_date}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">N° Boleta</Data></Cell><Cell><Data ss:Type="String">${diveLog.id.slice(0, 8).toUpperCase()}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Centro de Cultivo</Data></Cell><Cell><Data ss:Type="String">${diveLog.centers?.name || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Sitio de Buceo</Data></Cell><Cell><Data ss:Type="String">${diveLog.dive_sites?.name || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Embarcación</Data></Cell><Cell><Data ss:Type="String">${diveLog.boats?.name || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">N° Matrícula</Data></Cell><Cell><Data ss:Type="String">${diveLog.boats?.registration_number || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Supervisor</Data></Cell><Cell><Data ss:Type="String">${diveLog.profiles?.username || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">CONDICIONES AMBIENTALES</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Temperatura del Agua (°C)</Data></Cell><Cell><Data ss:Type="String">${diveLog.water_temperature || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Visibilidad (m)</Data></Cell><Cell><Data ss:Type="String">${diveLog.visibility || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Fuerza de Corriente</Data></Cell><Cell><Data ss:Type="String">${diveLog.current_strength || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Condiciones Climáticas</Data></Cell><Cell><Data ss:Type="String">${diveLog.weather_conditions || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">HORARIOS</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Hora de Salida</Data></Cell><Cell><Data ss:Type="String">${diveLog.departure_time || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Hora de Llegada</Data></Cell><Cell><Data ss:Type="String">${diveLog.arrival_time || 'N/A'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">EQUIPO DE BUCEO</Data></Cell></Row>
-  <Row>
-    <Cell><Data ss:Type="String">N°</Data></Cell>
-    <Cell><Data ss:Type="String">Nombre</Data></Cell>
-    <Cell><Data ss:Type="String">N° Matrícula</Data></Cell>
-    <Cell><Data ss:Type="String">Cargo</Data></Cell>
-    <Cell><Data ss:Type="String">Profundidad Máx</Data></Cell>
-    <Cell><Data ss:Type="String">Tiempo Fondo</Data></Cell>
-  </Row>`;
+      // Format dive log data according to the Excel structure shown in the image
+      const excelData = [{
+        'Fecha': diveLog.log_date,
+        'N° Boleta': diveLog.id.slice(-6),
+        'Centro\nEmbarcacion': `${diveLog.centers?.name || 'N/A'}\n${diveLog.boats?.name || 'N/A'}`,
+        'Trabajo realizado': diveLog.work_type || 'MANTENCIÓN',
+        'Supervisor de Buceo': diveLog.profiles?.username || 'N/A',
+        'Buzos': diveLog.divers_manifest && Array.isArray(diveLog.divers_manifest) 
+          ? diveLog.divers_manifest.filter(d => d.role !== 'BB.EE').map(d => d.name).join('\n') 
+          : '',
+        'Buzo de Emergencia': diveLog.divers_manifest && Array.isArray(diveLog.divers_manifest)
+          ? diveLog.divers_manifest.filter(d => d.role === 'BB.EE').map(d => d.name).join('\n')
+          : '',
+        'Detalle trabajos realizados / Observaciones': diveLog.work_details || diveLog.observations || ''
+      }];
 
-      let diversRows = '';
-      if (Array.isArray(diveLog.divers_manifest)) {
-        diveLog.divers_manifest.forEach((diver: any, index: number) => {
-          diversRows += `
-  <Row>
-    <Cell><Data ss:Type="Number">${index + 1}</Data></Cell>
-    <Cell><Data ss:Type="String">${diver.name || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${diver.license || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${diver.role === 'buzo' ? 'BUZO' : 
-            diver.role === 'buzo-emergencia' ? 'BUZO EMERGENCIA' : 
-            diver.role === 'supervisor' ? 'SUPERVISOR' : 'BUZO'}</Data></Cell>
-    <Cell><Data ss:Type="String">${diver.working_depth || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${diver.bottom_time || 'N/A'}</Data></Cell>
-  </Row>`;
-        });
-      }
+      // Convert to CSV format for download
+      const headers = Object.keys(excelData[0]);
+      const csvContent = [
+        headers.join('\t'),
+        ...excelData.map(row => headers.map(header => `"${row[header as keyof typeof row] || ''}"`).join('\t'))
+      ].join('\n');
 
-      const finalXmlContent = xmlContent + diversRows + `
-  <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">DETALLE DE TRABAJO REALIZADO</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">${diveLog.observations || 'Trabajo realizado normal. Buceo sin novedad.'}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">VALIDACIÓN</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Estado</Data></Cell><Cell><Data ss:Type="String">${diveLog.signature_url ? 'FIRMADO DIGITALMENTE' : 'BORRADOR'}</Data></Cell></Row>
-  ${diveLog.signature_url ? `<Row><Cell><Data ss:Type="String">Código de Validación</Data></Cell><Cell><Data ss:Type="String">DL-${diveLog.id.slice(0, 8).toUpperCase()}</Data></Cell></Row>` : ''}
-</Table>
-</Worksheet>
-</Workbook>`;
-
-      const blob = new Blob([finalXmlContent], { 
-        type: 'application/vnd.ms-excel' 
-      });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `Control_Diario_Buceo_${diveLog.log_date}_${diveLog.id.slice(0, 8)}.xls`);
+      link.setAttribute('download', `bitacora_${diveLog.id.slice(-6)}_${diveLog.log_date}.xls`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
 
       toast({
         title: "Exportación exitosa",
-        description: "La bitácora se ha exportado a Excel correctamente",
+        description: "La bitácora ha sido exportada a Excel",
       });
     } catch (error) {
       console.error('Error exporting to Excel:', error);
       toast({
-        title: "Error",
+        title: "Error en exportación",
         description: "No se pudo exportar la bitácora",
         variant: "destructive",
       });
     }
-  }, [toast]);
+  };
 
-  const exportMultipleDiveLogs = useCallback(async (format: 'control-diario' | 'detalle-boletas' = 'control-diario', dateRange?: { from?: Date; to?: Date }) => {
+  const exportMultipleDiveLogs = async (
+    format: 'control-diario' | 'detalle-boletas', 
+    dateRange?: { from?: Date; to?: Date },
+    selectedCenter?: string
+  ) => {
     try {
+      // Build query filters
       let query = supabase
         .from('dive_logs')
         .select(`
-          *,
+          id,
+          log_date,
+          work_type,
+          work_details,
+          observations,
+          divers_manifest,
           centers (name),
-          dive_sites (name, location),
-          boats (name, registration_number),
+          boats (name),
           profiles (username)
         `)
-        .order('log_date', { ascending: false })
-        .limit(30);
+        .order('log_date', { ascending: false });
 
-      // Aplicar filtros de fecha si se proporcionan
+      // Apply filters
       if (dateRange?.from) {
         query = query.gte('log_date', dateRange.from.toISOString().split('T')[0]);
       }
       if (dateRange?.to) {
         query = query.lte('log_date', dateRange.to.toISOString().split('T')[0]);
       }
+      if (selectedCenter && selectedCenter !== 'all') {
+        query = query.eq('centers.name', selectedCenter);
+      }
 
       const { data: diveLogs, error } = await query;
 
       if (error) throw error;
 
-      let xmlContent = '';
-      let filename = '';
-
-      if (format === 'control-diario') {
-        xmlContent = `<?xml version="1.0"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
-<Worksheet ss:Name="Control Diario">
-<Table>
-  <Row><Cell><Data ss:Type="String">CONTROL DIARIO DE BUCEO - REPORTE MÚLTIPLE</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">SOCIEDAD DE SERVICIOS AEROCAM SPA</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Generado el: ${new Date().toLocaleDateString('es-ES')}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-  <Row>
-    <Cell><Data ss:Type="String">Fecha</Data></Cell>
-    <Cell><Data ss:Type="String">N° Boleta</Data></Cell>
-    <Cell><Data ss:Type="String">Centro de Cultivo</Data></Cell>
-    <Cell><Data ss:Type="String">Embarcación</Data></Cell>
-    <Cell><Data ss:Type="String">N° Matrícula</Data></Cell>
-    <Cell><Data ss:Type="String">Sitio de Buceo</Data></Cell>
-    <Cell><Data ss:Type="String">Supervisor</Data></Cell>
-    <Cell><Data ss:Type="String">Hora Salida</Data></Cell>
-    <Cell><Data ss:Type="String">Hora Llegada</Data></Cell>
-    <Cell><Data ss:Type="String">Temperatura (°C)</Data></Cell>
-    <Cell><Data ss:Type="String">Visibilidad (m)</Data></Cell>
-    <Cell><Data ss:Type="String">Corriente</Data></Cell>
-    <Cell><Data ss:Type="String">Clima</Data></Cell>
-    <Cell><Data ss:Type="String">Total Buzos</Data></Cell>
-    <Cell><Data ss:Type="String">Estado</Data></Cell>
-  </Row>`;
-
-        diveLogs?.forEach((log: any) => {
-          const diversCount = Array.isArray(log.divers_manifest) ? log.divers_manifest.length : 0;
-          xmlContent += `
-  <Row>
-    <Cell><Data ss:Type="String">${log.log_date}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.id.slice(0, 8).toUpperCase()}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.centers?.name || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.boats?.name || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.boats?.registration_number || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.dive_sites?.name || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.profiles?.username || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.departure_time || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.arrival_time || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.water_temperature || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.visibility || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.current_strength || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.weather_conditions || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="Number">${diversCount}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.signature_url ? 'Firmado' : 'Borrador'}</Data></Cell>
-  </Row>`;
+      if (!diveLogs || diveLogs.length === 0) {
+        toast({
+          title: "Sin datos",
+          description: "No se encontraron bitácoras con los filtros aplicados",
+          variant: "destructive",
         });
-
-        filename = `Control_Diario_Buceo_${new Date().toISOString().split('T')[0]}.xls`;
-      } else {
-        // Formato Detalle de Boletas
-        const centerName = diveLogs?.[0]?.centers?.name || 'Centro';
-        xmlContent = `<?xml version="1.0"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
-<Worksheet ss:Name="Detalle de Boletas">
-<Table>
-  <Row><Cell><Data ss:Type="String">DETALLE DE BOLETAS - ${centerName.toUpperCase()}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">SOCIEDAD DE SERVICIOS AEROCAM SPA</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String">Generado el: ${new Date().toLocaleDateString('es-ES')}</Data></Cell></Row>
-  <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-  <Row>
-    <Cell><Data ss:Type="String">N° Boleta</Data></Cell>
-    <Cell><Data ss:Type="String">Fecha</Data></Cell>
-    <Cell><Data ss:Type="String">Centro</Data></Cell>
-    <Cell><Data ss:Type="String">Supervisor</Data></Cell>
-    <Cell><Data ss:Type="String">Sitio de Buceo</Data></Cell>
-    <Cell><Data ss:Type="String">Embarcación</Data></Cell>
-    <Cell><Data ss:Type="String">Total Buzos</Data></Cell>
-    <Cell><Data ss:Type="String">Observaciones</Data></Cell>
-    <Cell><Data ss:Type="String">Estado</Data></Cell>
-    <Cell><Data ss:Type="String">Código Validación</Data></Cell>
-  </Row>`;
-
-        diveLogs?.forEach((log: any) => {
-          const diversCount = Array.isArray(log.divers_manifest) ? log.divers_manifest.length : 0;
-          xmlContent += `
-  <Row>
-    <Cell><Data ss:Type="String">${log.id.slice(0, 8).toUpperCase()}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.log_date}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.centers?.name || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.profiles?.username || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.dive_sites?.name || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.boats?.name || 'N/A'}</Data></Cell>
-    <Cell><Data ss:Type="Number">${diversCount}</Data></Cell>
-    <Cell><Data ss:Type="String">${(log.observations || '').substring(0, 100)}${log.observations?.length > 100 ? '...' : ''}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.signature_url ? 'Firmado' : 'Borrador'}</Data></Cell>
-    <Cell><Data ss:Type="String">${log.signature_url ? `DL-${log.id.slice(0, 8).toUpperCase()}` : 'N/A'}</Data></Cell>
-  </Row>`;
-        });
-
-        filename = `Detalle_Boletas_${centerName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xls`;
+        return;
       }
 
-      xmlContent += `
-</Table>
-</Worksheet>
-</Workbook>`;
+      // Format data according to format type
+      const excelData = diveLogs.map(diveLog => ({
+        'Fecha': diveLog.log_date,
+        'N° Boleta': diveLog.id.slice(-6),
+        'Centro\nEmbarcacion': `${diveLog.centers?.name || 'N/A'}\n${diveLog.boats?.name || 'N/A'}`,
+        'Trabajo realizado': diveLog.work_type || 'MANTENCIÓN',
+        'Supervisor de Buceo': diveLog.profiles?.username || 'N/A',
+        'Buzos': diveLog.divers_manifest && Array.isArray(diveLog.divers_manifest) 
+          ? diveLog.divers_manifest.filter(d => d.role !== 'BB.EE').map(d => d.name).join('\n') 
+          : '',
+        'Buzo de Emergencia': diveLog.divers_manifest && Array.isArray(diveLog.divers_manifest)
+          ? diveLog.divers_manifest.filter(d => d.role === 'BB.EE').map(d => d.name).join('\n')
+          : '',
+        'Detalle trabajos realizados / Observaciones': diveLog.work_details || diveLog.observations || ''
+      }));
 
-      const blob = new Blob([xmlContent], { 
-        type: 'application/vnd.ms-excel' 
-      });
+      // Convert to CSV format for download
+      const headers = Object.keys(excelData[0]);
+      const csvContent = [
+        headers.join('\t'),
+        ...excelData.map(row => headers.map(header => `"${row[header as keyof typeof row] || ''}"`).join('\t'))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
+      
+      const fileName = format === 'control-diario' 
+        ? `control_diario_${diveLogs.length}_bitacoras.xls`
+        : `detalle_boletas_${diveLogs.length}_bitacoras.xls`;
+      
       link.setAttribute('href', url);
-      link.setAttribute('download', filename);
+      link.setAttribute('download', fileName);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
 
       toast({
         title: "Exportación exitosa",
-        description: `Se han exportado ${diveLogs?.length || 0} bitácoras en formato ${format === 'control-diario' ? 'Control Diario' : 'Detalle de Boletas'}`,
+        description: `Se exportaron ${diveLogs.length} bitácoras a Excel`,
       });
     } catch (error) {
       console.error('Error exporting multiple dive logs:', error);
       toast({
-        title: "Error",
-        description: "No se pudo exportar el reporte",
+        title: "Error en exportación",
+        description: "No se pudieron exportar las bitácoras",
         variant: "destructive",
       });
     }
-  }, [toast]);
+  };
 
   return {
     exportSingleDiveLog,
