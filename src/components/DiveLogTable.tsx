@@ -31,8 +31,8 @@ export const DiveLogTable = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
+  // Quitamos el filtro por userId para mostrar todas las bitácoras
   const { data: diveLogsData, isLoading } = useDiveLogs({ 
-    userId: user?.id,
     page: 1,
     perPage: 5 
   });

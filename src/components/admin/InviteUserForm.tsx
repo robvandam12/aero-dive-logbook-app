@@ -41,7 +41,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
       email: "",
       full_name: "",
       role: "supervisor",
-      center_id: "",
+      center_id: undefined, // Cambio de "" a undefined
       message: "",
     },
   });
@@ -186,14 +186,14 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-ocean-200">Centro de Buceo</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white">
                           <SelectValue placeholder="Seleccionar centro" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-ocean-900 border-ocean-700">
-                        <SelectItem value="" className="text-white">Sin centro asignado</SelectItem>
+                        <SelectItem value="none" className="text-white">Sin centro asignado</SelectItem>
                         {centers?.map((center) => (
                           <SelectItem key={center.id} value={center.id} className="text-white">
                             {center.name}

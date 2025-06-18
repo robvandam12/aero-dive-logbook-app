@@ -22,6 +22,7 @@ const DiveLogDetail = lazy(() => import("@/pages/DiveLogDetail"));
 const SignDiveLog = lazy(() => import("@/pages/SignDiveLog"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const Reports = lazy(() => import("@/pages/Reports"));
+const UserSettings = lazy(() => import("@/pages/UserSettings"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -130,6 +131,16 @@ function App() {
                   <ProtectedLayout>
                     <Suspense fallback={<NavigationLoader />}>
                       <Reports />
+                    </Suspense>
+                  </ProtectedLayout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <ProtectedLayout>
+                    <Suspense fallback={<NavigationLoader />}>
+                      <UserSettings />
                     </Suspense>
                   </ProtectedLayout>
                 </ProtectedRoute>

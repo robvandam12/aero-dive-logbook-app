@@ -29,7 +29,18 @@ export const PDFPreview = ({ diveLogId, hasSignature }: PDFPreviewProps) => {
       }
 
       if (data.success && data.html) {
-        setPreviewContent(data.html);
+        // Modificar el HTML para mostrar texto en negro y agregar el logo
+        const modifiedHtml = data.html
+          .replace(/color:\s*white/g, 'color: black')
+          .replace(/color:\s*#fff/g, 'color: black')
+          .replace('🚁 AEROCAM APP', `
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+              <img src="/lovable-uploads/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" alt="Logo" style="height: 40px; width: auto;">
+              <span>AEROCAM APP</span>
+            </div>
+          `);
+        
+        setPreviewContent(modifiedHtml);
         setPreviewOpen(true);
       }
     } catch (error) {
@@ -56,7 +67,7 @@ export const PDFPreview = ({ diveLogId, hasSignature }: PDFPreviewProps) => {
         className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
       >
         <Eye className="w-4 h-4 mr-2" />
-        {isLoadingPreview ? 'Cargando...' : 'Preview PDF'}
+        {isLoadingPreview ? 'Cargando...' : 'Previsualizar PDF'}
       </Button>
       
       <Button 
@@ -73,11 +84,12 @@ export const PDFPreview = ({ diveLogId, hasSignature }: PDFPreviewProps) => {
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] bg-slate-900 border-slate-700">
           <DialogHeader>
-            <DialogTitle className="text-white">Preview de Bitácora PDF</DialogTitle>
+            <DialogTitle className="text-white">Previsualización de Bitácora PDF</DialogTitle>
           </DialogHeader>
           <div className="overflow-auto bg-white rounded">
             <div 
               className="w-full h-full p-4"
+              style={{ color: 'black' }}
               dangerouslySetInnerHTML={{ __html: previewContent }}
             />
           </div>

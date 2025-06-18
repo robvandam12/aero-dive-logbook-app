@@ -25,13 +25,13 @@ const generatePDF = (diveLog: any) => {
   const diversList = Array.isArray(diveLog.divers_manifest) 
     ? diveLog.divers_manifest.map((diver: any, index: number) => `
         <tr>
-          <td>${index + 1}</td>
-          <td>${diver.name || 'N/A'}</td>
-          <td>${diver.role || 'buzo'}</td>
-          <td>${diver.certification || 'N/A'}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${diver.name || 'N/A'}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${diver.role || 'buzo'}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${diver.certification || 'N/A'}</td>
         </tr>
       `).join('')
-    : '<tr><td colspan="4">No hay buzos registrados</td></tr>';
+    : '<tr><td colspan="4" style="border: 1px solid #ddd; padding: 8px;">No hay buzos registrados</td></tr>';
 
   return `
     <!DOCTYPE html>
@@ -39,12 +39,13 @@ const generatePDF = (diveLog: any) => {
     <head>
       <meta charset="utf-8">
       <style>
-        @page { size: A4; margin: 20mm; }
+        @page { size: A4; margin: 15mm; }
         body { 
           font-family: Arial, sans-serif; 
           margin: 0; 
           font-size: 12px;
           line-height: 1.4;
+          color: #000;
         }
         .header { 
           text-align: center; 
@@ -90,7 +91,7 @@ const generatePDF = (diveLog: any) => {
         }
         th, td { 
           border: 1px solid #ddd; 
-          padding: 6px; 
+          padding: 8px; 
           text-align: left;
         }
         th { 
@@ -199,7 +200,7 @@ const generatePDF = (diveLog: any) => {
       ${diveLog.observations ? `
         <div class="info-section">
           <h3>OBSERVACIONES</h3>
-          <p style="margin: 5px 0;">${diveLog.observations}</p>
+          <p style="margin: 5px 0; color: #000;">${diveLog.observations}</p>
         </div>
       ` : ''}
 
@@ -369,12 +370,15 @@ serve(async (req) => {
     if (data.includePDF) {
       console.log("Generating PDF attachment");
       const pdfHtml = generatePDF(diveLog);
-      // Note: For real PDF generation, you would use a library like puppeteer or similar
-      // For now, we'll include it as HTML attachment
+      
+      // Convertir HTML a base64
+      const htmlBuffer = new TextEncoder().encode(pdfHtml);
+      const base64Html = btoa(String.fromCharCode(...htmlBuffer));
+      
       emailPayload.attachments = [
         {
           filename: `bitacora_${diveLog.log_date}_${diveLog.id.slice(0, 8)}.html`,
-          content: Buffer.from(pdfHtml).toString('base64'),
+          content: base64Html,
           type: 'text/html',
           disposition: 'attachment'
         }

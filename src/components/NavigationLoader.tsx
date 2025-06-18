@@ -22,8 +22,8 @@ const NavigationLoader = () => {
             </div>
           </div>
         </div>
-        {/* Content skeleton */}
-        <div className="flex-1 p-8">
+        {/* Content skeleton - sin simular sidebar */}
+        <div className="flex-1 p-0">
           <LoadingSkeleton type="dashboard" count={3} />
         </div>
       </div>
