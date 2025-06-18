@@ -41,7 +41,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
       email: "",
       full_name: "",
       role: "supervisor",
-      center_id: undefined, // Cambio de "" a undefined
+      center_id: "",
       message: "",
     },
   });
@@ -72,7 +72,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
 
       if (insertError) throw insertError;
 
-      // Enviar email de invitación
+      // Enviar email de invitación con estructura simplificada
       const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
         body: {
           email: data.email,
@@ -80,13 +80,16 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
           userData: {
             full_name: data.full_name,
             role: data.role,
-            center_id: data.center_id,
+            center_id: data.center_id || null,
           },
           message: data.message,
         },
       });
 
-      if (emailError) throw emailError;
+      if (emailError) {
+        console.error('Email error:', emailError);
+        throw emailError;
+      }
 
       toast({
         title: "Invitación enviada",
@@ -186,14 +189,14 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-ocean-200">Centro de Buceo</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white">
                           <SelectValue placeholder="Seleccionar centro" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-ocean-900 border-ocean-700">
-                        <SelectItem value="none" className="text-white">Sin centro asignado</SelectItem>
+                        <SelectItem value="" className="text-white">Sin centro asignado</SelectItem>
                         {centers?.map((center) => (
                           <SelectItem key={center.id} value={center.id} className="text-white">
                             {center.name}
