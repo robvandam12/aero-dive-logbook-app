@@ -83,12 +83,18 @@ const generatePDFHtml = (diveLog: any) => {
         .logo-section {
           display: flex;
           align-items: center;
-          gap: 5px;
+          gap: 8px;
           margin-bottom: 8px;
         }
         .logo-section img {
-          height: 30px;
+          height: 35px;
           width: auto;
+          object-fit: contain;
+        }
+        .logo-text {
+          font-size: 18px;
+          font-weight: bold;
+          color: #6555FF;
         }
         .date-section {
           text-align: right;
@@ -263,8 +269,8 @@ const generatePDFHtml = (diveLog: any) => {
       <div class="header">
         <div class="company-section">
           <div class="logo-section">
-            <img src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" alt="Aerocam Logo">
-            <span style="font-size: 16px; font-weight: bold;">aerocam</span>
+            <img src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" alt="Aerocam Logo" style="height: 35px; width: auto; object-fit: contain;">
+            <span class="logo-text">aerocam</span>
           </div>
           <div class="company-info">
             <div><strong>SOCIEDAD DE SERVICIOS AEROCAM SPA</strong></div>

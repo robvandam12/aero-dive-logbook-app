@@ -41,7 +41,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
       email: "",
       full_name: "",
       role: "supervisor",
-      center_id: undefined,
+      center_id: "",
       message: "",
     },
   });
@@ -57,14 +57,14 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
         throw new Error('Usuario no autenticado');
       }
 
-      // Preparar datos para la función edge con el mapeo correcto
+      // Preparar datos para la función edge
       const invitationData = {
         email: data.email,
-        fullName: data.full_name, // Usar fullName para coincidir con la función edge
+        fullName: data.full_name,
         role: data.role,
-        centerId: data.center_id || null, // Usar centerId para coincidir con la función edge
+        centerId: data.center_id && data.center_id !== "" ? data.center_id : null,
         message: data.message || "",
-        createdBy: userData.user.id // Usar createdBy para coincidir con la función edge
+        createdBy: userData.user.id
       };
 
       console.log("Sending invitation data:", invitationData);
@@ -191,7 +191,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-ocean-900 border-ocean-700">
-                        <SelectItem value="" className="text-white">Sin centro asignado</SelectItem>
+                        <SelectItem value="sin-centro" className="text-white">Sin centro asignado</SelectItem>
                         {centers?.map((center) => (
                           <SelectItem key={center.id} value={center.id} className="text-white">
                             {center.name}

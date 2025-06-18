@@ -15,11 +15,11 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface InvitationData {
   email: string;
-  full_name: string;
+  fullName: string;
   role: 'admin' | 'supervisor';
-  center_id?: string;
+  centerId?: string | null;
   message?: string;
-  created_by: string;
+  createdBy: string;
 }
 
 const generateInvitationToken = () => {
@@ -133,7 +133,7 @@ const getEmailTemplate = (data: InvitationData & { token: string; inviteUrl: str
         <div class="content">
           <div class="welcome-message">¡Has sido invitado!</div>
           
-          <p>Hola <strong>${data.full_name}</strong>,</p>
+          <p>Hola <strong>${data.fullName}</strong>,</p>
           
           <p>Has sido invitado a formar parte del equipo de Aerocam App, el sistema profesional para la gestión de bitácoras de buceo.</p>
           
@@ -145,13 +145,13 @@ const getEmailTemplate = (data: InvitationData & { token: string; inviteUrl: str
             </div>
             <div class="detail-row">
               <span class="detail-label">Nombre completo:</span>
-              <span class="detail-value">${data.full_name}</span>
+              <span class="detail-value">${data.fullName}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Rol asignado:</span>
               <span class="detail-value">${data.role === 'admin' ? 'Administrador' : 'Supervisor'}</span>
             </div>
-            ${data.center_id ? `
+            ${data.centerId && data.centerId !== 'sin-centro' ? `
               <div class="detail-row">
                 <span class="detail-label">Centro asignado:</span>
                 <span class="detail-value">Configurado automáticamente</span>
@@ -222,14 +222,13 @@ serve(async (req) => {
     const requestData = await req.json();
     console.log("Received invitation request:", requestData);
 
-    // Mapear los datos correctamente según lo que envía el frontend
     const data: InvitationData = {
       email: requestData.email,
-      full_name: requestData.fullName || requestData.full_name,
+      fullName: requestData.fullName,
       role: requestData.role,
-      center_id: requestData.centerId || requestData.center_id,
+      centerId: requestData.centerId === 'sin-centro' ? null : requestData.centerId,
       message: requestData.message,
-      created_by: requestData.createdBy || requestData.created_by
+      createdBy: requestData.createdBy
     };
 
     if (!RESEND_API_KEY) {
@@ -246,11 +245,11 @@ serve(async (req) => {
       .insert({
         email: data.email,
         token,
-        created_by: data.created_by,
+        created_by: data.createdBy,
         user_data: {
-          full_name: data.full_name,
+          full_name: data.fullName,
           role: data.role,
-          center_id: data.center_id
+          center_id: data.centerId
         }
       });
 

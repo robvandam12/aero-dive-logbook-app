@@ -40,7 +40,7 @@ export const usePDFExport = () => {
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4' // Carta/A4
+        format: 'a4'
       });
 
       // Configurar página
@@ -55,7 +55,7 @@ export const usePDFExport = () => {
       // Header con logo y empresa
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(101, 85, 255); // Color morado
+      doc.setTextColor(101, 85, 255);
       doc.text('aerocam', margin, 25);
       
       doc.setFontSize(10);
@@ -74,11 +74,11 @@ export const usePDFExport = () => {
         
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Fecha: ${diveLog.log_date}`, pageWidth - 50, 25);
+        doc.text(`Fecha: ${String(diveLog.log_date || '')}`, pageWidth - 50, 25);
         
-        doc.setTextColor(0, 128, 0); // Verde
+        doc.setTextColor(0, 128, 0);
         doc.setFont('helvetica', 'bold');
-        doc.text(`Nº: ${diveLog.id?.slice(-6) || ''}`, pageWidth - 50, 32);
+        doc.text(`Nº: ${String(diveLog.id?.slice(-6) || '')}`, pageWidth - 50, 32);
         doc.setTextColor(0, 0, 0);
 
         // Título principal
@@ -93,7 +93,7 @@ export const usePDFExport = () => {
         doc.setFont('helvetica', 'bold');
         doc.text('CENTRO DE CULTIVO:', margin, yPos);
         doc.setFont('helvetica', 'normal');
-        doc.text(diveLog.centers?.name || 'N/A', margin + 45, yPos);
+        doc.text(String(diveLog.centers?.name || 'N/A'), margin + 45, yPos);
         yPos += 15;
 
         // Sección Datos Generales
@@ -109,23 +109,23 @@ export const usePDFExport = () => {
         doc.setFont('helvetica', 'bold');
         doc.text('SUPERVISOR:', margin + 2, yPos);
         doc.setFont('helvetica', 'normal');
-        doc.text(diveLog.profiles?.username || 'N/A', margin + 25, yPos);
+        doc.text(String(diveLog.profiles?.username || 'N/A'), margin + 25, yPos);
 
         doc.setFont('helvetica', 'bold');
         doc.text('JEFE DE CENTRO:', pageWidth / 2 + 5, yPos);
         doc.setFont('helvetica', 'normal');
-        doc.text(diveLog.center_manager || 'N/A', pageWidth / 2 + 35, yPos);
+        doc.text(String(diveLog.center_manager || 'N/A'), pageWidth / 2 + 35, yPos);
 
         yPos += 8;
         doc.setFont('helvetica', 'bold');
         doc.text('N° MATRICULA:', margin + 2, yPos);
         doc.setFont('helvetica', 'normal');
-        doc.text(diveLog.supervisor_license || 'N/A', margin + 25, yPos);
+        doc.text(String(diveLog.supervisor_license || 'N/A'), margin + 25, yPos);
 
         doc.setFont('helvetica', 'bold');
         doc.text('ASISTENTE DE CENTRO:', pageWidth / 2 + 5, yPos);
         doc.setFont('helvetica', 'normal');
-        doc.text(diveLog.center_assistant || 'N/A', pageWidth / 2 + 35, yPos);
+        doc.text(String(diveLog.center_assistant || 'N/A'), pageWidth / 2 + 35, yPos);
 
         yPos += 15;
 
@@ -137,7 +137,7 @@ export const usePDFExport = () => {
         
         doc.setFontSize(9);
         const weatherGood = diveLog.weather_good;
-        doc.text(`☐ SÍ    ☐ NO`, margin + 2, yPos);
+        doc.text('☐ SÍ    ☐ NO', margin + 2, yPos);
         if (weatherGood === true) {
           doc.text('☑', margin + 2, yPos);
         } else if (weatherGood === false) {
@@ -147,7 +147,7 @@ export const usePDFExport = () => {
         doc.setFont('helvetica', 'bold');
         doc.text('OBSERVACIONES:', margin + 40, yPos);
         doc.setFont('helvetica', 'normal');
-        doc.text(diveLog.weather_conditions || 'Buen tiempo', margin + 65, yPos);
+        doc.text(String(diveLog.weather_conditions || 'Buen tiempo'), margin + 65, yPos);
 
         yPos += 40;
 
@@ -184,16 +184,16 @@ export const usePDFExport = () => {
           const diver = diversManifest[i];
           
           doc.setFont('helvetica', 'normal');
-          doc.text(`${i + 1}`, xPos, yPos);
+          doc.text(String(i + 1), xPos, yPos);
           xPos += colWidths[0];
           
-          doc.text(diver?.name || '', xPos, yPos);
+          doc.text(String(diver?.name || ''), xPos, yPos);
           xPos += colWidths[1];
           
-          doc.text(diver?.license || '', xPos, yPos);
+          doc.text(String(diver?.license || ''), xPos, yPos);
           xPos += colWidths[2];
           
-          doc.text(diver?.role || '', xPos, yPos);
+          doc.text(String(diver?.role || ''), xPos, yPos);
           xPos += colWidths[3];
           
           const standardDepth = diver?.standard_depth === true ? '☑ SÍ ☐ NO' : 
@@ -201,16 +201,16 @@ export const usePDFExport = () => {
           doc.text(standardDepth, xPos, yPos);
           xPos += colWidths[4];
           
-          doc.text(diver?.working_depth || '', xPos, yPos);
+          doc.text(String(diver?.working_depth || ''), xPos, yPos);
           xPos += colWidths[5];
           
-          doc.text(diver?.start_time || '', xPos, yPos);
+          doc.text(String(diver?.start_time || ''), xPos, yPos);
           xPos += colWidths[6];
           
-          doc.text(diver?.end_time || '', xPos, yPos);
+          doc.text(String(diver?.end_time || ''), xPos, yPos);
           xPos += colWidths[7];
           
-          doc.text(diver?.dive_time || '', xPos, yPos);
+          doc.text(String(diver?.dive_time || ''), xPos, yPos);
         }
 
         yPos += 20;
@@ -227,7 +227,7 @@ export const usePDFExport = () => {
           yPos += 10;
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(9);
-          const splitObservations = doc.splitTextToSize(diveLog.observations, contentWidth - 4);
+          const splitObservations = doc.splitTextToSize(String(diveLog.observations), contentWidth - 4);
           doc.text(splitObservations, margin + 2, yPos);
           yPos += 25;
         }
@@ -251,7 +251,7 @@ export const usePDFExport = () => {
             doc.setFontSize(7);
             doc.setTextColor(0, 128, 0);
             doc.text('FIRMADO DIGITALMENTE', pageWidth / 2 + 5 + (contentWidth / 4 - 5), yPos + 28, { align: 'center' });
-            doc.text(`Código: DL-${diveLog.id?.slice(0, 8).toUpperCase()}`, pageWidth / 2 + 5 + (contentWidth / 4 - 5), yPos + 31, { align: 'center' });
+            doc.text(`Código: DL-${String(diveLog.id?.slice(0, 8).toUpperCase())}`, pageWidth / 2 + 5 + (contentWidth / 4 - 5), yPos + 31, { align: 'center' });
             doc.setTextColor(0, 0, 0);
           }
         }
