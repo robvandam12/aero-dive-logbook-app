@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -93,6 +94,62 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
         const diversManifest = Array.isArray(diveLogData.divers_manifest) 
           ? diveLogData.divers_manifest as any[]
           : [];
+
+        // Generate diver rows for the table
+        const generateDiverRows = () => {
+          return [1, 2, 3, 4].map(buzoNum => {
+            const diver = diversManifest[buzoNum - 1];
+            return `
+              <div class="p-1 border-r border-b border-gray-500 flex items-center justify-center">${buzoNum}</div>
+              <div class="p-1 border-r border-b border-gray-500">
+                <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">${diver?.name || ''}</div>
+              </div>
+              <div class="p-1 border-r border-b border-gray-500">
+                <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">${diver?.license || ''}</div>
+              </div>
+              <div class="p-1 border-r border-b border-gray-500">
+                <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">${diver?.role || ''}</div>
+              </div>
+              <div class="p-1 border-r border-b border-gray-500 flex items-center justify-center space-x-2">
+                <div class="flex items-center space-x-1">
+                  <div class="w-3 h-3 border border-black flex items-center justify-center">
+                    ${diver?.standard_depth === true ? '<span class="text-[10px] font-bold">X</span>' : ''}
+                  </div>
+                </div>
+                <div class="flex items-center space-x-1">
+                  <div class="w-3 h-3 border border-black flex items-center justify-center">
+                    ${diver?.standard_depth === false ? '<span class="text-[10px] font-bold">X</span>' : ''}
+                  </div>
+                </div>
+              </div>
+              <div class="p-1 border-r border-b border-gray-500">
+                <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">${diver?.working_depth || ''}</div>
+              </div>
+              <div class="p-1 border-r border-b border-gray-500">
+                <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">${diver?.start_time || ''}</div>
+              </div>
+              <div class="p-1 border-r border-b border-gray-500">
+                <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">${diver?.end_time || ''}</div>
+              </div>
+              <div class="p-1 border-r border-b border-gray-500">
+                <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">${diver?.dive_time || ''}</div>
+              </div>
+            `;
+          }).join('');
+        };
+
+        // Generate work details for each diver
+        const generateWorkDetails = () => {
+          return [1, 2, 3, 4].map(buzoNum => {
+            const diver = diversManifest[buzoNum - 1];
+            return `
+              <div class="flex flex-col text-xs mb-2">
+                <span class="font-semibold text-gray-600">BUZO ${buzoNum}:</span>
+                <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs min-h-[2.5rem] w-full flex items-start">${diver?.work_description || ''}</div>
+              </div>
+            `;
+          }).join('');
+        };
 
         // Generate the HTML content for preview
         const htmlContent = `
@@ -228,25 +285,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
                   <div class="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center leading-tight">TIEMPO<br/>DE BUCEO<br/>(min)</div>
 
                   <!-- Render up to 4 divers -->
-                  {[1, 2, 3, 4].map((buzoNum) => {
-                    const diver = diversManifest[buzoNum - 1];
-                    return (
-                      <React.Fragment key={buzoNum}>
-                        <div class="p-1 border-r border-b border-gray-500 flex items-center justify-center">{buzoNum}</div>
-                        <div class="p-1 border-r border-b border-gray-500"><ValueBox className="w-full">{diver?.name || ''}</ValueBox></div>
-                        <div class="p-1 border-r border-b border-gray-500"><ValueBox className="w-full">{diver?.license || ''}</ValueBox></div>
-                        <div class="p-1 border-r border-b border-gray-500"><ValueBox className="w-full">{diver?.role || ''}</ValueBox></div>
-                        <div class="p-1 border-r border-b border-gray-500 flex items-center justify-center space-x-2">
-                          <Checkbox checked={diver?.standard_depth === true} />
-                          <Checkbox checked={diver?.standard_depth === false} />
-                        </div>
-                        <div class="p-1 border-r border-b border-gray-500"><ValueBox className="w-full">{diver?.working_depth || ''}</ValueBox></div>
-                        <div class="p-1 border-r border-b border-gray-500"><ValueBox className="w-full">{diver?.start_time || ''}</ValueBox></div>
-                        <div class="p-1 border-r border-b border-gray-500"><ValueBox className="w-full">{diver?.end_time || ''}</ValueBox></div>
-                        <div class="p-1 border-r border-b border-gray-500"><ValueBox className="w-full">{diver?.dive_time || ''}</ValueBox></div>
-                      </React.Fragment>
-                    );
-                  })}
+                  ${generateDiverRows()}
                 </div>
                 <p class="text-[10px] mt-1 text-center">Nota: Capacidad máxima permitida de 20 metros.</p>
               </section>
@@ -254,44 +293,32 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
               <!-- Detalle de Trabajo Section -->
               <section class="mb-4 p-2 border border-gray-400">
                 <h2 class="font-bold text-sm mb-2 text-center bg-gray-200 p-1 -m-2 mb-2">DETALLE DE TRABAJO REALIZADO POR BUZO</h2>
-                {[1, 2, 3, 4].map((buzoNum) => {
-                  const diver = diversManifest[buzoNum - 1];
-                  return (
-                    <Field 
-                      key={buzoNum}
-                      label={`BUZO ${buzoNum}:`} 
-                      value={<ValueBox isTextarea lines={2} className="w-full">{diver?.work_description || ''}</ValueBox>} 
-                      vertical 
-                      className="mb-2"
-                    />
-                  );
-                })}
+                ${generateWorkDetails()}
               </section>
 
               <!-- Observaciones Generales Section -->
               <section class="mb-4 p-2 border border-gray-400">
-                <Field 
-                  label="OBSERVACIONES:" 
-                  value={<ValueBox isTextarea lines={3} className="w-full">{diveLogData.observations || 'Faena realizada normal, buzos sin novedad.'}</ValueBox>} 
-                  vertical 
-                />
+                <div class="flex flex-col text-xs">
+                  <span class="font-semibold text-gray-600">OBSERVACIONES:</span>
+                  <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs min-h-[3.75rem] w-full flex items-start">${diveLogData.observations || 'Faena realizada normal, buzos sin novedad.'}</div>
+                </div>
               </section>
 
               <!-- Firmas Section -->
               <section class="mt-6 pt-4 border-t border-gray-300">
                 <div class="grid grid-cols-2 gap-8">
                   <div class="text-center">
-                    <ValueBox className="w-full h-16 mb-1">(Firma)</ValueBox>
+                    <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-16 w-full flex items-start mb-1">(Firma)</div>
                     <p class="border-t border-black pt-1">NOMBRE Y CARGO</p>
                     <p class="font-semibold">FIRMA ENCARGADO DE CENTRO</p>
                   </div>
                   <div class="text-center">
-                    <ValueBox className="w-full h-16 mb-1">
+                    <div class="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-16 w-full flex items-start mb-1">
                       ${hasSignature && diveLogData.signature_url ? 
                         `<img src="${diveLogData.signature_url}" alt="Firma" class="max-h-14 max-w-full object-contain" />` : 
                         '(Firma y Timbre)'
                       }
-                    </ValueBox>
+                    </div>
                     <p class="border-t border-black pt-1">NOMBRE Y CARGO</p>
                     <p class="font-semibold">FIRMA Y TIMBRE SUPERVISOR DE BUCEO</p>
                     ${hasSignature ? 
