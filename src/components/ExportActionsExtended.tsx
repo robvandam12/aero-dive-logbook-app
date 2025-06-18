@@ -67,10 +67,10 @@ export const ExportActionsExtended = ({
     }
   };
 
-  const handleExportMultipleExcel = async () => {
+  const handleExportMultipleExcel = async (format: 'control-diario' | 'detalle-boletas' = 'control-diario') => {
     try {
       setIsExporting(true);
-      await exportMultipleDiveLogs(dateRange);
+      await exportMultipleDiveLogs(format, dateRange);
     } catch (error) {
       console.error('Error exporting multiple Excel:', error);
     } finally {
@@ -169,7 +169,7 @@ export const ExportActionsExtended = ({
             </h4>
             <div className="flex flex-wrap gap-2">
               <Button
-                onClick={handleExportMultipleExcel}
+                onClick={() => handleExportMultipleExcel('control-diario')}
                 disabled={isExporting}
                 variant="outline"
                 size="sm"
@@ -180,18 +180,18 @@ export const ExportActionsExtended = ({
                 ) : (
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                 )}
-                Reporte Excel
+                Control Diario
               </Button>
               
               <Button
-                onClick={handleExportMultipleExcel}
+                onClick={() => handleExportMultipleExcel('detalle-boletas')}
                 disabled={isExporting}
                 variant="outline"
                 size="sm"
                 className="border-ocean-700 text-ocean-300 hover:bg-ocean-800"
               >
                 <Filter className="w-4 h-4 mr-2" />
-                Últimas 30 Bitácoras
+                Detalle de Boletas
               </Button>
             </div>
           </div>
