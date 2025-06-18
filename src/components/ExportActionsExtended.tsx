@@ -69,10 +69,13 @@ export const ExportActionsExtended = ({
     }
   };
 
-  const handleExportMultipleExcel = async (format: 'control-diario' | 'detalle-boletas' = 'control-diario') => {
+  const handleExportMultipleExcel = async () => {
     try {
       setIsExporting(true);
-      await exportMultipleDiveLogs(format, dateRange, selectedCenter);
+      // For now, export single dive log if available
+      if (diveLog) {
+        await exportMultipleDiveLogs([diveLog]);
+      }
     } catch (error) {
       console.error('Error exporting multiple Excel:', error);
     } finally {
@@ -181,7 +184,7 @@ export const ExportActionsExtended = ({
             )}
             <div className="flex flex-wrap gap-2">
               <Button
-                onClick={() => handleExportMultipleExcel('control-diario')}
+                onClick={handleExportMultipleExcel}
                 disabled={isExporting}
                 variant="outline"
                 size="sm"
@@ -196,7 +199,7 @@ export const ExportActionsExtended = ({
               </Button>
               
               <Button
-                onClick={() => handleExportMultipleExcel('detalle-boletas')}
+                onClick={handleExportMultipleExcel}
                 disabled={isExporting}
                 variant="outline"
                 size="sm"

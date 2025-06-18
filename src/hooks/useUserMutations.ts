@@ -22,6 +22,14 @@ interface UpdateUserData {
   };
 }
 
+interface SendInvitationRequest {
+  email: string;
+  fullName: string;
+  role: 'admin' | 'usuario';
+  centerId?: string;
+  message?: string;
+}
+
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -144,13 +152,67 @@ export const useUpdateUser = () => {
   });
 };
 
+export const useSendInvitationEmail = () => {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ email, fullName, role, centerId, message }: SendInvitationRequest) => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile) {
+        throw new Error('Usuario no encontrado');
+      }
+
+      const { data, error } = await supabase.functions.invoke('send-invitation-email', {
+        body: {
+          email,
+          fullName,
+          role,
+          centerId: centerId === "none" ? null : centerId,
+          message,
+          createdBy: profile.id,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Error al enviar la invitación');
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Invitación enviada",
+        description: "La invitación ha sido enviada exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error al enviar invitación",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
 // Export main hook for compatibility
 export const useUserMutations = () => {
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
+  const sendInvitationEmail = useSendInvitationEmail();
   
   return {
     createUser,
     updateUser,
+    sendInvitationEmail,
   };
 };
