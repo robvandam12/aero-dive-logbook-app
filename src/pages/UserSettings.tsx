@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -204,7 +204,7 @@ const UserSettings = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Lock className="w-5 h-5" />
-                Cambiar Contrase
+                Cambiar Contraseña
               </CardTitle>
             </CardHeader>
             <CardContent>
