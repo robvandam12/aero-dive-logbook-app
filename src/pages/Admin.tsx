@@ -1,63 +1,82 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useAuth } from "@/contexts/AuthProvider";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { Navigate } from "react-router-dom";
-import { LoadingSkeleton } from "@/components/LoadingSkeleton";
-import { Suspense } from "react";
-import { UserManagementTable } from "@/components/admin/UserManagementTable";
-import { ExportActionsExtended } from "@/components/ExportActionsExtended";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { UsersManagement } from "@/components/admin/UsersManagement";
+import { CentersManagement } from "@/components/admin/CentersManagement";
+import { BoatsManagement } from "@/components/admin/BoatsManagement";
+import { DiveSitesManagement } from "@/components/admin/DiveSitesManagement";
 
 const Admin = () => {
-  const { user } = useAuth();
-  const { data: userProfile, isLoading } = useUserProfile();
-
-  if (isLoading) {
-    return (
-      <div className="flex-1 space-y-4 p-8 pt-6">
-        <div className="flex items-center gap-4">
-          <SidebarTrigger />
-          <LoadingSkeleton type="page" count={1} />
-        </div>
-        <LoadingSkeleton type="dashboard" count={4} />
-      </div>
-    );
-  }
-
-  // Solo admins pueden acceder
-  if (userProfile?.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center gap-4 mb-6">
-        <SidebarTrigger />
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-white">Administración</h1>
       </div>
-
-      <div className="grid gap-6">
-        {/* Gestión de Usuarios */}
-        <Suspense fallback={<LoadingSkeleton type="table" count={5} />}>
-          <UserManagementTable />
-        </Suspense>
-
-        {/* Grid de Secciones */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Exportación Global */}
-          <ExportActionsExtended showMultipleExport={true} />
-
-          {/* Configuración del Sistema */}
-          <Card className="glass">
+      
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 bg-slate-900">
+          <TabsTrigger value="users" className="text-white">Usuarios</TabsTrigger>
+          <TabsTrigger value="centers" className="text-white">Centros</TabsTrigger>
+          <TabsTrigger value="boats" className="text-white">Embarcaciones</TabsTrigger>
+          <TabsTrigger value="dive-sites" className="text-white">Sitios de Buceo</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="users">
+          <Card className="bg-slate-950 border-slate-700">
             <CardHeader>
-              <CardTitle className="text-white">Configuración del Sistema</CardTitle>
+              <CardTitle className="text-white">Gestión de Usuarios</CardTitle>
+              <CardDescription className="text-slate-400">
+                Administra los usuarios del sistema y sus permisos
+              </CardDescription>
             </CardHeader>
-            <CardContent className="text-ocean-300">
-              <p>Configuraciones avanzadas del sistema (próximamente)</p>
+            <CardContent>
+              <UsersManagement />
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="centers">
+          <Card className="bg-slate-950 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-white">Gestión de Centros de Cultivo</CardTitle>
+              <CardDescription className="text-slate-400">
+                Administra los centros de cultivo disponibles
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CentersManagement />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="boats">
+          <Card className="bg-slate-950 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-white">Gestión de Embarcaciones</CardTitle>
+              <CardDescription className="text-slate-400">
+                Administra las embarcaciones disponibles para buceo
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BoatsManagement />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="dive-sites">
+          <Card className="bg-slate-950 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-white">Gestión de Sitios de Buceo</CardTitle>
+              <CardDescription className="text-slate-400">
+                Administra los puntos de buceo disponibles
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DiveSitesManagement />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

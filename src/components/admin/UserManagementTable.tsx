@@ -50,7 +50,7 @@ export const UserManagementTable = ({ users, isLoading }: UserManagementTablePro
                   </Badge>
                 </TableCell>
                 <TableCell className="text-ocean-300">
-                  {user.center?.name || 'Sin centro'}
+                  {user.centers?.name || 'Sin centro'}
                 </TableCell>
                 <TableCell>
                   <Badge variant={user.is_active ? 'default' : 'destructive'}>

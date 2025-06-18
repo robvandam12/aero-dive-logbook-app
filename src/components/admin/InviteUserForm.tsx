@@ -1,273 +1,167 @@
-
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
-import { useCenters } from "@/hooks/useCenters";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail } from "lucide-react";
+import { useCenters } from "@/hooks/useCenters";
+import { useSendInvitationEmail } from "@/hooks/useUserMutations";
+import { supabase } from "@/integrations/supabase/client";
 
-const inviteUserSchema = z.object({
-  email: z.string().email("Email inválido"),
-  full_name: z.string().min(1, "Nombre completo requerido"),
-  role: z.enum(['admin', 'usuario'], {
-    required_error: "Rol requerido",
-  }),
-  center_id: z.string().optional(),
-  message: z.string().optional(),
-});
-
-type InviteUserForm = z.infer<typeof inviteUserSchema>;
-
-interface InviteUserFormProps {
-  onSuccess?: () => void;
-}
-
-export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { data: centers } = useCenters();
+export const InviteUserForm = () => {
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState<"admin" | "usuario">("usuario");
+  const [centerId, setCenterId] = useState("");
+  const [message, setMessage] = useState("");
+  
   const { toast } = useToast();
+  const { data: centers } = useCenters();
+  const { mutate: sendInvitation, isPending } = useSendInvitationEmail();
 
-  const form = useForm<InviteUserForm>({
-    resolver: zodResolver(inviteUserSchema),
-    defaultValues: {
-      email: "",
-      full_name: "",
-      role: "usuario",
-      center_id: undefined,
-      message: "",
-    },
-  });
-
-  const checkUserExists = async (email: string) => {
-    try {
-      // Check if user exists in auth.users through profiles table
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', (await supabase.auth.admin.listUsers()).data.users.find(u => u.email === email)?.id || '')
-        .single();
-
-      // Alternative check through user_management table
-      const { count } = await supabase
-        .from('user_management')
-        .select('*', { count: 'exact', head: true })
-        .eq('email', email);
-
-      return !!existingProfile || (count && count > 0);
-    } catch (error) {
-      console.log('Error checking user existence:', error);
-      return false;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !fullName) {
+      toast({
+        title: "Error",
+        description: "Email y nombre completo son requeridos",
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  const onSubmit = async (data: InviteUserForm) => {
+    console.log('Submitting invitation form with data:', { email, full_name: fullName, role, center_id: centerId, message });
+
     try {
-      setIsLoading(true);
-      console.log("Submitting invitation form with data:", data);
+      // Check if user already exists with better error handling
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('user_management')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
 
-      // Verificar si el usuario ya existe
-      const userExists = await checkUserExists(data.email);
-      if (userExists) {
+      if (checkError) {
+        console.error('Error checking existing user:', checkError);
+        // Continue with invitation even if check fails
+      } else if (existingUsers) {
         toast({
-          title: "Usuario ya existe",
-          description: `Ya existe un usuario registrado con el email ${data.email}`,
-          variant: "destructive"
+          title: "Error",
+          description: "Ya existe un usuario con este email",
+          variant: "destructive",
         });
         return;
       }
 
-      // Get current user
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      // Preparar datos para la función edge con el mapeo correcto
-      const invitationData = {
-        email: data.email,
-        fullName: data.full_name,
-        role: data.role,
-        centerId: data.center_id === 'none' ? null : data.center_id,
-        message: data.message || "",
-        createdBy: userData.user.id
-      };
-
-      console.log("Sending invitation data:", invitationData);
-
-      // Enviar invitación usando la función edge
-      const { data: result, error } = await supabase.functions.invoke('send-invitation-email', {
-        body: invitationData,
+      sendInvitation({
+        email,
+        fullName,
+        role,
+        centerId: centerId === "none" ? null : centerId,
+        message,
+      }, {
+        onSuccess: () => {
+          setEmail("");
+          setFullName("");
+          setRole("usuario");
+          setCenterId("");
+          setMessage("");
+          toast({
+            title: "Invitación enviada",
+            description: `Se ha enviado una invitación a ${email}`,
+          });
+        },
+        onError: (error) => {
+          console.error('Error sending invitation:', error);
+          toast({
+            title: "Error al enviar invitación",
+            description: error.message || "Ocurrió un error inesperado",
+            variant: "destructive",
+          });
+        }
       });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(error.message);
-      }
-
-      if (!result?.success) {
-        console.error('Function returned error:', result?.error);
-        throw new Error(result?.error || 'Error al enviar la invitación');
-      }
-
-      console.log("Invitation sent successfully:", result);
-
-      toast({
-        title: "Invitación enviada",
-        description: `Se ha enviado una invitación a ${data.email}`,
-      });
-
-      form.reset();
-      onSuccess?.();
-    } catch (error: any) {
-      console.error('Error sending invitation:', error);
+    } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo enviar la invitación. Inténtalo de nuevo.",
+        description: "Ocurrió un error inesperado",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <Card className="glass">
-      <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <Mail className="w-5 h-5" />
-          Invitar Nuevo Usuario
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-ocean-200">Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="usuario@empresa.com"
-                        className="bg-ocean-950/50 border-ocean-700 text-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="bg-slate-950 border-slate-700 text-white"
+          />
+        </div>
+        <div>
+          <Label htmlFor="fullName">Nombre Completo</Label>
+          <Input
+            id="fullName"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            className="bg-slate-950 border-slate-700 text-white"
+          />
+        </div>
+      </div>
 
-              <FormField
-                control={form.control}
-                name="full_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-ocean-200">Nombre Completo</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Juan Pérez"
-                        className="bg-ocean-950/50 border-ocean-700 text-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="role">Rol</Label>
+          <Select value={role} onValueChange={(value: "admin" | "usuario") => setRole(value)}>
+            <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-950 border-slate-700">
+              <SelectItem value="usuario">Usuario</SelectItem>
+              <SelectItem value="admin">Administrador</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="center">Centro (Opcional)</Label>
+          <Select value={centerId} onValueChange={setCenterId}>
+            <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
+              <SelectValue placeholder="Seleccionar centro" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-950 border-slate-700">
+              <SelectItem value="none">Sin centro asignado</SelectItem>
+              {centers?.map((center) => (
+                <SelectItem key={center.id} value={center.id}>
+                  {center.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-ocean-200">Rol</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
-                          <SelectValue placeholder="Seleccionar rol" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-ocean-900 border-ocean-700">
-                        <SelectItem value="usuario" className="text-white">Usuario</SelectItem>
-                        <SelectItem value="admin" className="text-white">Administrador</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <div>
+        <Label htmlFor="message">Mensaje personalizado (Opcional)</Label>
+        <Textarea
+          id="message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Añade un mensaje personalizado a la invitación..."
+          className="bg-slate-950 border-slate-700 text-white"
+        />
+      </div>
 
-              <FormField
-                control={form.control}
-                name="center_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-ocean-200">Centro de Buceo</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
-                      <FormControl>
-                        <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
-                          <SelectValue placeholder="Seleccionar centro" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-ocean-900 border-ocean-700">
-                        <SelectItem value="none" className="text-white">Sin centro asignado</SelectItem>
-                        {centers?.map((center) => (
-                          <SelectItem key={center.id} value={center.id} className="text-white">
-                            {center.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-ocean-200">Mensaje Personalizado (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Mensaje adicional para incluir en la invitación..."
-                      className="bg-ocean-950/50 border-ocean-700 text-white"
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-[#6555FF] to-purple-700 hover:opacity-90"
-            >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Enviar Invitación
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+      <Button type="submit" disabled={isPending} className="w-full">
+        {isPending ? "Enviando..." : "Enviar Invitación"}
+      </Button>
+    </form>
   );
 };

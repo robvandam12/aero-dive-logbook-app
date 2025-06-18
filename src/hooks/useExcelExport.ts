@@ -17,7 +17,7 @@ interface DiveLogForExport {
 export const useExcelExport = () => {
   const { toast } = useToast();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (diveLogs: DiveLogForExport[]) => {
       const excelData = diveLogs.map(log => {
         const diversNames = log.divers_manifest?.map(diver => diver.name).join('\n') || '';
@@ -97,4 +97,10 @@ export const useExcelExport = () => {
       });
     },
   });
+
+  return {
+    ...mutation,
+    exportSingleDiveLog: (diveLog: DiveLogForExport) => mutation.mutate([diveLog]),
+    exportMultipleDiveLogs: (diveLogs: DiveLogForExport[]) => mutation.mutate(diveLogs),
+  };
 };
