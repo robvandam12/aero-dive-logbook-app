@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,7 +41,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
       email: "",
       full_name: "",
       role: "supervisor",
-      center_id: undefined,
+      center_id: undefined, // Cambio de "" a undefined
       message: "",
     },
   });
@@ -51,6 +52,25 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
 
       // Generar token único
       const token = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
+
+      // Crear invitación en la base de datos
+      const { error: insertError } = await supabase
+        .from('invitation_tokens')
+        .insert({
+          email: data.email,
+          token,
+          expires_at: expiresAt.toISOString(),
+          user_data: {
+            full_name: data.full_name,
+            role: data.role,
+            center_id: data.center_id || null,
+          },
+          created_by: (await supabase.auth.getUser()).data.user?.id || '',
+        });
+
+      if (insertError) throw insertError;
 
       // Enviar email de invitación
       const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
@@ -60,7 +80,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
           userData: {
             full_name: data.full_name,
             role: data.role,
-            center_id: data.center_id === "none" ? null : data.center_id,
+            center_id: data.center_id,
           },
           message: data.message,
         },
