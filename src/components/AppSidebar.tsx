@@ -1,4 +1,21 @@
 
+"use client"
+
+import * as React from "react"
+import { Home, FileText, Plus, BarChart3, Settings, LogOut, ChevronsUpDown, PanelLeft } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+
+import { useAuth } from "@/contexts/AuthProvider"
+import { useUserProfile } from "@/hooks/useUserProfile"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Sidebar,
   SidebarContent,
@@ -10,44 +27,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { 
-  Home, 
-  FileText, 
-  Plus, 
-  BarChart3, 
-  Settings, 
-  Users, 
-  MapPin, 
-  Ship,
-  LogOut,
-  ChevronRight
-} from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthProvider";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+} from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
 
-export function AppSidebar() {
-  const location = useLocation();
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { data: userProfile } = useUserProfile();
-  const { state } = useSidebar();
-  
-  const isCollapsed = state === "collapsed";
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/auth');
-  };
-
-  const isAdmin = userProfile?.role === 'admin';
-
-  const mainItems = [
+  const navigation = [
     {
       title: "Dashboard",
       url: "/dashboard",
@@ -60,7 +48,7 @@ export function AppSidebar() {
     },
     {
       title: "Nueva Bitácora",
-      url: "/dive-logs/new",
+      url: "/new-dive-log",
       icon: Plus,
     },
     {
@@ -70,92 +58,49 @@ export function AppSidebar() {
     },
   ];
 
-  const adminItems = [
+  const adminNavigation = [
     {
       title: "Administración",
       url: "/admin",
-      icon: Users,
-    },
-    {
-      title: "Sitios de Buceo",
-      url: "/admin/dive-sites",
-      icon: MapPin,
-    },
-    {
-      title: "Embarcaciones",
-      url: "/admin/boats",
-      icon: Ship,
-    },
-  ];
-
-  const settingsItems = [
-    {
-      title: "Configuración",
-      url: "/settings",
       icon: Settings,
     },
   ];
 
-  return (
-    <Sidebar variant="floating" className="border-r border-ocean-700/50">
-      <SidebarHeader className="border-b border-ocean-700/50 pb-4">
-        <div className={`flex items-center gap-3 px-2 ${isCollapsed ? 'justify-center' : ''}`}>
-          {isCollapsed ? (
-            <div className="w-10 h-10 flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" 
-                alt="Aerocam Logo" 
-                className="w-8 h-8 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-              <div className="w-8 h-8 bg-gradient-to-r from-[#6555FF] to-purple-700 rounded-lg flex items-center justify-center hidden">
-                <span className="text-white font-bold text-lg">A</span>
-              </div>
-            </div>
-          ) : (
-            <>
-              <img 
-                src="/lovable-uploads/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" 
-                alt="Aerocam Logo" 
-                className="w-8 h-8 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-              <div className="w-8 h-8 bg-gradient-to-r from-[#6555FF] to-purple-700 rounded-lg flex items-center justify-center hidden">
-                <span className="text-white font-bold text-sm">A</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-white font-semibold text-sm">Aerocam</span>
-                <span className="text-ocean-300 text-xs">Sistema de Bitácoras</span>
-              </div>
-            </>
-          )}
-        </div>
-      </SidebarHeader>
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
-      <SidebarContent className="gap-4">
-        {/* Menú Principal */}
+  return (
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
+                <img 
+                  src="https://ujtuzthydhfckpxommcv.supabase.co/storage/v1/object/public/dive-log-images/logo.png" 
+                  alt="Aerocam Logo" 
+                  className="size-8"
+                />
+                <div className="grid flex-1 text-left text-sm leading-tight ml-2">
+                  <span className="truncate font-semibold text-white">Aerocam App</span>
+                  <span className="truncate text-xs text-ocean-300">Bitácoras de Buceo</span>
+                </div>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
         <SidebarGroup>
-          {!isCollapsed && <SidebarGroupLabel className="text-ocean-300">Menú Principal</SidebarGroupLabel>}
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {navigation.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                    <Link to={item.url} className={`group ${isCollapsed ? 'justify-center px-2' : ''}`}>
-                      <item.icon className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} transition-all`} />
-                      {!isCollapsed && <span className="text-sm">{item.title}</span>}
-                      {isCollapsed && (
-                        <div className="absolute left-full ml-2 px-2 py-1 bg-ocean-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                          {item.title}
-                        </div>
-                      )}
-                    </Link>
+                  <SidebarMenuButton onClick={() => navigate(item.url)}>
+                    <item.icon className="size-4" />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -163,24 +108,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Menú Administración (solo para admins) */}
-        {isAdmin && (
+        {userProfile?.role === 'admin' && (
           <SidebarGroup>
-            {!isCollapsed && <SidebarGroupLabel className="text-ocean-300">Administración</SidebarGroupLabel>}
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {adminItems.map((item) => (
+                {adminNavigation.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                      <Link to={item.url} className={`group ${isCollapsed ? 'justify-center px-2' : ''}`}>
-                        <item.icon className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} transition-all`} />
-                        {!isCollapsed && <span className="text-sm">{item.title}</span>}
-                        {isCollapsed && (
-                          <div className="absolute left-full ml-2 px-2 py-1 bg-ocean-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                            {item.title}
-                          </div>
-                        )}
-                      </Link>
+                    <SidebarMenuButton onClick={() => navigate(item.url)}>
+                      <item.icon className="size-4" />
+                      <span>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -188,69 +125,82 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-
-        {/* Configuración */}
-        <SidebarGroup>
-          {!isCollapsed && <SidebarGroupLabel className="text-ocean-300">Sistema</SidebarGroupLabel>}
+        
+        {/* User Menu */}
+        <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
-              {settingsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                    <Link to={item.url} className={`group ${isCollapsed ? 'justify-center px-2' : ''}`}>
-                      <item.icon className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} transition-all`} />
-                      {!isCollapsed && <span className="text-sm">{item.title}</span>}
-                      {isCollapsed && (
-                        <div className="absolute left-full ml-2 px-2 py-1 bg-ocean-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                          {item.title}
+              <SidebarMenuItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuButton
+                      size="lg"
+                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    >
+                      <Avatar className="h-8 w-8 rounded-lg">
+                        <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
+                        <AvatarFallback className="rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-white">
+                          {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold text-white">
+                          {userProfile?.username || 'Usuario'}
+                        </span>
+                        <span className="truncate text-xs text-ocean-300">
+                          {user?.email}
+                        </span>
+                      </div>
+                      <ChevronsUpDown className="ml-auto size-4" />
+                    </SidebarMenuButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-slate-900 border-slate-700"
+                    side="bottom"
+                    align="end"
+                    sideOffset={4}
+                  >
+                    <DropdownMenuLabel className="p-0 font-normal">
+                      <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                        <Avatar className="h-8 w-8 rounded-lg">
+                          <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
+                          <AvatarFallback className="rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-white">
+                            {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                          <span className="truncate font-semibold text-white">
+                            {userProfile?.username || 'Usuario'}
+                          </span>
+                          <span className="truncate text-xs text-ocean-300">
+                            {user?.email}
+                          </span>
                         </div>
-                      )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="text-ocean-300 hover:text-white focus:text-white cursor-pointer"
+                      onClick={() => navigate("/settings")}
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Configuración
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="text-red-400 hover:text-red-300 focus:text-red-300 cursor-pointer"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Cerrar sesión
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter className="border-t border-ocean-700/50 pt-4">
-        {/* Usuario actual */}
-        <div className={`flex items-center gap-3 px-2 mb-3 ${isCollapsed ? 'justify-center' : ''}`}>
-          <Avatar className={`${isCollapsed ? 'w-10 h-10' : 'w-8 h-8'}`}>
-            <AvatarFallback className="bg-gradient-to-r from-[#6555FF] to-purple-700 text-white text-xs">
-              {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          {!isCollapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="text-white text-sm font-medium truncate">
-                {userProfile?.username || 'Usuario'}
-              </span>
-              <span className="text-ocean-300 text-xs capitalize">
-                {userProfile?.role || 'Usuario'}
-              </span>
-            </div>
-          )}
-        </div>
-
-        <Separator className="bg-ocean-700/50 mb-3" />
-        
-        {/* Botón de cerrar sesión */}
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} className={`group ${isCollapsed ? 'justify-center px-2' : ''}`}>
-              <LogOut className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} transition-all`} />
-              {!isCollapsed && <span className="text-sm">Cerrar Sesión</span>}
-              {isCollapsed && (
-                <div className="absolute left-full ml-2 px-2 py-1 bg-ocean-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                  Cerrar Sesión
-                </div>
-              )}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
-  );
+  )
 }
