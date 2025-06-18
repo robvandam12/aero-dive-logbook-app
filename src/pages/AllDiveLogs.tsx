@@ -7,15 +7,17 @@ import { Suspense } from "react";
 
 const AllDiveLogsPage = () => {
   return (
-    <main className="container mx-auto px-6 py-8 space-y-8">
-      <div className="flex items-center gap-4">
+    <div className="w-full h-full">
+      <div className="flex items-center gap-4 mb-6 px-8 pt-8">
         <SidebarTrigger />
         <PageHeader title="Mis Bitácoras" />
       </div>
-      <Suspense fallback={<LoadingSkeleton type="table" count={5} />}>
-        <DiveLogsList />
-      </Suspense>
-    </main>
+      <div className="px-8 pb-8">
+        <Suspense fallback={<LoadingSkeleton type="table" count={5} />}>
+          <DiveLogsList />
+        </Suspense>
+      </div>
+    </div>
   );
 };
 

@@ -3,14 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, MapPin, Users, FileText, Edit, FileSignature, Mail, Trash2, User } from "lucide-react";
+import { Calendar, MapPin, Users, FileText, Edit, FileSignature, Trash2, User } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 import { ExportActions } from "@/components/ExportActions";
-import { EmailDialog } from "@/components/EmailDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { useSendDiveLogEmail } from "@/hooks/useEmailMutations";
 import { useDeleteDiveLog } from "@/hooks/useDiveLogMutations";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -22,12 +20,10 @@ interface DiveLogDetailProps {
 }
 
 export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
-  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const sendEmailMutation = useSendDiveLogEmail();
   const deleteLogMutation = useDeleteDiveLog();
 
   // Derive status from signature_url
@@ -44,26 +40,6 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
   // Parse divers manifest from JSON
   const diversManifest = diveLog.divers_manifest ? 
     (Array.isArray(diveLog.divers_manifest) ? diveLog.divers_manifest : []) as any[] : [];
-
-  const handleSendEmail = () => {
-    setEmailDialogOpen(true);
-  };
-
-  const handleEmailSend = (email: string, name?: string) => {
-    sendEmailMutation.mutate({
-      diveLogId: diveLog.id,
-      recipientEmail: email,
-      recipientName: name,
-    }, {
-      onSuccess: () => {
-        setEmailDialogOpen(false);
-        toast({
-          title: "Correo enviado",
-          description: "La bitácora ha sido enviada por correo exitosamente."
-        });
-      },
-    });
-  };
 
   const handleDelete = () => {
     setDeleteDialogOpen(true);
@@ -102,18 +78,8 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
             <ExportActions 
               diveLogId={diveLog.id} 
               hasSignature={!!diveLog.signature_url} 
+              diveLog={diveLog}
             />
-            {status === 'signed' && (
-              <Button 
-                onClick={handleSendEmail}
-                variant="outline" 
-                size="sm"
-                className="border-green-600 text-green-400 hover:bg-green-800"
-              >
-                <Mail className="w-4 h-4 mr-2" />
-                Enviar por Correo
-              </Button>
-            )}
             {onEdit && (
               <Button onClick={onEdit} className="bg-ocean-gradient hover:opacity-90">
                 <Edit className="w-4 h-4 mr-2" />
@@ -287,13 +253,6 @@ export const DiveLogDetail = ({ diveLog, onEdit }: DiveLogDetailProps) => {
           </Card>
         )}
       </div>
-
-      <EmailDialog
-        open={emailDialogOpen}
-        onOpenChange={setEmailDialogOpen}
-        onSend={handleEmailSend}
-        isLoading={sendEmailMutation.isPending}
-      />
 
       <ConfirmDialog
         open={deleteDialogOpen}

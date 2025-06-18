@@ -1,9 +1,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FileText, Download, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Eye, Download } from "lucide-react";
 import { usePDFExport } from "@/hooks/usePDFExport";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PDFPreviewProps {
   diveLogId: string;
@@ -13,29 +14,28 @@ interface PDFPreviewProps {
 export const PDFPreview = ({ diveLogId, hasSignature }: PDFPreviewProps) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewContent, setPreviewContent] = useState<string>("");
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const { exportToPDF } = usePDFExport();
 
   const handlePreview = async () => {
+    setIsLoadingPreview(true);
     try {
-      const response = await fetch(`https://ujtuzthydhfckpxommcv.supabase.co/functions/v1/export-dive-log-pdf`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ diveLogId }),
+      const { data, error } = await supabase.functions.invoke('export-dive-log-pdf', {
+        body: { diveLogId, preview: true },
       });
 
-      if (!response.ok) {
-        throw new Error('Error generando preview');
+      if (error) {
+        throw new Error(error.message);
       }
 
-      const data = await response.json();
       if (data.success && data.html) {
         setPreviewContent(data.html);
         setPreviewOpen(true);
       }
     } catch (error) {
       console.error('Error previewing PDF:', error);
+    } finally {
+      setIsLoadingPreview(false);
     }
   };
 
@@ -52,10 +52,11 @@ export const PDFPreview = ({ diveLogId, hasSignature }: PDFPreviewProps) => {
         variant="outline" 
         size="sm" 
         onClick={handlePreview}
+        disabled={isLoadingPreview}
         className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
       >
         <Eye className="w-4 h-4 mr-2" />
-        Preview PDF
+        {isLoadingPreview ? 'Cargando...' : 'Preview PDF'}
       </Button>
       
       <Button 

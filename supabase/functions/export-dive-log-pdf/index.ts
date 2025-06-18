@@ -16,13 +16,19 @@ const generatePDFHtml = (diveLog: any) => {
   const diversList = Array.isArray(diveLog.divers_manifest) 
     ? diveLog.divers_manifest.map((diver: any, index: number) => `
         <tr>
-          <td>${index + 1}</td>
-          <td>${diver.name || 'N/A'}</td>
-          <td>${diver.role || 'buzo'}</td>
-          <td>${diver.certification || 'N/A'}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px;">${index + 1}</td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 10px;">${diver.name || 'N/A'}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px;">${diver.license || 'N/A'}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px;">${diver.role || 'BUZO'}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px;">SI</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px;">NO</td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 10px;">${diver.working_depth || 'N/A'}</td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 10px;"></td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 10px;"></td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 10px;"></td>
         </tr>
       `).join('')
-    : '<tr><td colspan="4">No hay buzos registrados</td></tr>';
+    : '<tr><td colspan="10" style="border: 1px solid #000; padding: 4px; text-align: center;">No hay buzos registrados</td></tr>';
 
   return `
     <!DOCTYPE html>
@@ -30,164 +36,225 @@ const generatePDFHtml = (diveLog: any) => {
     <head>
       <meta charset="utf-8">
       <style>
+        @page { 
+          size: A4; 
+          margin: 15mm; 
+        }
         body { 
           font-family: Arial, sans-serif; 
-          margin: 20px; 
-          font-size: 12px;
-          line-height: 1.4;
+          margin: 0; 
+          font-size: 10px;
+          line-height: 1.2;
         }
         .header { 
           text-align: center; 
-          margin-bottom: 30px;
-          border-bottom: 2px solid #6555FF;
-          padding-bottom: 15px;
+          margin-bottom: 15px;
+          border: 2px solid #000;
+          padding: 8px;
         }
-        .logo { 
-          color: #6555FF; 
-          font-size: 24px; 
-          font-weight: bold; 
+        .company-info {
+          font-size: 8px;
           margin-bottom: 5px;
         }
-        .subtitle { 
-          color: #666; 
-          font-size: 14px;
+        .logo-section {
+          float: left;
+          width: 60px;
+          height: 40px;
+          border: 1px solid #000;
+          text-align: center;
+          padding: 5px;
+          margin-right: 10px;
         }
-        .info-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          margin-bottom: 20px;
+        .title-section {
+          text-align: center;
+          font-weight: bold;
+          font-size: 12px;
+          margin-bottom: 10px;
         }
-        .info-section {
-          border: 1px solid #ddd;
-          padding: 10px;
-          border-radius: 5px;
+        .form-number {
+          float: right;
+          border: 1px solid #000;
+          padding: 5px;
+          font-size: 10px;
         }
-        .info-section h3 {
-          margin: 0 0 10px 0;
-          color: #6555FF;
-          font-size: 14px;
-          border-bottom: 1px solid #eee;
-          padding-bottom: 5px;
+        .clear { clear: both; }
+        .section {
+          border: 1px solid #000;
+          margin-bottom: 8px;
+          padding: 5px;
         }
-        .info-row {
+        .section-title {
+          background-color: #ddd;
+          font-weight: bold;
+          text-align: center;
+          padding: 3px;
+          margin: -5px -5px 5px -5px;
+          font-size: 10px;
+        }
+        .form-row {
           display: flex;
-          justify-content: space-between;
-          margin-bottom: 5px;
+          margin-bottom: 3px;
         }
-        .label { font-weight: bold; }
+        .form-field {
+          border: 1px solid #000;
+          padding: 2px 4px;
+          margin-right: 5px;
+          font-size: 9px;
+        }
+        .form-field label {
+          font-weight: bold;
+          display: block;
+          font-size: 8px;
+        }
+        .form-field.flex-1 { flex: 1; }
+        .form-field.flex-2 { flex: 2; }
+        .table-section {
+          margin: 8px 0;
+        }
         table { 
           width: 100%; 
           border-collapse: collapse; 
-          margin: 20px 0;
         }
         th, td { 
-          border: 1px solid #ddd; 
-          padding: 8px; 
-          text-align: left;
+          border: 1px solid #000; 
+          padding: 2px; 
+          text-align: center;
+          font-size: 8px;
         }
         th { 
-          background-color: #6555FF; 
-          color: white;
+          background-color: #ddd; 
           font-weight: bold;
+        }
+        .work-detail {
+          min-height: 120px;
+          border: 1px solid #000;
+          padding: 5px;
+          margin: 8px 0;
+        }
+        .work-detail-title {
+          background-color: #ddd;
+          font-weight: bold;
+          text-align: center;
+          padding: 3px;
+          margin: -5px -5px 8px -5px;
+          font-size: 10px;
         }
         .signature-section {
-          margin-top: 40px;
-          border: 1px solid #ddd;
-          padding: 15px;
-          border-radius: 5px;
-          background-color: #f9f9f9;
+          margin-top: 15px;
+          display: flex;
+          justify-content: space-between;
         }
-        .signature-code {
-          background: #6555FF;
-          color: white;
-          padding: 5px 10px;
-          border-radius: 3px;
-          font-family: monospace;
-          font-weight: bold;
-        }
-        .footer {
-          margin-top: 30px;
+        .signature-box {
+          border: 1px solid #000;
+          width: 150px;
+          height: 60px;
           text-align: center;
-          font-size: 10px;
-          color: #666;
+          padding: 5px;
         }
-        @media print {
-          body { margin: 10px; }
-          .page-break { page-break-before: always; }
+        .checkbox {
+          display: inline-block;
+          width: 12px;
+          height: 12px;
+          border: 1px solid #000;
+          margin: 0 3px;
         }
       </style>
     </head>
     <body>
       <div class="header">
-        <div class="logo">🚁 AEROCAM APP</div>
-        <div class="subtitle">Sistema de Bitácoras de Buceo Profesional</div>
-        <div style="margin-top: 10px; font-weight: bold;">BITÁCORA DE BUCEO</div>
-      </div>
-
-      <div class="info-grid">
-        <div class="info-section">
-          <h3>INFORMACIÓN GENERAL</h3>
-          <div class="info-row">
-            <span class="label">Fecha:</span>
-            <span>${diveLog.log_date}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Centro:</span>
-            <span>${diveLog.centers?.name || 'N/A'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Sitio de Buceo:</span>
-            <span>${diveLog.dive_sites?.name || 'N/A'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Embarcación:</span>
-            <span>${diveLog.boats?.name || 'N/A'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Supervisor:</span>
-            <span>${diveLog.profiles?.username || diveLog.supervisor_name || 'N/A'}</span>
-          </div>
+        <div class="company-info">
+          SOCIEDAD DE SERVICIOS AEROCAM SPA<br>
+          Ignacio Carrera Pinto N° 2001, Quellón - Chiloé<br>
+          RUT: 76.355.932-4 - Contacto: contacto@aerocam.cl
         </div>
-
-        <div class="info-section">
-          <h3>CONDICIONES</h3>
-          <div class="info-row">
-            <span class="label">Hora Salida:</span>
-            <span>${diveLog.departure_time || 'N/A'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Hora Llegada:</span>
-            <span>${diveLog.arrival_time || 'N/A'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Temperatura:</span>
-            <span>${diveLog.water_temperature ? diveLog.water_temperature + '°C' : 'N/A'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Visibilidad:</span>
-            <span>${diveLog.visibility ? diveLog.visibility + 'm' : 'N/A'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Corriente:</span>
-            <span>${diveLog.current_strength || 'N/A'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Clima:</span>
-            <span>${diveLog.weather_conditions || 'N/A'}</span>
-          </div>
+        <div class="logo-section">
+          <strong>AEROCAM</strong>
+        </div>
+        <div class="form-number">
+          <strong>N° ${diveLog.id.slice(0, 6).toUpperCase()}</strong>
+        </div>
+        <div class="title-section">
+          BITÁCORA BUCEO<br>
+          E INFORME DE TRABAJO REALIZADO<br>
+          <small>CENTRO DE CULTIVO: ${diveLog.centers?.name || 'N/A'}</small>
+        </div>
+        <div class="clear"></div>
+        <div style="text-align: right; font-size: 8px;">
+          Fecha: ${diveLog.log_date}
         </div>
       </div>
 
-      <div class="info-section">
-        <h3>EQUIPO DE BUCEO</h3>
+      <div class="section">
+        <div class="section-title">DATOS GENERALES</div>
+        <div class="form-row">
+          <div class="form-field flex-1">
+            <label>JEFE DE CENTRO:</label>
+            ${diveLog.centers?.name || 'N/A'}
+          </div>
+          <div class="form-field flex-1">
+            <label>ASISTENTE DE CENTRO:</label>
+            ${diveLog.profiles?.username || 'N/A'}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field flex-1">
+            <label>N° MATRÍCULA:</label>
+            ${diveLog.boats?.registration_number || 'N/A'}
+          </div>
+          <div class="form-field flex-2">
+            <label>REGISTRO DE COMPRESORES:</label>
+            ___________________
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field flex-2">
+            <label>CONDICIÓN TIEMPO VARIABLES:</label>
+            <div>
+              COMPRESOR 1: <span class="checkbox"></span> SI <span class="checkbox"></span> NO
+              COMPRESOR 2: <span class="checkbox"></span> SI <span class="checkbox"></span> NO
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field flex-1">
+            <label>OBSERVACIONES:</label>
+            ${diveLog.weather_conditions || 'Buen tiempo'}
+          </div>
+          <div class="form-field flex-1">
+            <label>KG SOLICITUD DE FAENA:</label>
+            ___________________
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field flex-1">
+            <label>FECHA Y HORA DE INICIO:</label>
+            ${diveLog.departure_time || 'N/A'}
+          </div>
+          <div class="form-field flex-1">
+            <label>FECHA Y HORA DE TÉRMINO:</label>
+            ${diveLog.arrival_time || 'N/A'}
+          </div>
+        </div>
+      </div>
+
+      <div class="table-section">
+        <div class="section-title">TEAM DE BUCEO</div>
         <table>
           <thead>
             <tr>
-              <th>N°</th>
-              <th>Nombre</th>
-              <th>Rol</th>
-              <th>Certificación</th>
+              <th rowspan="2">N°</th>
+              <th rowspan="2">COMPOSICIÓN DE EQUIPO BUZOS Y ASISTENTES</th>
+              <th rowspan="2">N° MATRÍCULA</th>
+              <th rowspan="2">CARGO</th>
+              <th colspan="2">BUCEO ESTÁNDAR</th>
+              <th rowspan="2">PROFUNDIDAD MÁXIMA REALIZADA</th>
+              <th rowspan="2">ÁREA DE TRABAJO</th>
+              <th rowspan="2">TIEMPO FONDO</th>
+              <th rowspan="2">TIEMPO TOTAL</th>
+            </tr>
+            <tr>
+              <th>SI</th>
+              <th>NO</th>
             </tr>
           </thead>
           <tbody>
@@ -196,34 +263,35 @@ const generatePDFHtml = (diveLog: any) => {
         </table>
       </div>
 
-      ${diveLog.observations ? `
-        <div class="info-section">
-          <h3>OBSERVACIONES</h3>
-          <p>${diveLog.observations}</p>
+      <div class="work-detail">
+        <div class="work-detail-title">DETALLE DE TRABAJO REALIZADO POR BUZO</div>
+        <div style="font-size: 9px; line-height: 1.4;">
+          ${diveLog.observations || 'Trabajo realizado normal. Buceo sin novedad.'}
         </div>
-      ` : ''}
-
-      <div class="signature-section">
-        <h3 style="margin-top: 0;">VALIDACIÓN Y FIRMA DIGITAL</h3>
-        <div class="info-row">
-          <span class="label">Estado:</span>
-          <span>${diveLog.status === 'signed' ? 'FIRMADO DIGITALMENTE' : diveLog.status === 'draft' ? 'BORRADOR' : 'INVALIDADO'}</span>
-        </div>
-        ${diveLog.signature_url ? `
-          <div class="info-row">
-            <span class="label">Código de Validación:</span>
-            <span class="signature-code">DL-${diveLog.id.slice(0, 8).toUpperCase()}</span>
-          </div>
-          <div style="margin-top: 10px;">
-            <img src="${diveLog.signature_url}" alt="Firma Digital" style="max-width: 200px; border: 1px solid #ddd;">
-          </div>
-        ` : ''}
       </div>
 
-      <div class="footer">
-        <p>Documento generado el ${new Date().toLocaleString('es-ES')} por Aerocam App</p>
-        <p>© 2025 Aerocam - Sistema profesional de gestión de bitácoras de buceo</p>
-        ${diveLog.status === 'signed' ? `<p><strong>Código de verificación: DL-${diveLog.id.slice(0, 8).toUpperCase()}</strong></p>` : ''}
+      <div class="signature-section">
+        <div class="signature-box">
+          <div style="font-size: 8px; font-weight: bold;">NOMBRE Y FIRMA</div>
+          <div style="font-size: 8px;">JEFE ENCARGADO DE CENTRO</div>
+          ${diveLog.signature_url ? `
+            <img src="${diveLog.signature_url}" alt="Firma" style="max-width: 140px; max-height: 40px; margin-top: 5px;">
+          ` : ''}
+        </div>
+        <div class="signature-box">
+          <div style="font-size: 8px; font-weight: bold;">FIRMA Y TIMBRE</div>
+          <div style="font-size: 8px;">SUPERVISOR DE BUCEO</div>
+          ${diveLog.signature_url ? `
+            <div style="margin-top: 10px; font-size: 8px;">
+              <strong>Código: DL-${diveLog.id.slice(0, 8).toUpperCase()}</strong>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <div style="font-size: 7px; text-align: center; margin-top: 10px; border-top: 1px solid #000; padding-top: 5px;">
+        Queda estrictamente prohibido el uso de exploración y en particular, la reproducción, distribución, comunicación pública y/o transformación, total o parcial, por cualquier medio, método o sistema, del presente documento.<br>
+        Su uso se encuentra reservado al personal de Aerocam SpA.
       </div>
     </body>
     </html>
@@ -244,7 +312,7 @@ serve(async (req) => {
   }
 
   try {
-    const { diveLogId } = await req.json();
+    const { diveLogId, preview = false } = await req.json();
 
     if (!diveLogId) {
       return new Response(JSON.stringify({ error: "Dive log ID is required" }), { 
@@ -279,7 +347,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       html: htmlContent,
-      filename: `bitacora_${diveLog.log_date}_${diveLog.id.slice(0, 8)}.html`
+      filename: `bitacora_${diveLog.log_date}_${diveLog.id.slice(0, 8)}.pdf`
     }), {
       headers: {
         "Content-Type": "application/json",
