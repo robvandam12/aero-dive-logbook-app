@@ -30,10 +30,10 @@ const getDefaultValues = (isEditMode: boolean, diveLog?: DiveLogWithFullDetails)
     return {
       log_date: diveLog.log_date,
       center_id: diveLog.center_id,
-      supervisor_name: diveLog.supervisor_name || diveLog.profiles?.username || '',
-      supervisor_license: '', // Campo nuevo, inicializar vacío
-      center_manager: '', // Campo nuevo, inicializar vacío  
-      center_assistant: '', // Campo nuevo, inicializar vacío
+      supervisor_name: diveLog.supervisor_name || '',
+      supervisor_license: '',
+      center_manager: '',
+      center_assistant: '',
       dive_site_id: diveLog.dive_site_id,
       boat_id: diveLog.boat_id || '',
       weather_condition: weather.weather_condition as any,
@@ -70,7 +70,7 @@ const getDefaultValues = (isEditMode: boolean, diveLog?: DiveLogWithFullDetails)
     log_date: new Date().toISOString().split('T')[0],
     center_id: '',
     dive_site_id: '',
-    supervisor_name: '', // Será llenado automáticamente por el componente
+    supervisor_name: '',
     supervisor_license: '',
     center_manager: '',
     center_assistant: '',

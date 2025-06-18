@@ -47,14 +47,25 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
   });
 
   const checkUserExists = async (email: string) => {
-    // Verificar en auth.users a través de user_management
-    const { data: existingUser } = await supabase
-      .from('user_management')
-      .select('email')
-      .eq('email', email)
-      .single();
+    try {
+      // Check if user exists in auth.users through profiles table
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', (await supabase.auth.admin.listUsers()).data.users.find(u => u.email === email)?.id || '')
+        .single();
 
-    return !!existingUser;
+      // Alternative check through user_management table
+      const { count } = await supabase
+        .from('user_management')
+        .select('*', { count: 'exact', head: true })
+        .eq('email', email);
+
+      return !!existingProfile || (count && count > 0);
+    } catch (error) {
+      console.log('Error checking user existence:', error);
+      return false;
+    }
   };
 
   const onSubmit = async (data: InviteUserForm) => {
@@ -84,7 +95,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
         email: data.email,
         fullName: data.full_name,
         role: data.role,
-        centerId: data.center_id || null,
+        centerId: data.center_id === 'none' ? null : data.center_id,
         message: data.message || "",
         createdBy: userData.user.id
       };
@@ -150,7 +161,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                         {...field}
                         type="email"
                         placeholder="usuario@empresa.com"
-                        className="bg-ocean-900/50 border-ocean-700 text-white"
+                        className="bg-ocean-950/50 border-ocean-700 text-white"
                       />
                     </FormControl>
                     <FormMessage />
@@ -168,7 +179,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                       <Input
                         {...field}
                         placeholder="Juan Pérez"
-                        className="bg-ocean-900/50 border-ocean-700 text-white"
+                        className="bg-ocean-950/50 border-ocean-700 text-white"
                       />
                     </FormControl>
                     <FormMessage />
@@ -186,7 +197,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                     <FormLabel className="text-ocean-200">Rol</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white">
+                        <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
                           <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
                       </FormControl>
@@ -208,7 +219,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                     <FormLabel className="text-ocean-200">Centro de Buceo</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
-                        <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white">
+                        <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white">
                           <SelectValue placeholder="Seleccionar centro" />
                         </SelectTrigger>
                       </FormControl>
@@ -237,7 +248,7 @@ export const InviteUserForm = ({ onSuccess }: InviteUserFormProps) => {
                     <Textarea
                       {...field}
                       placeholder="Mensaje adicional para incluir en la invitación..."
-                      className="bg-ocean-900/50 border-ocean-700 text-white"
+                      className="bg-ocean-950/50 border-ocean-700 text-white"
                       rows={3}
                     />
                   </FormControl>

@@ -1,179 +1,100 @@
 
 import { useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
-import { DiveLogWithFullDetails } from './useDiveLog';
 
-// Define the diver manifest type for proper type checking
-interface DiverManifest {
-  name: string;
-  role: string;
-  [key: string]: any;
+interface DiveLogForExport {
+  id: string;
+  log_date: string;
+  center_name?: string;
+  work_type?: string;
+  supervisor_name?: string;
+  divers_manifest?: any[];
+  signature_url?: string;
+  status: string;
 }
 
 export const useExcelExport = () => {
   const { toast } = useToast();
 
-  const exportSingleDiveLog = async (diveLog: DiveLogWithFullDetails) => {
-    try {
-      // Parse divers manifest safely
-      const diversManifest = Array.isArray(diveLog.divers_manifest) 
-        ? diveLog.divers_manifest as DiverManifest[]
-        : [];
-
-      // Separate regular divers from emergency divers
-      const regularDivers = diversManifest.filter(d => d.role !== 'BB.EE');
-      const emergencyDivers = diversManifest.filter(d => d.role === 'BB.EE');
-
-      // Format dive log data according to the Excel structure you specified
-      const excelData = [{
-        'Fecha': diveLog.log_date,
-        'N° Boleta': diveLog.id.slice(-6),
-        'Centro\nEmbarcacion': `${diveLog.centers?.name || 'N/A'}\n${diveLog.boats?.name || 'N/A'}`,
-        'Trabajo realizado': diveLog.work_type || 'MANTENCIÓN',
-        'Supervisor de Buceo': diveLog.profiles?.username || 'N/A',
-        'Buzos': regularDivers.map(d => d.name).join('\n'),
-        'Buzo de Emergencia': emergencyDivers.map(d => d.name).join('\n'),
-        'Detalle trabajos realizados / Observaciones': diveLog.work_details || diveLog.observations || ''
-      }];
-
-      // Convert to CSV format for download
-      const headers = Object.keys(excelData[0]);
-      const csvContent = [
-        headers.join('\t'),
-        ...excelData.map(row => headers.map(header => `"${row[header as keyof typeof row] || ''}"`).join('\t'))
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `bitacora_${diveLog.id.slice(-6)}_${diveLog.log_date}.xls`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({
-        title: "Exportación exitosa",
-        description: "La bitácora ha sido exportada a Excel",
-      });
-    } catch (error) {
-      console.error('Error exporting to Excel:', error);
-      toast({
-        title: "Error en exportación",
-        description: "No se pudo exportar la bitácora",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const exportMultipleDiveLogs = async (
-    format: 'control-diario' | 'detalle-boletas', 
-    dateRange?: { from?: Date; to?: Date },
-    selectedCenter?: string
-  ) => {
-    try {
-      // Build query filters
-      let query = supabase
-        .from('dive_logs')
-        .select(`
-          id,
-          log_date,
-          work_type,
-          work_details,
-          observations,
-          divers_manifest,
-          centers (name),
-          boats (name),
-          profiles (username)
-        `)
-        .order('log_date', { ascending: false });
-
-      // Apply filters
-      if (dateRange?.from) {
-        query = query.gte('log_date', dateRange.from.toISOString().split('T')[0]);
-      }
-      if (dateRange?.to) {
-        query = query.lte('log_date', dateRange.to.toISOString().split('T')[0]);
-      }
-      if (selectedCenter && selectedCenter !== 'all') {
-        query = query.eq('center_id', selectedCenter);
-      }
-
-      const { data: diveLogs, error } = await query;
-
-      if (error) throw error;
-
-      if (!diveLogs || diveLogs.length === 0) {
-        toast({
-          title: "Sin datos",
-          description: "No se encontraron bitácoras con los filtros aplicados",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Format data according to the new Excel structure
-      const excelData = diveLogs.map(diveLog => {
-        const diversManifest = Array.isArray(diveLog.divers_manifest) 
-          ? diveLog.divers_manifest as DiverManifest[]
-          : [];
-
-        // Separate regular divers from emergency divers
-        const regularDivers = diversManifest.filter(d => d.role !== 'BB.EE');
-        const emergencyDivers = diversManifest.filter(d => d.role === 'BB.EE');
-
+  return useMutation({
+    mutationFn: async (diveLogs: DiveLogForExport[]) => {
+      const excelData = diveLogs.map(log => {
+        const diversNames = log.divers_manifest?.map(diver => diver.name).join('\n') || '';
+        
         return {
-          'Fecha': diveLog.log_date,
-          'N° Boleta': diveLog.id.slice(-6),
-          'Centro\nEmbarcacion': `${(diveLog.centers as any)?.name || 'N/A'}\n${(diveLog.boats as any)?.name || 'N/A'}`,
-          'Trabajo realizado': diveLog.work_type || 'MANTENCIÓN',
-          'Supervisor de Buceo': (diveLog.profiles as any)?.username || 'N/A',
-          'Buzos': regularDivers.map(d => d.name).join('\n'),
-          'Buzo de Emergencia': emergencyDivers.map(d => d.name).join('\n'),
-          'Detalle trabajos realizados / Observaciones': diveLog.work_details || diveLog.observations || ''
+          'Fecha': log.log_date,
+          'ID': log.id.slice(-6).toUpperCase(),
+          'Centro': log.center_name || 'N/A',
+          'Tipo de Trabajo': log.work_type || 'N/A',
+          'Supervisor': log.supervisor_name || 'N/A',
+          'Buzos': diversNames,
+          'Estado': log.status === 'draft' ? 'Borrador' : 
+                   log.status === 'completed' ? 'Completada' : 
+                   log.status === 'signed' ? 'Firmada' : log.status,
+          'Firmada': log.signature_url ? 'Sí' : 'No'
         };
       });
 
-      // Convert to CSV format for download
-      const headers = Object.keys(excelData[0]);
-      const csvContent = [
-        headers.join('\t'),
-        ...excelData.map(row => headers.map(header => `"${row[header as keyof typeof row] || ''}"`).join('\t'))
-      ].join('\n');
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Bitácoras');
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      // Set column widths
+      const colWidths = [
+        { wch: 12 }, // Fecha
+        { wch: 8 },  // ID
+        { wch: 20 }, // Centro
+        { wch: 15 }, // Tipo de Trabajo
+        { wch: 20 }, // Supervisor
+        { wch: 30 }, // Buzos
+        { wch: 12 }, // Estado
+        { wch: 8 }   // Firmada
+      ];
+      ws['!cols'] = colWidths;
+
+      // Generate filename with current date
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const filename = `bitacoras-${dateStr}.xlsx`;
+
+      // Write file with UTF-8 encoding
+      const buffer = XLSX.write(wb, { 
+        bookType: 'xlsx', 
+        type: 'array',
+        cellStyles: true,
+        compression: true
+      });
+
+      // Create blob with proper MIME type and BOM for UTF-8
+      const blob = new Blob([buffer], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+
+      // Download file
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      
-      const fileName = format === 'control-diario' 
-        ? `control_diario_${diveLogs.length}_bitacoras.xls`
-        : `detalle_boletas_${diveLogs.length}_bitacoras.xls`;
-      
-      link.setAttribute('href', url);
-      link.setAttribute('download', fileName);
-      link.style.visibility = 'hidden';
+      link.href = url;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
+      return { filename, recordCount: diveLogs.length };
+    },
+    onSuccess: (result) => {
       toast({
-        title: "Exportación exitosa",
-        description: `Se exportaron ${diveLogs.length} bitácoras a Excel`,
+        title: "Excel exportado",
+        description: `Se ha exportado ${result.recordCount} registros a ${result.filename}`,
       });
-    } catch (error) {
-      console.error('Error exporting multiple dive logs:', error);
+    },
+    onError: (error: any) => {
       toast({
-        title: "Error en exportación",
-        description: "No se pudieron exportar las bitácoras",
+        title: "Error al exportar Excel",
+        description: error.message,
         variant: "destructive",
       });
-    }
-  };
-
-  return {
-    exportSingleDiveLog,
-    exportMultipleDiveLogs,
-  };
+    },
+  });
 };

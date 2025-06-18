@@ -25,7 +25,7 @@ export const diveLogSchema = z.object({
   boat_id: z.string().optional(),
   departure_time: z.string().optional(),
   arrival_time: z.string().optional(),
-  weather_condition: z.enum(['soleado', 'nublado', 'lluvioso', 'ventoso', 'despejado'], {
+  weather_condition: z.enum(['bueno', 'regular', 'malo'], {
     required_error: "Condición climática es requerida",
   }).optional(),
   wind_knots: z.number().min(0).max(100).optional(),

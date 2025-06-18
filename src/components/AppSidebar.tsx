@@ -81,8 +81,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const NavButton = ({ item }: { item: typeof navigation[0] }) => {
     const button = (
-      <SidebarMenuButton onClick={() => navigate(item.url)} className={isCollapsed ? "justify-center" : ""}>
-        <item.icon className={isCollapsed ? "size-6" : "size-4"} />
+      <SidebarMenuButton 
+        onClick={() => navigate(item.url)} 
+        className={isCollapsed ? "justify-center w-full" : ""}
+      >
+        <item.icon className="size-4" />
         {!isCollapsed && <span>{item.title}</span>}
       </SidebarMenuButton>
     );
@@ -109,13 +112,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton size="lg" asChild>
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <img 
-                    src="/lovable-uploads/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" 
-                    alt="Aerocam Logo" 
-                    className={isCollapsed ? "size-8" : "size-8"}
-                  />
+              <SidebarMenuButton 
+                size="lg" 
+                asChild
+                className={isCollapsed ? "justify-center w-full" : ""}
+              >
+                <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'}`}>
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
+                    <img 
+                      src="/lovable-uploads/9b1feb5f-186d-4fd2-b028-f228d9909afd.png" 
+                      alt="Aerocam Logo" 
+                      className="size-8"
+                    />
+                  </div>
                   {!isCollapsed && (
                     <div className="grid flex-1 text-left text-sm leading-tight ml-2">
                       <span className="truncate font-semibold text-white">Aerocam App</span>
@@ -155,86 +164,84 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarGroupContent>
             </SidebarGroup>
           )}
-          
-          {/* User Menu */}
-          <SidebarGroup className="mt-auto">
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuButton
-                        size="lg"
-                        className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                      >
-                        <Avatar className="h-8 w-8 rounded-lg">
-                          <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
-                          <AvatarFallback className="rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-white">
-                            {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        {!isCollapsed && (
-                          <>
-                            <div className="grid flex-1 text-left text-sm leading-tight">
-                              <span className="truncate font-semibold text-white">
-                                {userProfile?.username || 'Usuario'}
-                              </span>
-                              <span className="truncate text-xs text-ocean-300">
-                                {user?.email}
-                              </span>
-                            </div>
-                            <ChevronsUpDown className="ml-auto size-4" />
-                          </>
-                        )}
-                      </SidebarMenuButton>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-slate-900 border-slate-700"
-                      side="bottom"
-                      align="end"
-                      sideOffset={4}
-                    >
-                      <DropdownMenuLabel className="p-0 font-normal">
-                        <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                          <Avatar className="h-8 w-8 rounded-lg">
-                            <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
-                            <AvatarFallback className="rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-white">
-                              {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="grid flex-1 text-left text-sm leading-tight">
-                            <span className="truncate font-semibold text-white">
-                              {userProfile?.username || 'Usuario'}
-                            </span>
-                            <span className="truncate text-xs text-ocean-300">
-                              {user?.email}
-                            </span>
-                          </div>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="text-ocean-300 hover:text-white focus:text-white cursor-pointer"
-                        onClick={() => navigate("/settings")}
-                      >
-                        <Settings className="mr-2 h-4 w-4" />
-                        Configuración
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="text-red-400 hover:text-red-300 focus:text-red-300 cursor-pointer"
-                        onClick={handleSignOut}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Cerrar sesión
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
         </SidebarContent>
+          
+        {/* User Menu */}
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton
+                    size="lg"
+                    className={`data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground ${isCollapsed ? 'justify-center w-full' : ''}`}
+                  >
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
+                      <AvatarFallback className="rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-white">
+                        {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    {!isCollapsed && (
+                      <>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                          <span className="truncate font-semibold text-white">
+                            {userProfile?.username || 'Usuario'}
+                          </span>
+                          <span className="truncate text-xs text-ocean-300">
+                            {user?.email}
+                          </span>
+                        </div>
+                        <ChevronsUpDown className="ml-auto size-4" />
+                      </>
+                    )}
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-slate-900 border-slate-700"
+                  side="bottom"
+                  align="end"
+                  sideOffset={4}
+                >
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                      <Avatar className="h-8 w-8 rounded-lg">
+                        <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
+                        <AvatarFallback className="rounded-lg bg-gradient-to-r from-[#6555FF] to-purple-700 text-white">
+                          {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold text-white">
+                          {userProfile?.username || 'Usuario'}
+                        </span>
+                        <span className="truncate text-xs text-ocean-300">
+                          {user?.email}
+                        </span>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="text-ocean-300 hover:text-white focus:text-white cursor-pointer"
+                    onClick={() => navigate("/settings")}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Configuración
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="text-red-400 hover:text-red-300 focus:text-red-300 cursor-pointer"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Cerrar sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
     </TooltipProvider>
   )

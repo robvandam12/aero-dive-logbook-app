@@ -6,26 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCenters } from "@/hooks/useCenters";
 import { useDiveSites } from "@/hooks/useDiveSites";
 import { useBoats } from "@/hooks/useBoats";
-import { useAuth } from "@/contexts/AuthProvider";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { useEffect } from "react";
 
 export const Step1GeneralData = () => {
-  const { control, setValue, watch } = useFormContext();
-  const { user } = useAuth();
-  const { data: userProfile } = useUserProfile();
+  const { control, watch } = useFormContext();
   const { data: centers } = useCenters();
   const { data: diveSites } = useDiveSites();
   
   const selectedCenterId = watch("center_id");
   const { data: boats } = useBoats(selectedCenterId);
-  
-  // Auto-fill supervisor name with user's username when component mounts but allow editing
-  useEffect(() => {
-    if (userProfile?.username && !watch("supervisor_name")) {
-      setValue("supervisor_name", userProfile.username);
-    }
-  }, [userProfile?.username, setValue, watch]);
 
   const filteredDiveSites = diveSites || [];
   const filteredBoats = boats || [];
@@ -43,7 +31,7 @@ export const Step1GeneralData = () => {
                 <Input 
                   type="date" 
                   {...field} 
-                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                  className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
@@ -59,7 +47,7 @@ export const Step1GeneralData = () => {
               <FormLabel className="text-ocean-200">Centro de Cultivo</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]">
+                  <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]">
                     <SelectValue placeholder="Seleccionar centro" />
                   </SelectTrigger>
                 </FormControl>
@@ -88,7 +76,7 @@ export const Step1GeneralData = () => {
                 <Input 
                   {...field} 
                   placeholder="Nombre del supervisor de buceo"
-                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                  className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
@@ -106,7 +94,7 @@ export const Step1GeneralData = () => {
                 <Input 
                   {...field} 
                   placeholder="Número de matrícula"
-                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                  className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
@@ -126,7 +114,7 @@ export const Step1GeneralData = () => {
                 <Input 
                   {...field} 
                   placeholder="Nombre del jefe de centro"
-                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                  className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
@@ -144,7 +132,7 @@ export const Step1GeneralData = () => {
                 <Input 
                   {...field} 
                   placeholder="Nombre del asistente de centro"
-                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                  className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
@@ -162,7 +150,7 @@ export const Step1GeneralData = () => {
               <FormLabel className="text-ocean-200">Sitio de Buceo</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]">
+                  <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]">
                     <SelectValue placeholder="Seleccionar sitio de buceo" />
                   </SelectTrigger>
                 </FormControl>
@@ -187,7 +175,7 @@ export const Step1GeneralData = () => {
               <FormLabel className="text-ocean-200">Embarcación (Opcional)</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]">
+                  <SelectTrigger className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]">
                     <SelectValue placeholder="Seleccionar embarcación" />
                   </SelectTrigger>
                 </FormControl>
@@ -219,7 +207,7 @@ export const Step1GeneralData = () => {
                 <Input 
                   type="time" 
                   {...field} 
-                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                  className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
@@ -237,7 +225,7 @@ export const Step1GeneralData = () => {
                 <Input 
                   type="time" 
                   {...field} 
-                  className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
+                  className="bg-ocean-950/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF]"
                 />
               </FormControl>
               <FormMessage />
