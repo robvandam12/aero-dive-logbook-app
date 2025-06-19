@@ -22,7 +22,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   };
 
   const handlePrint = useReactToPrint({
-    content: () => printableRef.current,
+    contentRef: printableRef,
     documentTitle: `Bitacora_Buceo_${diveLog?.id?.slice(-6) || 'Aerocam'}`,
     pageStyle: `
       @page { 
