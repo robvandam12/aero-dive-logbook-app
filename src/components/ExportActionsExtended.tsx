@@ -7,6 +7,8 @@ import {
   FileText, 
   Mail, 
   FileSpreadsheet, 
+  Calendar,
+  Filter,
   Loader2 
 } from "lucide-react";
 import { useExcelExport } from "@/hooks/useExcelExport";
@@ -31,7 +33,7 @@ export const ExportActionsExtended = ({
 }: ExportActionsExtendedProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
-  const { exportSingleDiveLog } = useExcelExport();
+  const { exportSingleDiveLog, exportMultipleDiveLogs } = useExcelExport();
   const { exportToPDF } = usePDFExport();
   const { sendDiveLogEmail } = useEmailMutations();
   const { toast } = useToast();
@@ -62,6 +64,20 @@ export const ExportActionsExtended = ({
       await exportSingleDiveLog(diveLog);
     } catch (error) {
       console.error('Error exporting Excel:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportMultipleExcel = async () => {
+    try {
+      setIsExporting(true);
+      // For now, export single dive log if available
+      if (diveLog) {
+        await exportMultipleDiveLogs([diveLog]);
+      }
+    } catch (error) {
+      console.error('Error exporting multiple Excel:', error);
     } finally {
       setIsExporting(false);
     }
@@ -139,6 +155,58 @@ export const ExportActionsExtended = ({
                   <Mail className="w-4 h-4 mr-2" />
                 )}
                 Enviar Email
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Exportación Múltiple */}
+        {showMultipleExport && (
+          <div className="space-y-2 pt-4 border-t border-ocean-800">
+            <h4 className="text-ocean-200 font-medium flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Exportación Múltiple
+              {(dateRange?.from || selectedCenter !== 'all') && (
+                <span className="text-xs text-ocean-400">
+                  (Con filtros aplicados)
+                </span>
+              )}
+            </h4>
+            {(dateRange?.from || selectedCenter !== 'all') && (
+              <div className="text-xs text-ocean-400 space-y-1">
+                {dateRange?.from && (
+                  <p>• Filtrado por fechas: {dateRange.from.toLocaleDateString()} - {dateRange.to?.toLocaleDateString() || 'presente'}</p>
+                )}
+                {selectedCenter && selectedCenter !== 'all' && (
+                  <p>• Centro: {selectedCenter}</p>
+                )}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={handleExportMultipleExcel}
+                disabled={isExporting}
+                variant="outline"
+                size="sm"
+                className="border-ocean-700 text-ocean-300 hover:bg-ocean-800"
+              >
+                {isExporting ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                )}
+                Control Diario
+              </Button>
+              
+              <Button
+                onClick={handleExportMultipleExcel}
+                disabled={isExporting}
+                variant="outline"
+                size="sm"
+                className="border-ocean-700 text-ocean-300 hover:bg-ocean-800"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Detalle de Boletas
               </Button>
             </div>
           </div>
