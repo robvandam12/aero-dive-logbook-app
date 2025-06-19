@@ -22,19 +22,21 @@ export const useCreateDiveLog = () => {
         }
       }
 
-      // Prepare insert data - handle "none" values
+      // Prepare insert data - handle "none" and empty values
       const insertData = {
         supervisor_id: userId,
         supervisor_name: data.supervisor_name,
         log_date: data.log_date,
-        center_id: data.center_id,
+        center_id: data.center_id === 'none' || !data.center_id || data.center_id === '' ? null : data.center_id,
         dive_site_id: data.dive_site_id,
-        boat_id: data.boat_id === 'none' || !data.boat_id ? null : data.boat_id,
+        boat_id: data.boat_id === 'none' || !data.boat_id || data.boat_id === '' ? null : data.boat_id,
         weather_conditions: `${data.weather_condition || 'N/A'}, Viento: ${data.wind_knots || 'N/A'} nudos, Oleaje: ${data.wave_height_meters || 'N/A'} m`,
         divers_manifest: data.divers_manifest,
         observations: data.observations || "",
         departure_time: data.departure_time || null,
         arrival_time: data.arrival_time || null,
+        work_type: data.work_type || 'MANTENCIÓN',
+        work_details: data.work_details || null,
         signature_url: signatureUrl
       };
 

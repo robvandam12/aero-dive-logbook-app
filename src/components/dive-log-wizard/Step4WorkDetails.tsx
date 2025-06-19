@@ -63,11 +63,11 @@ export const Step4WorkDetails = () => {
                 </SelectTrigger>
               </FormControl>
               <SelectContent className="bg-ocean-900 border-ocean-700 text-white z-50">
-                <SelectItem value="inspeccion" className="hover:bg-ocean-800 focus:bg-ocean-800">Inspección</SelectItem>
-                <SelectItem value="soldadura" className="hover:bg-ocean-800 focus:bg-ocean-800">Soldadura Subacuática</SelectItem>
-                <SelectItem value="corte" className="hover:bg-ocean-800 focus:bg-ocean-800">Corte Subacuático</SelectItem>
-                <SelectItem value="limpieza" className="hover:bg-ocean-800 focus:bg-ocean-800">Limpieza de Casco</SelectItem>
-                <SelectItem value="reparacion" className="hover:bg-ocean-800 focus:bg-ocean-800">Reparación</SelectItem>
+                <SelectItem value="MANTENCIÓN" className="hover:bg-ocean-800 focus:bg-ocean-800">Mantención</SelectItem>
+                <SelectItem value="INSPECCIÓN" className="hover:bg-ocean-800 focus:bg-ocean-800">Inspección</SelectItem>
+                <SelectItem value="REPARACIÓN" className="hover:bg-ocean-800 focus:bg-ocean-800">Reparación</SelectItem>
+                <SelectItem value="LIMPIEZA" className="hover:bg-ocean-800 focus:bg-ocean-800">Limpieza</SelectItem>
+                <SelectItem value="INSTALACIÓN" className="hover:bg-ocean-800 focus:bg-ocean-800">Instalación</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />
