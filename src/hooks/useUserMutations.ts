@@ -57,7 +57,7 @@ export const useCreateUser = () => {
         id: authData.user.id,
         username: data.full_name || data.email.split('@')[0],
         role: data.role,
-        center_id: data.center_id === 'none' || !data.center_id || data.center_id === '' ? null : data.center_id
+        center_id: !data.center_id || data.center_id === 'none' || data.center_id === '' ? null : data.center_id
       };
 
       const { error: profileError } = await supabase
@@ -72,7 +72,7 @@ export const useCreateUser = () => {
         email: data.email,
         full_name: data.full_name,
         role: data.role,
-        center_id: data.center_id === 'none' || !data.center_id || data.center_id === '' ? null : data.center_id
+        center_id: !data.center_id || data.center_id === 'none' || data.center_id === '' ? null : data.center_id
       };
 
       const { error: userMgmtError } = await supabase
@@ -112,7 +112,7 @@ export const useUpdateUser = () => {
         .update({
           full_name: data.full_name,
           role: data.role,
-          center_id: data.center_id === 'none' || !data.center_id || data.center_id === '' ? null : data.center_id,
+          center_id: !data.center_id || data.center_id === 'none' || data.center_id === '' ? null : data.center_id,
           is_active: data.is_active,
           allow_multi_center: data.allow_multi_center,
           updated_at: new Date().toISOString()
@@ -134,7 +134,7 @@ export const useUpdateUser = () => {
           .update({
             username: data.full_name,
             role: data.role,
-            center_id: data.center_id === 'none' || !data.center_id || data.center_id === '' ? null : data.center_id
+            center_id: !data.center_id || data.center_id === 'none' || data.center_id === '' ? null : data.center_id
           })
           .eq('id', userMgmt.user_id);
 
@@ -180,7 +180,7 @@ export const useSendInvitationEmail = () => {
           email,
           fullName,
           role,
-          centerId: centerId === "none" || !centerId || centerId === '' ? null : centerId,
+          centerId: !centerId || centerId === "none" || centerId === '' ? null : centerId,
           message,
           createdBy: profile.id,
         },
@@ -224,6 +224,3 @@ export const useUserMutations = () => {
     sendInvitationEmail,
   };
 };
-
-// Export individual hooks
-export { useCreateUser, useUpdateUser, useSendInvitationEmail };
