@@ -2,11 +2,11 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, Download } from "lucide-react";
+import { Eye, Download, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 import { PrintableDiveLog } from "./PrintableDiveLog";
-import { usePDFGenerator } from "@/hooks/usePDFGenerator";
+import { useHtml2CanvasPDF } from "@/hooks/useHtml2CanvasPDF";
 
 interface PDFPreviewProps {
   diveLogId: string;
@@ -18,7 +18,8 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [fullDiveLog, setFullDiveLog] = useState<DiveLogWithFullDetails | null>(null);
-  const { generatePDF } = usePDFGenerator();
+  const printableRef = useRef<HTMLDivElement>(null);
+  const { generatePDF, isExporting } = useHtml2CanvasPDF();
 
   const handlePreview = async () => {
     setIsLoadingPreview(true);
@@ -60,9 +61,17 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       setFullDiveLog(diveLogData);
     }
 
-    if (diveLogData) {
-      generatePDF(diveLogData, hasSignature);
+    if (diveLogData && printableRef.current) {
+      const dateStr = diveLogData.log_date ? new Date(diveLogData.log_date).toISOString().split('T')[0] : 'sin-fecha';
+      const centerName = diveLogData.centers?.name ? diveLogData.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
+      const filename = `bitacora-${centerName}-${dateStr}-${diveLogData.id?.slice(-6)}.pdf`;
+      
+      generatePDF(printableRef.current, filename);
     }
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
@@ -82,24 +91,38 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
         variant="outline" 
         size="sm" 
         onClick={handleDownload}
+        disabled={isExporting}
         className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
       >
         <Download className="w-4 h-4 mr-2" />
-        Descargar PDF
+        {isExporting ? 'Generando...' : 'Descargar PDF'}
       </Button>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] bg-slate-900 border-slate-700">
           <DialogHeader>
-            <DialogTitle className="text-white">Previsualización de Bitácora PDF</DialogTitle>
+            <DialogTitle className="text-white flex items-center justify-between">
+              Previsualización de Bitácora PDF
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrint}
+                className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimir
+              </Button>
+            </DialogTitle>
           </DialogHeader>
           <div className="overflow-auto bg-white rounded max-h-[80vh]">
-            {fullDiveLog && (
-              <PrintableDiveLog 
-                diveLog={fullDiveLog} 
-                hasSignature={hasSignature}
-              />
-            )}
+            <div ref={printableRef}>
+              {fullDiveLog && (
+                <PrintableDiveLog 
+                  diveLog={fullDiveLog} 
+                  hasSignature={hasSignature}
+                />
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

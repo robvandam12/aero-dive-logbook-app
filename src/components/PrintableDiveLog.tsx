@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DiveLogWithFullDetails } from '@/hooks/useDiveLog';
 
@@ -19,15 +18,29 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
           @media print {
             @page {
               size: letter;
-              margin: 20mm;
+              margin: 0.5in;
             }
             .printable-page {
               margin: 0;
               padding: 0;
               font-size: 10px;
+              width: 100%;
+              height: auto;
             }
             .no-print {
               display: none !important;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+          }
+          @media screen {
+            .printable-page {
+              max-width: 8.5in;
+              min-height: 11in;
+              margin: 0 auto;
+              box-shadow: 0 0 10px rgba(0,0,0,0.1);
             }
           }
         `}</style>
@@ -38,7 +51,7 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
             <div>
               <div className="flex items-center space-x-1">
                 <img 
-                  src="/lovable-uploads/bdab85e8-7bf5-4770-9b78-a524545baeee.png" 
+                  src="/lovable-uploads/d1c62fdb-bdb7-4af0-b045-961a93bfb9bb.png" 
                   alt="Aerocam Logo" 
                   className="h-10 w-10 object-contain"
                 />

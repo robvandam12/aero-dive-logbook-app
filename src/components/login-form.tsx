@@ -97,7 +97,7 @@ export const LoginForm = () => {
         {/* Logo de Aerocam */}
         <div className="flex items-center space-x-3">
           <img 
-            src="/lovable-uploads/bdab85e8-7bf5-4770-9b78-a524545baeee.png" 
+            src="/lovable-uploads/d1c62fdb-bdb7-4af0-b045-961a93bfb9bb.png" 
             alt="Aerocam Logo" 
             className="h-16 w-16"
           />
