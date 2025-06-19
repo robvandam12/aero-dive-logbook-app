@@ -22,6 +22,8 @@ export const useHtml2CanvasPDF = () => {
     setIsExporting(true);
 
     try {
+      console.log("Starting PDF generation...");
+      
       const canvas = await html2canvas(element, {
         scale: 3,
         useCORS: true,
@@ -31,6 +33,8 @@ export const useHtml2CanvasPDF = () => {
         windowWidth: element.scrollWidth,
         windowHeight: element.scrollHeight,
       });
+
+      console.log("Canvas created successfully");
 
       const imgData = canvas.toDataURL('image/png');
       
@@ -64,6 +68,8 @@ export const useHtml2CanvasPDF = () => {
 
       pdf.addImage(imgData, 'PNG', x, y, finalImgWidth, finalImgHeight);
       pdf.save(filename);
+
+      console.log("PDF saved successfully");
 
       toast({
         title: "PDF generado",

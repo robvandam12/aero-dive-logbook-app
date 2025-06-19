@@ -2,7 +2,7 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, Download, Printer } from "lucide-react";
+import { Eye, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 import { PrintableDiveLog } from "./PrintableDiveLog";
@@ -44,9 +44,12 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   };
 
   const handleDownload = async () => {
+    console.log("Download button clicked");
+    
     let diveLogData = fullDiveLog;
     
     if (!diveLogData) {
+      console.log("Loading dive log data for download...");
       // Load dive log data if not already loaded
       const { data, error } = await supabase.functions.invoke('export-dive-log-pdf', {
         body: { diveLogId, preview: true },
@@ -66,12 +69,11 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       const centerName = diveLogData.centers?.name ? diveLogData.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
       const filename = `bitacora-${centerName}-${dateStr}-${diveLogData.id?.slice(-6)}.pdf`;
       
-      generatePDF(printableRef.current, filename);
+      console.log("Generating PDF with filename:", filename);
+      await generatePDF(printableRef.current, filename);
+    } else {
+      console.error("Missing dive log data or printable ref");
     }
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   return (
@@ -101,17 +103,8 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] bg-slate-900 border-slate-700">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center justify-between">
+            <DialogTitle className="text-white">
               Previsualización de Bitácora PDF
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrint}
-                className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
-              >
-                <Printer className="w-4 h-4 mr-2" />
-                Imprimir
-              </Button>
             </DialogTitle>
           </DialogHeader>
           <div className="overflow-auto bg-white rounded max-h-[80vh]">
