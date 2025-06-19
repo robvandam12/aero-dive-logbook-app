@@ -2,11 +2,11 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, Download } from "lucide-react";
+import { Eye, Download, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 import { PrintableDiveLog } from "./PrintableDiveLog";
-import { usePDFGenerator } from "@/hooks/usePDFGenerator";
+import { usePDFGeneratorWithHtml2Canvas } from "@/hooks/usePDFGeneratorWithHtml2Canvas";
 
 interface PDFPreviewProps {
   diveLogId: string;
@@ -18,7 +18,8 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [fullDiveLog, setFullDiveLog] = useState<DiveLogWithFullDetails | null>(null);
-  const { generatePDF } = usePDFGenerator();
+  const printableRef = useRef<HTMLDivElement>(null);
+  const { generatePDFFromElement } = usePDFGeneratorWithHtml2Canvas();
 
   const handlePreview = async () => {
     setIsLoadingPreview(true);
@@ -42,6 +43,10 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   const handleDownload = async () => {
     let diveLogData = fullDiveLog;
     
@@ -60,8 +65,12 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       setFullDiveLog(diveLogData);
     }
 
-    if (diveLogData) {
-      generatePDF(diveLogData, hasSignature);
+    if (diveLogData && printableRef.current) {
+      const dateStr = diveLogData.log_date ? new Date(diveLogData.log_date).toISOString().split('T')[0] : 'sin-fecha';
+      const centerName = diveLogData.centers?.name ? diveLogData.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
+      const filename = `bitacora-${centerName}-${dateStr}-${diveLogData.id?.slice(-6)}.pdf`;
+      
+      await generatePDFFromElement(printableRef.current, filename);
     }
   };
 
@@ -91,14 +100,27 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] bg-slate-900 border-slate-700">
           <DialogHeader>
-            <DialogTitle className="text-white">Previsualización de Bitácora PDF</DialogTitle>
+            <DialogTitle className="text-white flex items-center justify-between">
+              <span>Previsualización de Bitácora PDF</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handlePrint}
+                className="border-ocean-600 text-ocean-300 hover:bg-ocean-800 ml-4"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimir
+              </Button>
+            </DialogTitle>
           </DialogHeader>
           <div className="overflow-auto bg-white rounded max-h-[80vh]">
             {fullDiveLog && (
-              <PrintableDiveLog 
-                diveLog={fullDiveLog} 
-                hasSignature={hasSignature}
-              />
+              <div ref={printableRef}>
+                <PrintableDiveLog 
+                  diveLog={fullDiveLog} 
+                  hasSignature={hasSignature}
+                />
+              </div>
             )}
           </div>
         </DialogContent>
