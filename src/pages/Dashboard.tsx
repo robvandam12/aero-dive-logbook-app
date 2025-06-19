@@ -30,7 +30,7 @@ const Dashboard = () => {
           <SidebarTrigger />
           <div>
             <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
-              Dashboard
+              Dashboard Administrativo
             </h2>
             <p className="text-ocean-300">Panel de control y gestión del sistema</p>
           </div>
@@ -46,7 +46,7 @@ const Dashboard = () => {
         <SidebarTrigger />
         <div>
           <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
-            Dashboard
+            Dashboard Usuario
           </h2>
           <p className="text-ocean-300">Gestión de bitácoras y operaciones de buceo</p>
         </div>

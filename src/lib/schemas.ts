@@ -12,7 +12,6 @@ export const diverSchema = z.object({
   start_time: z.string().optional(),
   end_time: z.string().optional(),
   dive_time: z.string().optional(),
-  work_performed: z.string().optional(),
 });
 
 export const diveLogSchema = z.object({

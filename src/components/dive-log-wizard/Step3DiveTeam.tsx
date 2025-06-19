@@ -2,7 +2,6 @@
 import { useFormContext, useFieldArray } from "react-hook-form";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,8 +24,7 @@ export const Step3DiveTeam = () => {
       standard_depth: true,
       start_time: '',
       end_time: '',
-      dive_time: '',
-      work_performed: ''
+      dive_time: ''
     });
   };
 
@@ -202,25 +200,6 @@ export const Step3DiveTeam = () => {
                   )}
                 />
               </div>
-
-              <FormField
-                control={control}
-                name={`divers_manifest.${index}.work_performed`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-ocean-200">Trabajo Realizado</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder="Describa el trabajo específico realizado por este buzo..."
-                        rows={3}
-                        className="bg-ocean-900/50 border-ocean-700 text-white focus:border-[#6555FF] focus:ring-[#6555FF] placeholder:text-ocean-400"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <FormField
                 control={control}

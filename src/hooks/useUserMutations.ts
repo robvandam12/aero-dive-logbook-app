@@ -36,6 +36,7 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (data: CreateUserData) => {
+      // Use the service role key for admin operations
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -52,32 +53,28 @@ export const useCreateUser = () => {
         throw new Error('No se pudo crear el usuario');
       }
 
-      // Create profile with proper null handling
-      const profileData = {
-        id: authData.user.id,
-        username: data.full_name || data.email.split('@')[0],
-        role: data.role,
-        center_id: !data.center_id || data.center_id === 'none' || data.center_id === '' ? null : data.center_id
-      };
-
+      // Create profile
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert(profileData);
+        .insert({
+          id: authData.user.id,
+          username: data.full_name || data.email.split('@')[0],
+          role: data.role,
+          center_id: data.center_id === 'none' ? null : data.center_id
+        });
 
       if (profileError) throw profileError;
 
-      // Create user management record with proper null handling
-      const userMgmtData = {
-        user_id: authData.user.id,
-        email: data.email,
-        full_name: data.full_name,
-        role: data.role,
-        center_id: !data.center_id || data.center_id === 'none' || data.center_id === '' ? null : data.center_id
-      };
-
+      // Create user management record
       const { error: userMgmtError } = await supabase
         .from('user_management')
-        .insert(userMgmtData);
+        .insert({
+          user_id: authData.user.id,
+          email: data.email,
+          full_name: data.full_name,
+          role: data.role,
+          center_id: data.center_id === 'none' ? null : data.center_id
+        });
 
       if (userMgmtError) throw userMgmtError;
 
@@ -112,7 +109,7 @@ export const useUpdateUser = () => {
         .update({
           full_name: data.full_name,
           role: data.role,
-          center_id: !data.center_id || data.center_id === 'none' || data.center_id === '' ? null : data.center_id,
+          center_id: data.center_id,
           is_active: data.is_active,
           allow_multi_center: data.allow_multi_center,
           updated_at: new Date().toISOString()
@@ -134,7 +131,7 @@ export const useUpdateUser = () => {
           .update({
             username: data.full_name,
             role: data.role,
-            center_id: !data.center_id || data.center_id === 'none' || data.center_id === '' ? null : data.center_id
+            center_id: data.center_id
           })
           .eq('id', userMgmt.user_id);
 
@@ -180,7 +177,7 @@ export const useSendInvitationEmail = () => {
           email,
           fullName,
           role,
-          centerId: !centerId || centerId === "none" || centerId === '' ? null : centerId,
+          centerId: centerId === "none" ? null : centerId,
           message,
           createdBy: profile.id,
         },
