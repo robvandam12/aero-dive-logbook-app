@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -22,12 +21,12 @@ interface UpdateUserData {
   };
 }
 
-interface SendInvitationRequest {
+interface SendWelcomeEmailRequest {
   email: string;
   fullName: string;
+  password: string;
   role: 'admin' | 'usuario';
   centerId?: string;
-  message?: string;
 }
 
 export const useCreateUser = () => {
@@ -41,14 +40,13 @@ export const useCreateUser = () => {
         return value && value.trim() !== '' && value !== 'none' ? value : null;
       };
 
-      // Use regular signUp method instead of admin endpoint
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Create user without email confirmation requirement
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: data.email,
         password: data.password,
-        options: {
-          data: {
-            username: data.full_name || data.email.split('@')[0]
-          }
+        email_confirm: true, // Skip email verification
+        user_metadata: {
+          username: data.full_name || data.email.split('@')[0]
         }
       });
 
@@ -58,26 +56,17 @@ export const useCreateUser = () => {
         throw new Error('No se pudo crear el usuario');
       }
 
-      // Check if profile already exists to avoid duplicate key error
-      const { data: existingProfile } = await supabase
+      // Create profile
+      const { error: profileError } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('id', authData.user.id)
-        .single();
+        .insert({
+          id: authData.user.id,
+          username: data.full_name || data.email.split('@')[0],
+          role: data.role,
+          center_id: toNullIfEmpty(data.center_id)
+        });
 
-      // Only create profile if it doesn't exist
-      if (!existingProfile) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            username: data.full_name || data.email.split('@')[0],
-            role: data.role,
-            center_id: toNullIfEmpty(data.center_id)
-          });
-
-        if (profileError) throw profileError;
-      }
+      if (profileError) throw profileError;
 
       // Create user management record
       const { error: userMgmtError } = await supabase
@@ -87,10 +76,26 @@ export const useCreateUser = () => {
           email: data.email,
           full_name: data.full_name,
           role: data.role,
-          center_id: toNullIfEmpty(data.center_id)
+          center_id: toNullIfEmpty(data.center_id),
+          is_active: true // User is immediately active
         });
 
       if (userMgmtError) throw userMgmtError;
+
+      // Send welcome email immediately
+      const { error: emailError } = await supabase.functions.invoke('send-welcome-email', {
+        body: {
+          email: data.email,
+          fullName: data.full_name,
+          password: data.password,
+          role: data.role,
+          centerId: toNullIfEmpty(data.center_id),
+        },
+      });
+
+      if (emailError) {
+        console.warn('Warning: User created but welcome email failed:', emailError);
+      }
 
       return authData.user;
     },
@@ -98,7 +103,7 @@ export const useCreateUser = () => {
       queryClient.invalidateQueries({ queryKey: ['userManagement'] });
       toast({
         title: "Usuario creado",
-        description: "El usuario ha sido creado correctamente."
+        description: "El usuario ha sido creado y puede acceder inmediatamente. Se ha enviado un email de bienvenida."
       });
     },
     onError: (error: any) => {
@@ -176,11 +181,11 @@ export const useUpdateUser = () => {
   });
 };
 
-export const useSendInvitationEmail = () => {
+export const useSendWelcomeEmail = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ email, fullName, role, centerId, message }: SendInvitationRequest) => {
+    mutationFn: async ({ email, fullName, password, role, centerId }: SendWelcomeEmailRequest) => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
@@ -191,7 +196,63 @@ export const useSendInvitationEmail = () => {
         throw new Error('Usuario no encontrado');
       }
 
-      // Helper function to convert empty strings to null for UUIDs
+      const toNullIfEmpty = (value: string | undefined) => {
+        return value && value.trim() !== '' && value !== 'none' ? value : null;
+      };
+
+      const { data, error } = await supabase.functions.invoke('send-welcome-email', {
+        body: {
+          email,
+          fullName,
+          password,
+          role,
+          centerId: toNullIfEmpty(centerId),
+          createdBy: profile.id,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Error al enviar el email de bienvenida');
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email de bienvenida enviado",
+        description: "El email de bienvenida ha sido enviado exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error al enviar email de bienvenida",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// Legacy invitation function (kept for backward compatibility)
+export const useSendInvitationEmail = () => {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ email, fullName, role, centerId, message }: any) => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile) {
+        throw new Error('Usuario no encontrado');
+      }
+
       const toNullIfEmpty = (value: string | undefined) => {
         return value && value.trim() !== '' && value !== 'none' ? value : null;
       };
@@ -238,10 +299,12 @@ export const useUserMutations = () => {
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const sendInvitationEmail = useSendInvitationEmail();
+  const sendWelcomeEmail = useSendWelcomeEmail();
   
   return {
     createUser,
     updateUser,
     sendInvitationEmail,
+    sendWelcomeEmail,
   };
 };

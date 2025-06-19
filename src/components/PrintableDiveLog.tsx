@@ -1,0 +1,240 @@
+
+import React from "react";
+import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
+
+interface PrintableDiveLogProps {
+  diveLog: DiveLogWithFullDetails;
+  hasSignature: boolean;
+}
+
+export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLogProps>(
+  ({ diveLog, hasSignature }, ref) => {
+    const diversManifest = Array.isArray(diveLog.divers_manifest) 
+      ? diveLog.divers_manifest as any[]
+      : [];
+
+    return (
+      <div ref={ref} className="printable-page bg-white p-6 font-sans text-gray-800 text-xs">
+        {/* Header Section */}
+        <header className="mb-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="flex items-center space-x-1">
+                <img 
+                  src="/lovable-uploads/bdab85e8-7bf5-4770-9b78-a524545baeee.png" 
+                  alt="Aerocam Logo" 
+                  className="h-10 w-20 object-contain"
+                />
+                <span className="text-2xl font-semibold">aerocam</span>
+              </div>
+              <p className="text-[10px] mt-1">SOCIEDAD DE SERVICIOS AEROCAM SPA</p>
+              <p className="text-[10px]">Ignacio Carrera Pinto Nº 200, Quellón – Chiloé</p>
+              <p className="text-[10px]">(65) 2 353 322 • contacto@aerocamchile.cl • www.aerocamchile.cl</p>
+            </div>
+            <div className="text-right">
+              <div className="flex justify-end items-center text-xs mb-1">
+                <span className="font-semibold text-gray-600 pr-1 w-auto">Fecha:</span>
+                <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-28">{diveLog.log_date || ''}</div>
+              </div>
+              <div className="flex justify-end items-center mt-1">
+                <span className="font-semibold text-xs mr-1">Nº:</span>
+                <div className="border border-gray-400 px-1 py-0.5 text-green-600 font-bold text-xs h-6 w-28">{diveLog.id?.slice(-6) || ''}</div>
+              </div>
+            </div>
+          </div>
+          <h1 className="text-lg font-bold text-center my-2">BITÁCORA BUCEO E INFORME DE TRABAJO REALIZADO</h1>
+          <div className="flex items-center text-xs mb-1">
+            <span className="font-semibold text-gray-600 pr-1 w-auto font-bold">CENTRO DE CULTIVO:</span>
+            <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">{diveLog.centers?.name || 'N/A'}</div>
+          </div>
+        </header>
+
+        {/* Datos Generales Section */}
+        <section className="mb-4 p-2 border border-gray-400">
+          <h2 className="font-bold text-sm mb-2 text-center bg-gray-200 p-1 -m-2 mb-2">DATOS GENERALES</h2>
+          <div className="grid grid-cols-2 gap-x-4">
+            <div>
+              <div className="flex items-center text-xs mb-1">
+                <span className="font-semibold text-gray-600 pr-1 w-auto">SUPERVISOR:</span>
+                <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">{diveLog.profiles?.username || 'N/A'}</div>
+              </div>
+              <div className="flex items-center text-xs mb-1">
+                <span className="font-semibold text-gray-600 pr-1 w-auto">N° MATRICULA:</span>
+                <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">{diveLog.supervisor_license || 'N/A'}</div>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center text-xs mb-1">
+                <span className="font-semibold text-gray-600 pr-1 w-auto">JEFE DE CENTRO:</span>
+                <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">{diveLog.center_manager || 'N/A'}</div>
+              </div>
+              <div className="flex items-center text-xs mb-1">
+                <span className="font-semibold text-gray-600 pr-1 w-auto">ASISTENTE DE CENTRO:</span>
+                <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">{diveLog.center_assistant || 'N/A'}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-2 border-t border-gray-300">
+            <h3 className="font-semibold mb-1 text-center">CONDICIÓN TIEMPO VARIABLES</h3>
+            <div className="flex items-center space-x-4 mb-1">
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 border border-black flex items-center justify-center">
+                  {diveLog.weather_good === true && <span className="text-[10px] font-bold">X</span>}
+                </div>
+                <span className="text-xs">SÍ</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 border border-black flex items-center justify-center">
+                  {diveLog.weather_good === false && <span className="text-[10px] font-bold">X</span>}
+                </div>
+                <span className="text-xs">NO</span>
+              </div>
+              <div className="flex items-center text-xs flex-grow">
+                <span className="font-semibold text-gray-600 pr-1 w-auto">OBSERVACIONES:</span>
+                <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">{diveLog.weather_conditions || 'Buen tiempo'}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-2 border-t border-gray-300">
+            <h3 className="font-semibold mb-1 text-center">REGISTRO DE COMPRESORES</h3>
+            <div className="flex items-center space-x-2 mb-1">
+              <span className="font-semibold text-xs">COMPRESOR 1:</span>
+              <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-24">{diveLog.compressor_1 || ''}</div>
+              <span className="font-semibold text-xs ml-4">COMPRESOR 2:</span>
+              <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-24">{diveLog.compressor_2 || ''}</div>
+            </div>
+            <div className="flex items-center text-xs mb-1">
+              <span className="font-semibold text-gray-600 pr-1 w-auto">Nº SOLICITUD DE FAENA:</span>
+              <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">{diveLog.work_order_number || 'N/A'}</div>
+            </div>
+            <div className="flex items-center text-xs mb-1">
+              <span className="font-semibold text-gray-600 pr-1 w-auto">FECHA Y HORA DE INICIO:</span>
+              <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">{diveLog.start_time || diveLog.departure_time || 'N/A'}</div>
+            </div>
+            <div className="flex items-center text-xs mb-1">
+              <span className="font-semibold text-gray-600 pr-1 w-auto">FECHA Y HORA DE TÉRMINO:</span>
+              <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">{diveLog.end_time || diveLog.arrival_time || 'N/A'}</div>
+            </div>
+          </div>
+        </section>
+
+        {/* Team de Buceo Section */}
+        <section className="mb-4 p-2 border border-gray-400">
+          <h2 className="font-bold text-sm mb-2 text-center bg-gray-200 p-1 -m-2 mb-2">TEAM DE BUCEO</h2>
+          <p className="text-center font-semibold mb-1">COMPOSICIÓN DE EQUIPO BUZOS Y ASISTENTES</p>
+          <div className="grid grid-cols-[auto_1.6fr_1fr_0.8fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr] border-t border-l border-gray-600 text-xs">
+            {/* Headers */}
+            <div className="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center">BUZO</div>
+            <div className="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center">IDENTIFICACIÓN</div>
+            <div className="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center">Nº MATRICULA</div>
+            <div className="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center">CARGO</div>
+            <div className="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center leading-tight">BUCEO ESTANDAR<br/>PROFUNDIDAD<br/>20 MTS MAXIMO<br/>(SÍ / NO)</div>
+            <div className="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center leading-tight">PROFUNDIDAD<br/>DE TRABAJO<br/>REALIZADO<br/>(Metros)</div>
+            <div className="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center leading-tight">INICIO DE<br/>BUCEO</div>
+            <div className="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center leading-tight">TÉRMINO<br/>DE BUCEO</div>
+            <div className="p-1 border-r border-b border-gray-600 font-semibold bg-gray-100 text-center flex items-center justify-center leading-tight">TIEMPO<br/>DE BUCEO<br/>(min)</div>
+
+            {/* Render up to 4 divers */}
+            {[1, 2, 3, 4].map(buzoNum => {
+              const diver = diversManifest[buzoNum - 1];
+              return (
+                <React.Fragment key={buzoNum}>
+                  <div className="p-1 border-r border-b border-gray-500 flex items-center justify-center">{buzoNum}</div>
+                  <div className="p-1 border-r border-b border-gray-500">
+                    <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">{diver?.name || ''}</div>
+                  </div>
+                  <div className="p-1 border-r border-b border-gray-500">
+                    <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">{diver?.license || ''}</div>
+                  </div>
+                  <div className="p-1 border-r border-b border-gray-500">
+                    <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">{diver?.role || ''}</div>
+                  </div>
+                  <div className="p-1 border-r border-b border-gray-500 flex items-center justify-center space-x-2">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-3 h-3 border border-black flex items-center justify-center">
+                        {diver?.standard_depth === true && <span className="text-[10px] font-bold">X</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-3 h-3 border border-black flex items-center justify-center">
+                        {diver?.standard_depth === false && <span className="text-[10px] font-bold">X</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-1 border-r border-b border-gray-500">
+                    <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">{diver?.working_depth || ''}</div>
+                  </div>
+                  <div className="p-1 border-r border-b border-gray-500">
+                    <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">{diver?.start_time || ''}</div>
+                  </div>
+                  <div className="p-1 border-r border-b border-gray-500">
+                    <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">{diver?.end_time || ''}</div>
+                  </div>
+                  <div className="p-1 border-r border-b border-gray-500">
+                    <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-full flex items-start">{diver?.dive_time || ''}</div>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </div>
+          <p className="text-[10px] mt-1 text-center">Nota: Capacidad máxima permitida de 20 metros.</p>
+        </section>
+
+        {/* Detalle de Trabajo Section */}
+        <section className="mb-4 p-2 border border-gray-400">
+          <h2 className="font-bold text-sm mb-2 text-center bg-gray-200 p-1 -m-2 mb-2">DETALLE DE TRABAJO REALIZADO POR BUZO</h2>
+          {[1, 2, 3, 4].map(buzoNum => {
+            const diver = diversManifest[buzoNum - 1];
+            return (
+              <div key={buzoNum} className="flex flex-col text-xs mb-2">
+                <span className="font-semibold text-gray-600">BUZO {buzoNum}:</span>
+                <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs min-h-[2.5rem] w-full flex items-start">{diver?.work_description || ''}</div>
+              </div>
+            );
+          })}
+        </section>
+
+        {/* Observaciones Generales Section */}
+        <section className="mb-4 p-2 border border-gray-400">
+          <div className="flex flex-col text-xs">
+            <span className="font-semibold text-gray-600">OBSERVACIONES:</span>
+            <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs min-h-[3.75rem] w-full flex items-start">{diveLog.observations || 'Faena realizada normal, buzos sin novedad.'}</div>
+          </div>
+        </section>
+
+        {/* Firmas Section */}
+        <section className="mt-6 pt-4 border-t border-gray-300">
+          <div className="grid grid-cols-2 gap-8">
+            <div className="text-center">
+              <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-16 w-full flex items-start mb-1">(Firma)</div>
+              <p className="border-t border-black pt-1">NOMBRE Y CARGO</p>
+              <p className="font-semibold">FIRMA ENCARGADO DE CENTRO</p>
+            </div>
+            <div className="text-center">
+              <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-16 w-full flex items-start mb-1">
+                {hasSignature && diveLog.signature_url ? 
+                  <img src={diveLog.signature_url} alt="Firma" className="max-h-14 max-w-full object-contain" /> : 
+                  '(Firma y Timbre)'
+                }
+              </div>
+              <p className="border-t border-black pt-1">NOMBRE Y CARGO</p>
+              <p className="font-semibold">FIRMA Y TIMBRE SUPERVISOR DE BUCEO</p>
+              {hasSignature && (
+                <p className="text-[10px] text-green-600 font-bold mt-1">
+                  FIRMADO DIGITALMENTE - Código: DL-{diveLog.id?.slice(0, 8).toUpperCase()}
+                </p>
+              )}
+            </div>
+          </div>
+          <p className="text-[9px] mt-6 text-center text-gray-500">
+            Queda prohibido cualquier tipo de explotación y, en particular, la reproducción, distribución, comunicación pública y/o transformación, total o parcial, por cualquier medio, de este documento sin el previo consentimiento expreso y por escrito de Aerocam SPA.
+          </p>
+        </section>
+      </div>
+    );
+  }
+);
+
+PrintableDiveLog.displayName = 'PrintableDiveLog';
