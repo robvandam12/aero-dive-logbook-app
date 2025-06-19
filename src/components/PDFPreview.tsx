@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Eye, Download } from "lucide-react";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 import { PrintableDiveLog } from "./PrintableDiveLog";
-import ReactToPrint from "react-to-print";
+import { useReactToPrint } from "react-to-print";
 
 interface PDFPreviewProps {
   diveLogId: string;
@@ -20,6 +20,31 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   const handlePreview = () => {
     setPreviewOpen(true);
   };
+
+  const handlePrint = useReactToPrint({
+    content: () => printableRef.current,
+    documentTitle: `Bitacora_Buceo_${diveLog?.id?.slice(-6) || 'Aerocam'}`,
+    pageStyle: `
+      @page { 
+        size: letter portrait; 
+        margin: 20mm; 
+      }
+      @media print {
+        body { 
+          -webkit-print-color-adjust: exact; 
+          print-color-adjust: exact;
+        }
+        .printable-page { 
+          width: 190mm; 
+          break-inside: avoid; 
+          page-break-inside: avoid;
+        }
+        .no-print { 
+          display: none !important; 
+        }
+      }
+    `,
+  });
 
   if (!diveLog) {
     return null;
@@ -37,40 +62,15 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
         Previsualizar PDF
       </Button>
       
-      <ReactToPrint
-        trigger={() => (
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Descargar PDF
-          </Button>
-        )}
-        content={() => printableRef.current}
-        documentTitle={`Bitacora_Buceo_${diveLog.id?.slice(-6) || 'Aerocam'}`}
-        pageStyle={`
-          @page { 
-            size: letter portrait; 
-            margin: 20mm; 
-          }
-          @media print {
-            body { 
-              -webkit-print-color-adjust: exact; 
-              print-color-adjust: exact;
-            }
-            .printable-page { 
-              width: 190mm; 
-              break-inside: avoid; 
-              page-break-inside: avoid;
-            }
-            .no-print { 
-              display: none !important; 
-            }
-          }
-        `}
-      />
+      <Button 
+        variant="outline" 
+        size="sm"
+        onClick={handlePrint}
+        className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
+      >
+        <Download className="w-4 h-4 mr-2" />
+        Descargar PDF
+      </Button>
 
       {/* Hidden printable component */}
       <div style={{ display: 'none' }}>

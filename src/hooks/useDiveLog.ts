@@ -8,6 +8,16 @@ export type DiveLogWithFullDetails = Tables<'dive_logs'> & {
   dive_sites: { name: string; location?: string } | null;
   boats: { name: string; registration_number: string } | null;
   profiles: { username: string } | null;
+  // Additional fields from the migration
+  supervisor_license?: string;
+  center_manager?: string;
+  center_assistant?: string;
+  weather_good?: boolean;
+  compressor_1?: string;
+  compressor_2?: string;
+  work_order_number?: string;
+  start_time?: string;
+  end_time?: string;
 };
 
 const fetchDiveLog = async (id: string) => {
