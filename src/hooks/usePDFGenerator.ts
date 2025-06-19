@@ -8,311 +8,320 @@ export const usePDFGenerator = () => {
     const doc = new jsPDF('portrait', 'mm', 'letter');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 15;
     const contentWidth = pageWidth - (margin * 2);
-    
-    // Set default font
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
     
     let yPosition = margin;
     
+    // Helper functions
+    const addText = (text: string, x: number, y: number, fontSize = 10, fontStyle = 'normal') => {
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', fontStyle);
+      doc.text(text, x, y);
+    };
+    
+    const addBox = (x: number, y: number, width: number, height: number, fill = false) => {
+      if (fill) {
+        doc.setFillColor(240, 240, 240);
+        doc.rect(x, y, width, height, 'F');
+      }
+      doc.setLineWidth(0.3);
+      doc.rect(x, y, width, height);
+    };
+    
+    const checkPageBreak = (neededSpace: number) => {
+      if (yPosition + neededSpace > pageHeight - margin) {
+        doc.addPage();
+        yPosition = margin;
+        return true;
+      }
+      return false;
+    };
+
     // Header Section
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('SOCIEDAD DE SERVICIOS AEROCAM SPA', margin, yPosition);
+    addText('SOCIEDAD DE SERVICIOS AEROCAM SPA', margin, yPosition, 14, 'bold');
     yPosition += 6;
     
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Ignacio Carrera Pinto Nº 200, Quellón – Chiloé', margin, yPosition);
+    addText('Ignacio Carrera Pinto Nº 200, Quellón – Chiloé', margin, yPosition, 9);
     yPosition += 4;
-    doc.text('(65) 2 353 322 • contacto@aerocamchile.cl • www.aerocamchile.cl', margin, yPosition);
-    yPosition += 8;
+    addText('(65) 2 353 322 • contacto@aerocamchile.cl • www.aerocamchile.cl', margin, yPosition, 9);
+    yPosition += 10;
     
-    // Date and ID boxes on the right
-    const boxWidth = 35;
-    const boxHeight = 6;
+    // Date and ID boxes
+    const boxWidth = 40;
+    const boxHeight = 8;
     const rightX = pageWidth - margin - boxWidth;
     
-    // Date box
-    doc.rect(rightX, yPosition - 15, boxWidth, boxHeight);
-    doc.setFontSize(8);
-    doc.text('Fecha:', rightX - 15, yPosition - 11);
-    doc.text(diveLog.log_date || '', rightX + 2, yPosition - 11);
+    addText('Fecha:', rightX - 20, yPosition - 5, 9);
+    addBox(rightX, yPosition - 8, boxWidth, boxHeight);
+    addText(diveLog.log_date || '', rightX + 2, yPosition - 3, 9);
     
-    // ID box
-    doc.rect(rightX, yPosition - 8, boxWidth, boxHeight);
-    doc.text('Nº:', rightX - 8, yPosition - 4);
-    doc.setFont('helvetica', 'bold');
-    doc.text(diveLog.id?.slice(-6) || '', rightX + 2, yPosition - 4);
-    doc.setFont('helvetica', 'normal');
+    addText('Nº:', rightX - 15, yPosition + 3, 9);
+    addBox(rightX, yPosition, boxWidth, boxHeight);
+    addText(diveLog.id?.slice(-6) || '', rightX + 2, yPosition + 5, 9, 'bold');
+    
+    yPosition += 15;
     
     // Title
-    yPosition += 5;
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
     const title = 'BITÁCORA BUCEO E INFORME DE TRABAJO REALIZADO';
-    const titleWidth = doc.getTextWidth(title);
-    doc.text(title, (pageWidth - titleWidth) / 2, yPosition);
-    yPosition += 10;
+    addText(title, pageWidth / 2, yPosition, 14, 'bold');
+    doc.text(title, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
     
     // Center box
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CENTRO DE CULTIVO:', margin, yPosition);
-    doc.rect(margin + 35, yPosition - 4, contentWidth - 35, 6);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.centers?.name || 'N/A', margin + 37, yPosition);
-    yPosition += 15;
+    addText('CENTRO DE CULTIVO:', margin, yPosition, 10, 'bold');
+    addBox(margin + 40, yPosition - 5, contentWidth - 40, 8);
+    addText(diveLog.centers?.name || 'N/A', margin + 42, yPosition, 10);
+    yPosition += 20;
+    
+    checkPageBreak(60);
     
     // General Data Section
-    doc.rect(margin, yPosition, contentWidth, 45);
-    doc.setFont('helvetica', 'bold');
-    doc.setFillColor(240, 240, 240);
-    doc.rect(margin, yPosition, contentWidth, 6, 'F');
-    doc.text('DATOS GENERALES', pageWidth / 2 - 20, yPosition + 4);
-    yPosition += 10;
-    
-    // Supervisor data
-    doc.setFont('helvetica', 'bold');
-    doc.text('SUPERVISOR:', margin + 2, yPosition);
-    doc.rect(margin + 25, yPosition - 3, 60, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.profiles?.username || 'N/A', margin + 27, yPosition);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('JEFE DE CENTRO:', margin + 90, yPosition);
-    doc.rect(margin + 120, yPosition - 3, 60, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.center_manager || 'N/A', margin + 122, yPosition);
-    yPosition += 8;
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('N° MATRICULA:', margin + 2, yPosition);
-    doc.rect(margin + 25, yPosition - 3, 60, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.supervisor_license || 'N/A', margin + 27, yPosition);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('ASISTENTE DE CENTRO:', margin + 90, yPosition);
-    doc.rect(margin + 120, yPosition - 3, 60, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.center_assistant || 'N/A', margin + 122, yPosition);
+    const sectionHeight = 55;
+    addBox(margin, yPosition, contentWidth, sectionHeight);
+    addBox(margin, yPosition, contentWidth, 8, true);
+    addText('DATOS GENERALES', pageWidth / 2, yPosition + 5, 12, 'bold');
+    doc.text('DATOS GENERALES', pageWidth / 2, yPosition + 5, { align: 'center' });
     yPosition += 12;
     
-    // Weather conditions
-    doc.setFont('helvetica', 'bold');
-    doc.text('CONDICIÓN TIEMPO VARIABLES', pageWidth / 2 - 25, yPosition);
-    yPosition += 6;
+    // First row
+    addText('SUPERVISOR:', margin + 2, yPosition, 9, 'bold');
+    addBox(margin + 28, yPosition - 4, 60, 6);
+    addText(diveLog.profiles?.username || 'N/A', margin + 30, yPosition, 9);
     
-    // Weather checkboxes
-    doc.rect(margin + 2, yPosition - 3, 3, 3);
-    if (diveLog.weather_good === true) {
-      doc.text('X', margin + 3, yPosition - 1);
-    }
-    doc.text('SÍ', margin + 8, yPosition);
-    
-    doc.rect(margin + 20, yPosition - 3, 3, 3);
-    if (diveLog.weather_good === false) {
-      doc.text('X', margin + 21, yPosition - 1);
-    }
-    doc.text('NO', margin + 26, yPosition);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('OBSERVACIONES:', margin + 40, yPosition);
-    doc.rect(margin + 70, yPosition - 3, 110, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.weather_conditions || 'Buen tiempo', margin + 72, yPosition);
+    addText('JEFE DE CENTRO:', margin + 95, yPosition, 9, 'bold');
+    addBox(margin + 125, yPosition - 4, 60, 6);
+    addText(diveLog.center_manager || 'N/A', margin + 127, yPosition, 9);
     yPosition += 10;
     
-    // Compressor section
-    doc.setFont('helvetica', 'bold');
-    doc.text('REGISTRO DE COMPRESORES', pageWidth / 2 - 25, yPosition);
-    yPosition += 6;
+    // Second row
+    addText('N° MATRICULA:', margin + 2, yPosition, 9, 'bold');
+    addBox(margin + 28, yPosition - 4, 60, 6);
+    addText(diveLog.supervisor_license || 'N/A', margin + 30, yPosition, 9);
     
-    doc.text('COMPRESOR 1:', margin + 2, yPosition);
-    doc.rect(margin + 25, yPosition - 3, 20, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.compressor_1 || '', margin + 27, yPosition);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('COMPRESOR 2:', margin + 60, yPosition);
-    doc.rect(margin + 83, yPosition - 3, 20, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.compressor_2 || '', margin + 85, yPosition);
-    yPosition += 8;
-    
-    // Work order
-    doc.setFont('helvetica', 'bold');
-    doc.text('Nº SOLICITUD DE FAENA:', margin + 2, yPosition);
-    doc.rect(margin + 40, yPosition - 3, 140, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.work_order_number || 'N/A', margin + 42, yPosition);
-    yPosition += 8;
-    
-    // Start time
-    doc.setFont('helvetica', 'bold');
-    doc.text('FECHA Y HORA DE INICIO:', margin + 2, yPosition);
-    doc.rect(margin + 45, yPosition - 3, 135, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.start_time || diveLog.departure_time || 'N/A', margin + 47, yPosition);
-    yPosition += 8;
-    
-    // End time
-    doc.setFont('helvetica', 'bold');
-    doc.text('FECHA Y HORA DE TÉRMINO:', margin + 2, yPosition);
-    doc.rect(margin + 45, yPosition - 3, 135, 5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(diveLog.end_time || diveLog.arrival_time || 'N/A', margin + 47, yPosition);
+    addText('ASISTENTE DE CENTRO:', margin + 95, yPosition, 9, 'bold');
+    addBox(margin + 125, yPosition - 4, 60, 6);
+    addText(diveLog.center_assistant || 'N/A', margin + 127, yPosition, 9);
     yPosition += 15;
     
-    // Team Section
-    doc.rect(margin, yPosition, contentWidth, 50);
-    doc.setFillColor(240, 240, 240);
-    doc.rect(margin, yPosition, contentWidth, 6, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.text('TEAM DE BUCEO', pageWidth / 2 - 15, yPosition + 4);
-    yPosition += 10;
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('COMPOSICIÓN DE EQUIPO BUZOS Y ASISTENTES', pageWidth / 2 - 40, yPosition);
+    // Weather conditions
+    addText('CONDICIÓN TIEMPO VARIABLES', pageWidth / 2, yPosition, 10, 'bold');
+    doc.text('CONDICIÓN TIEMPO VARIABLES', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
+    // Weather checkboxes
+    addBox(margin + 2, yPosition - 3, 3, 3);
+    if (diveLog.weather_good === true) {
+      addText('X', margin + 3, yPosition - 1, 8);
+    }
+    addText('SÍ', margin + 8, yPosition, 9);
+    
+    addBox(margin + 20, yPosition - 3, 3, 3);
+    if (diveLog.weather_good === false) {
+      addText('X', margin + 21, yPosition - 1, 8);
+    }
+    addText('NO', margin + 26, yPosition, 9);
+    
+    addText('OBSERVACIONES:', margin + 40, yPosition, 9, 'bold');
+    addBox(margin + 75, yPosition - 4, 110, 6);
+    addText(diveLog.weather_conditions || 'Buen tiempo', margin + 77, yPosition, 9);
+    yPosition += 12;
+    
+    // Compressor section
+    addText('REGISTRO DE COMPRESORES', pageWidth / 2, yPosition, 10, 'bold');
+    doc.text('REGISTRO DE COMPRESORES', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 8;
+    
+    addText('COMPRESOR 1:', margin + 2, yPosition, 9, 'bold');
+    addBox(margin + 28, yPosition - 4, 25, 6);
+    addText(diveLog.compressor_1 || '', margin + 30, yPosition, 9);
+    
+    addText('COMPRESOR 2:', margin + 70, yPosition, 9, 'bold');
+    addBox(margin + 96, yPosition - 4, 25, 6);
+    addText(diveLog.compressor_2 || '', margin + 98, yPosition, 9);
+    yPosition += 10;
+    
+    // Work order
+    addText('Nº SOLICITUD DE FAENA:', margin + 2, yPosition, 9, 'bold');
+    addBox(margin + 45, yPosition - 4, 140, 6);
+    addText(diveLog.work_order_number || 'N/A', margin + 47, yPosition, 9);
+    yPosition += 10;
+    
+    // Times
+    addText('FECHA Y HORA DE INICIO:', margin + 2, yPosition, 9, 'bold');
+    addBox(margin + 50, yPosition - 4, 135, 6);
+    addText(diveLog.start_time || diveLog.departure_time || 'N/A', margin + 52, yPosition, 9);
+    yPosition += 10;
+    
+    addText('FECHA Y HORA DE TÉRMINO:', margin + 2, yPosition, 9, 'bold');
+    addBox(margin + 50, yPosition - 4, 135, 6);
+    addText(diveLog.end_time || diveLog.arrival_time || 'N/A', margin + 52, yPosition, 9);
+    yPosition += 20;
+    
+    checkPageBreak(80);
+    
+    // Team Section
+    const teamSectionHeight = 75;
+    addBox(margin, yPosition, contentWidth, teamSectionHeight);
+    addBox(margin, yPosition, contentWidth, 8, true);
+    addText('TEAM DE BUCEO', pageWidth / 2, yPosition + 5, 12, 'bold');
+    doc.text('TEAM DE BUCEO', pageWidth / 2, yPosition + 5, { align: 'center' });
+    yPosition += 12;
+    
+    addText('COMPOSICIÓN DE EQUIPO BUZOS Y ASISTENTES', pageWidth / 2, yPosition, 10, 'bold');
+    doc.text('COMPOSICIÓN DE EQUIPO BUZOS Y ASISTENTES', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+    
     // Table headers
-    const colWidths = [15, 40, 25, 20, 30, 25, 20, 20, 15];
-    const headers = ['BUZO', 'IDENTIFICACIÓN', 'N° MATRICULA', 'CARGO', 'BUCEO ESTANDAR\nPROFUNDIDAD\n20 MTS MAXIMO\n(SÍ / NO)', 'PROFUNDIDAD\nDE TRABAJO\nREALIZADO\n(Metros)', 'INICIO DE\nBUCEO', 'TÉRMINO\nDE BUCEO', 'TIEMPO\nDE BUCEO\n(min)'];
+    const colWidths = [15, 38, 25, 20, 32, 25, 20, 20, 15];
+    const headers = [
+      'BUZO', 
+      'IDENTIFICACIÓN', 
+      'N° MATRICULA', 
+      'CARGO', 
+      'BUCEO ESTANDAR\nPROF. 20 MTS MAX\n(SÍ / NO)', 
+      'PROFUNDIDAD\nDE TRABAJO\n(Metros)', 
+      'INICIO DE\nBUCEO', 
+      'TÉRMINO\nDE BUCEO', 
+      'TIEMPO\nDE BUCEO\n(min)'
+    ];
     
     let xPos = margin;
-    doc.setFontSize(8);
-    doc.setFillColor(240, 240, 240);
+    doc.setFontSize(7);
+    
+    // Draw header row
     for (let i = 0; i < headers.length; i++) {
-      doc.rect(xPos, yPosition, colWidths[i], 15, 'F');
-      doc.rect(xPos, yPosition, colWidths[i], 15);
+      addBox(xPos, yPosition, colWidths[i], 18, true);
       const lines = headers[i].split('\n');
       for (let j = 0; j < lines.length; j++) {
-        doc.text(lines[j], xPos + 1, yPosition + 3 + (j * 3));
+        doc.text(lines[j], xPos + colWidths[i]/2, yPosition + 4 + (j * 3), { align: 'center' });
       }
       xPos += colWidths[i];
     }
-    yPosition += 15;
+    yPosition += 18;
     
     // Table rows
     const diversManifest = Array.isArray(diveLog.divers_manifest) ? diveLog.divers_manifest as any[] : [];
     for (let row = 0; row < 4; row++) {
       const diver = diversManifest[row];
       xPos = margin;
-      doc.setFont('helvetica', 'normal');
       
       for (let i = 0; i < colWidths.length; i++) {
-        doc.rect(xPos, yPosition, colWidths[i], 8);
+        addBox(xPos, yPosition, colWidths[i], 10);
         
         if (i === 0) {
-          doc.text((row + 1).toString(), xPos + colWidths[i]/2 - 1, yPosition + 5);
+          doc.text((row + 1).toString(), xPos + colWidths[i]/2, yPosition + 6, { align: 'center' });
         } else if (i === 1 && diver?.name) {
-          doc.text(diver.name.substring(0, 20), xPos + 1, yPosition + 5);
+          doc.text(diver.name.substring(0, 18), xPos + 2, yPosition + 6);
         } else if (i === 2 && diver?.license) {
-          doc.text(diver.license.substring(0, 12), xPos + 1, yPosition + 5);
+          doc.text(diver.license.substring(0, 12), xPos + 2, yPosition + 6);
         } else if (i === 3 && diver?.role) {
-          doc.text(diver.role.substring(0, 10), xPos + 1, yPosition + 5);
+          doc.text(diver.role.substring(0, 10), xPos + 2, yPosition + 6);
         } else if (i === 4) {
-          doc.rect(xPos + 5, yPosition + 2, 3, 3);
-          if (diver?.standard_depth === true) doc.text('X', xPos + 6, yPosition + 4);
-          doc.text('SÍ', xPos + 10, yPosition + 4);
-          doc.rect(xPos + 15, yPosition + 2, 3, 3);
-          if (diver?.standard_depth === false) doc.text('X', xPos + 16, yPosition + 4);
-          doc.text('NO', xPos + 20, yPosition + 4);
+          addBox(xPos + 5, yPosition + 2, 3, 3);
+          if (diver?.standard_depth === true) doc.text('X', xPos + 6, yPosition + 4.5);
+          doc.text('SÍ', xPos + 10, yPosition + 6);
+          addBox(xPos + 18, yPosition + 2, 3, 3);
+          if (diver?.standard_depth === false) doc.text('X', xPos + 19, yPosition + 4.5);
+          doc.text('NO', xPos + 23, yPosition + 6);
         } else if (i === 5 && diver?.working_depth) {
-          doc.text(diver.working_depth.toString(), xPos + 1, yPosition + 5);
+          doc.text(diver.working_depth.toString(), xPos + colWidths[i]/2, yPosition + 6, { align: 'center' });
         } else if (i === 6 && diver?.start_time) {
-          doc.text(diver.start_time, xPos + 1, yPosition + 5);
+          doc.text(diver.start_time, xPos + colWidths[i]/2, yPosition + 6, { align: 'center' });
         } else if (i === 7 && diver?.end_time) {
-          doc.text(diver.end_time, xPos + 1, yPosition + 5);
+          doc.text(diver.end_time, xPos + colWidths[i]/2, yPosition + 6, { align: 'center' });
         } else if (i === 8 && diver?.dive_time) {
-          doc.text(diver.dive_time, xPos + 1, yPosition + 5);
+          doc.text(diver.dive_time, xPos + colWidths[i]/2, yPosition + 6, { align: 'center' });
         }
         
         xPos += colWidths[i];
       }
-      yPosition += 8;
+      yPosition += 10;
     }
     
-    yPosition += 5;
-    doc.setFontSize(8);
-    doc.text('Nota: Capacidad máxima permitida de 20 metros.', pageWidth / 2 - 30, yPosition);
+    yPosition += 8;
+    addText('Nota: Capacidad máxima permitida de 20 metros.', pageWidth / 2, yPosition, 8);
+    doc.text('Nota: Capacidad máxima permitida de 20 metros.', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 15;
     
+    checkPageBreak(60);
+    
     // Work Details Section
-    doc.setFontSize(10);
-    doc.rect(margin, yPosition, contentWidth, 40);
-    doc.setFillColor(240, 240, 240);
-    doc.rect(margin, yPosition, contentWidth, 6, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.text('DETALLE DE TRABAJO REALIZADO POR BUZO', pageWidth / 2 - 40, yPosition + 4);
-    yPosition += 10;
+    const workSectionHeight = 50;
+    addBox(margin, yPosition, contentWidth, workSectionHeight);
+    addBox(margin, yPosition, contentWidth, 8, true);
+    addText('DETALLE DE TRABAJO REALIZADO POR BUZO', pageWidth / 2, yPosition + 5, 12, 'bold');
+    doc.text('DETALLE DE TRABAJO REALIZADO POR BUZO', pageWidth / 2, yPosition + 5, { align: 'center' });
+    yPosition += 12;
     
     for (let i = 0; i < 4; i++) {
       const diver = diversManifest[i];
-      doc.setFont('helvetica', 'bold');
-      doc.text(`BUZO ${i + 1}:`, margin + 2, yPosition);
-      doc.rect(margin + 2, yPosition + 2, contentWidth - 4, 6);
-      doc.setFont('helvetica', 'normal');
+      addText(`BUZO ${i + 1}:`, margin + 2, yPosition, 9, 'bold');
+      addBox(margin + 2, yPosition + 2, contentWidth - 4, 8);
       if (diver?.work_description) {
-        doc.text(diver.work_description.substring(0, 100), margin + 4, yPosition + 5);
+        addText(diver.work_description.substring(0, 80), margin + 4, yPosition + 6, 8);
       }
-      yPosition += 8;
+      yPosition += 10;
     }
     
-    yPosition += 5;
+    yPosition += 10;
+    
+    checkPageBreak(40);
     
     // Observations Section
-    doc.rect(margin, yPosition, contentWidth, 20);
-    doc.setFont('helvetica', 'bold');
-    doc.text('OBSERVACIONES:', margin + 2, yPosition + 5);
-    doc.rect(margin + 2, yPosition + 7, contentWidth - 4, 10);
-    doc.setFont('helvetica', 'normal');
+    addBox(margin, yPosition, contentWidth, 25);
+    addText('OBSERVACIONES:', margin + 2, yPosition + 6, 10, 'bold');
+    addBox(margin + 2, yPosition + 8, contentWidth - 4, 15);
     const observations = diveLog.observations || 'Faena realizada normal, buzos sin novedad.';
-    doc.text(observations.substring(0, 200), margin + 4, yPosition + 12);
-    yPosition += 25;
+    const obsLines = doc.splitTextToSize(observations, contentWidth - 8);
+    doc.text(obsLines, margin + 4, yPosition + 13);
+    yPosition += 30;
+    
+    checkPageBreak(50);
     
     // Signatures Section
-    const signatureY = yPosition + 10;
+    const signatureY = yPosition;
     const signatureWidth = (contentWidth - 10) / 2;
     
-    // Left signature box
-    doc.rect(margin, signatureY, signatureWidth, 20);
-    doc.text('(Firma)', margin + signatureWidth/2 - 10, signatureY + 10);
-    doc.line(margin, signatureY + 22, margin + signatureWidth, signatureY + 22);
-    doc.text('NOMBRE Y CARGO', margin + signatureWidth/2 - 15, signatureY + 26);
-    doc.setFont('helvetica', 'bold');
-    doc.text('FIRMA ENCARGADO DE CENTRO', margin + signatureWidth/2 - 25, signatureY + 30);
+    // Left signature
+    addBox(margin, signatureY, signatureWidth, 25);
+    addText('(Firma)', margin + signatureWidth/2, signatureY + 12, 9);
+    doc.text('(Firma)', margin + signatureWidth/2, signatureY + 12, { align: 'center' });
+    doc.line(margin + 5, signatureY + 20, margin + signatureWidth - 5, signatureY + 20);
+    addText('NOMBRE Y CARGO', margin + signatureWidth/2, signatureY + 30, 8);
+    doc.text('NOMBRE Y CARGO', margin + signatureWidth/2, signatureY + 30, { align: 'center' });
+    addText('FIRMA ENCARGADO DE CENTRO', margin + signatureWidth/2, signatureY + 35, 9, 'bold');
+    doc.text('FIRMA ENCARGADO DE CENTRO', margin + signatureWidth/2, signatureY + 35, { align: 'center' });
     
-    // Right signature box
+    // Right signature
     const rightSigX = margin + signatureWidth + 10;
-    doc.rect(rightSigX, signatureY, signatureWidth, 20);
+    addBox(rightSigX, signatureY, signatureWidth, 25);
     
     if (hasSignature && diveLog.signature_url) {
-      doc.text('(Firmado Digitalmente)', rightSigX + signatureWidth/2 - 20, signatureY + 10);
-      doc.setFontSize(8);
+      addText('(Firmado Digitalmente)', rightSigX + signatureWidth/2, signatureY + 12, 9);
+      doc.text('(Firmado Digitalmente)', rightSigX + signatureWidth/2, signatureY + 12, { align: 'center' });
+      doc.setFontSize(7);
       doc.setTextColor(0, 128, 0);
-      doc.text(`FIRMADO DIGITALMENTE - Código: DL-${diveLog.id?.slice(0, 8).toUpperCase()}`, rightSigX + 5, signatureY + 15);
+      addText(`FIRMADO DIGITALMENTE - Código: DL-${diveLog.id?.slice(0, 8).toUpperCase()}`, rightSigX + signatureWidth/2, signatureY + 16, 7);
+      doc.text(`FIRMADO DIGITALMENTE - Código: DL-${diveLog.id?.slice(0, 8).toUpperCase()}`, rightSigX + signatureWidth/2, signatureY + 16, { align: 'center' });
       doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10);
     } else {
-      doc.text('(Firma y Timbre)', rightSigX + signatureWidth/2 - 15, signatureY + 10);
+      addText('(Firma y Timbre)', rightSigX + signatureWidth/2, signatureY + 12, 9);
+      doc.text('(Firma y Timbre)', rightSigX + signatureWidth/2, signatureY + 12, { align: 'center' });
     }
     
-    doc.line(rightSigX, signatureY + 22, rightSigX + signatureWidth, signatureY + 22);
-    doc.setFont('helvetica', 'normal');
-    doc.text('NOMBRE Y CARGO', rightSigX + signatureWidth/2 - 15, signatureY + 26);
-    doc.setFont('helvetica', 'bold');
-    doc.text('FIRMA Y TIMBRE SUPERVISOR DE BUCEO', rightSigX + signatureWidth/2 - 35, signatureY + 30);
+    doc.line(rightSigX + 5, signatureY + 20, rightSigX + signatureWidth - 5, signatureY + 20);
+    addText('NOMBRE Y CARGO', rightSigX + signatureWidth/2, signatureY + 30, 8);
+    doc.text('NOMBRE Y CARGO', rightSigX + signatureWidth/2, signatureY + 30, { align: 'center' });
+    addText('FIRMA Y TIMBRE SUPERVISOR DE BUCEO', rightSigX + signatureWidth/2, signatureY + 35, 9, 'bold');
+    doc.text('FIRMA Y TIMBRE SUPERVISOR DE BUCEO', rightSigX + signatureWidth/2, signatureY + 35, { align: 'center' });
     
     // Footer
+    yPosition = pageHeight - 15;
     doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Queda prohibido cualquier tipo de explotación y, en particular, la reproducción, distribución, comunicación pública y/o transformación, total o parcial, por cualquier medio, de este documento sin el previo consentimiento expreso y por escrito de Aerocam SPA.', 
-             pageWidth / 2, pageHeight - 10, { align: 'center', maxWidth: contentWidth });
+    const footerText = 'Queda prohibido cualquier tipo de explotación y, en particular, la reproducción, distribución, comunicación pública y/o transformación, total o parcial, por cualquier medio, de este documento sin el previo consentimiento expreso y por escrito de Aerocam SPA.';
+    const footerLines = doc.splitTextToSize(footerText, contentWidth);
+    doc.text(footerLines, pageWidth / 2, yPosition, { align: 'center' });
     
     // Generate filename and save
     const dateStr = diveLog.log_date ? new Date(diveLog.log_date).toISOString().split('T')[0] : 'sin-fecha';
