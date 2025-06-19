@@ -158,10 +158,6 @@ export const DiveLogsList = ({ dateRange, selectedCenter }: DiveLogsListProps) =
                 </p>
               )}
             </div>
-            <Button onClick={() => navigate("/new-dive-log")} className="bg-ocean-gradient hover:opacity-90">
-              <FileText className="w-4 h-4 mr-2" />
-              Nueva Bitácora
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

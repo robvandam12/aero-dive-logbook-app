@@ -8,7 +8,6 @@ import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ReportsCharts } from "@/components/reports/ReportsCharts";
 import { ReportsFilters } from "@/components/reports/ReportsFilters";
 import { ReportsStats } from "@/components/reports/ReportsStats";
-import { ExportActionsExtended } from "@/components/ExportActionsExtended";
 import { useState, Suspense } from "react";
 
 const Reports = () => {
@@ -54,26 +53,13 @@ const Reports = () => {
         onCenterChange={setSelectedCenter}
       />
 
-      {/* Grid Principal */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Estadísticas - 3 columnas */}
-        <div className="xl:col-span-3">
-          <Suspense fallback={<LoadingSkeleton type="dashboard" count={4} />}>
-            <ReportsStats 
-              dateRange={dateRange}
-              selectedCenter={selectedCenter}
-            />
-          </Suspense>
-        </div>
-
-        {/* Exportación - 1 columna */}
-        <div>
-          <ExportActionsExtended 
-            showMultipleExport={true} 
-            dateRange={dateRange}
-          />
-        </div>
-      </div>
+      {/* Estadísticas */}
+      <Suspense fallback={<LoadingSkeleton type="dashboard" count={4} />}>
+        <ReportsStats 
+          dateRange={dateRange}
+          selectedCenter={selectedCenter}
+        />
+      </Suspense>
 
       {/* Gráficos y Análisis */}
       <Suspense fallback={<LoadingSkeleton type="dashboard" count={6} />}>
