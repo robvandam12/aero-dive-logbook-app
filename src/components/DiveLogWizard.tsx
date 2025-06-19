@@ -63,6 +63,8 @@ export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProp
                 title: "Borrador guardado",
                 description: "Los cambios han sido guardados como borrador."
               });
+              // Navigate to all dive logs instead of staying in edit mode
+              navigate('/dive-logs');
             },
             onError: (error: any) => {
               toast({
@@ -83,8 +85,8 @@ export const DiveLogWizard = ({ diveLog, isEditMode = false }: DiveLogWizardProp
                 title: "Borrador guardado",
                 description: "El borrador ha sido creado correctamente."
               });
-              // Navigate to edit mode of the newly created draft
-              navigate(`/dive-logs/${result.id}/edit`);
+              // Navigate to all dive logs instead of edit mode
+              navigate('/dive-logs');
             },
             onError: (error: any) => {
               toast({

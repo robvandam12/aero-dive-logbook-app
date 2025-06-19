@@ -13,6 +13,7 @@ interface WizardNavigationProps {
   onPrevStep: () => void;
   onNextStep: () => void;
   onSaveDraft: () => void;
+  onSaveCurrentStep?: () => void;
 }
 
 export const WizardNavigation = ({
@@ -25,7 +26,8 @@ export const WizardNavigation = ({
   signatureData,
   onPrevStep,
   onNextStep,
-  onSaveDraft
+  onSaveDraft,
+  onSaveCurrentStep
 }: WizardNavigationProps) => {
   return (
     <div className="flex items-center justify-between">
@@ -41,26 +43,39 @@ export const WizardNavigation = ({
       </Button>
       
       <div className="flex space-x-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onSaveDraft}
-          disabled={isDraftSaving}
-          className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
-        >
-          <Save className="w-4 h-4 mr-2" />
-          {isDraftSaving ? "Guardando..." : "Guardar Borrador"}
-        </Button>
+        {!isEditMode && (
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onSaveDraft}
+            disabled={isDraftSaving}
+            className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {isDraftSaving ? "Guardando..." : "Guardar Borrador"}
+          </Button>
+        )}
         
         {currentStep < totalSteps ? (
-          <Button type="button" onClick={onNextStep} className="bg-ocean-gradient hover:opacity-90">
-            Siguiente
-            <ChevronRight className="w-4 h-4 ml-2" />
-          </Button>
+          <div className="flex space-x-2">
+            {isEditMode && (
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-gold-gradient hover:opacity-90"
+              >
+                {isSubmitting ? "Guardando..." : "Guardar Cambios"}
+              </Button>
+            )}
+            <Button type="button" onClick={onNextStep} className="bg-ocean-gradient hover:opacity-90">
+              Siguiente
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
         ) : (
           <Button
             type="submit"
-            disabled={isSubmitting || !isFormValid || (isEditMode && !signatureData)}
+            disabled={isSubmitting || (!isEditMode && !isFormValid) || (isEditMode && !signatureData)}
             className={`${(!isFormValid || (isEditMode && !signatureData)) ? 'opacity-60 cursor-not-allowed' : 'bg-gold-gradient hover:opacity-90'}`}
           >
             {isSubmitting ? (isEditMode ? "Actualizando..." : "Guardando...") : <>

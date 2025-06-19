@@ -58,17 +58,26 @@ export const useCreateUser = () => {
         throw new Error('No se pudo crear el usuario');
       }
 
-      // Create profile
-      const { error: profileError } = await supabase
+      // Check if profile already exists to avoid duplicate key error
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .insert({
-          id: authData.user.id,
-          username: data.full_name || data.email.split('@')[0],
-          role: data.role,
-          center_id: toNullIfEmpty(data.center_id)
-        });
+        .select('id')
+        .eq('id', authData.user.id)
+        .single();
 
-      if (profileError) throw profileError;
+      // Only create profile if it doesn't exist
+      if (!existingProfile) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            username: data.full_name || data.email.split('@')[0],
+            role: data.role,
+            center_id: toNullIfEmpty(data.center_id)
+          });
+
+        if (profileError) throw profileError;
+      }
 
       // Create user management record
       const { error: userMgmtError } = await supabase
