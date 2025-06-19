@@ -24,7 +24,7 @@ const SIDEBAR_COOKIE_NAME = "sidebar:state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "5rem" // Aumentado de 3rem a 5rem
+const SIDEBAR_WIDTH_ICON = "3.5rem" // Reducido de 5rem a 3.5rem para menos margen
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContext = {

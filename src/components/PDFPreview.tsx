@@ -6,7 +6,7 @@ import { Eye, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DiveLogWithFullDetails } from "@/hooks/useDiveLog";
 import { PrintableDiveLog } from "./PrintableDiveLog";
-import { useReactToPrint } from "react-to-print";
+import { usePDFGenerator } from "@/hooks/usePDFGenerator";
 
 interface PDFPreviewProps {
   diveLogId: string;
@@ -18,25 +18,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [fullDiveLog, setFullDiveLog] = useState<DiveLogWithFullDetails | null>(null);
-  const printRef = useRef<HTMLDivElement>(null);
-
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `bitacora-${fullDiveLog?.centers?.name || 'centro'}-${fullDiveLog?.log_date || 'fecha'}-${fullDiveLog?.id?.slice(-6) || 'id'}`,
-    pageStyle: `
-      @page {
-        size: letter;
-        margin: 20mm;
-      }
-      @media print {
-        .printable-page {
-          margin: 0 !important;
-          padding: 0 !important;
-          font-size: 10px !important;
-        }
-      }
-    `,
-  });
+  const { generatePDF } = usePDFGenerator();
 
   const handlePreview = async () => {
     setIsLoadingPreview(true);
@@ -61,7 +43,9 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   };
 
   const handleDownload = async () => {
-    if (!fullDiveLog) {
+    let diveLogData = fullDiveLog;
+    
+    if (!diveLogData) {
       // Load dive log data if not already loaded
       const { data, error } = await supabase.functions.invoke('export-dive-log-pdf', {
         body: { diveLogId, preview: true },
@@ -72,15 +56,13 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
         return;
       }
 
-      setFullDiveLog(data.diveLog);
+      diveLogData = data.diveLog;
+      setFullDiveLog(diveLogData);
     }
 
-    // Trigger print after data is loaded
-    setTimeout(() => {
-      if (printRef.current) {
-        handlePrint();
-      }
-    }, 100);
+    if (diveLogData) {
+      generatePDF(diveLogData, hasSignature);
+    }
   };
 
   return (
@@ -105,17 +87,6 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
         <Download className="w-4 h-4 mr-2" />
         Descargar PDF
       </Button>
-
-      {/* Hidden component for printing */}
-      <div style={{ display: 'none' }}>
-        {fullDiveLog && (
-          <PrintableDiveLog 
-            ref={printRef}
-            diveLog={fullDiveLog} 
-            hasSignature={hasSignature}
-          />
-        )}
-      </div>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] bg-slate-900 border-slate-700">
