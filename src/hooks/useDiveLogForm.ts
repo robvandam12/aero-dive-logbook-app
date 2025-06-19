@@ -39,6 +39,8 @@ const getDefaultValues = (isEditMode: boolean, diveLog?: DiveLogWithFullDetails)
       weather_condition: weather.weather_condition as any,
       wind_knots: weather.wind_knots,
       wave_height_meters: weather.wave_height_meters,
+      work_type: diveLog.work_type as any,
+      work_details: diveLog.work_details || '',
       divers_manifest: diversManifest.length > 0 ? diversManifest : [{ 
         name: '', 
         license: '', 
@@ -47,7 +49,8 @@ const getDefaultValues = (isEditMode: boolean, diveLog?: DiveLogWithFullDetails)
         standard_depth: true,
         start_time: '',
         end_time: '',
-        dive_time: ''
+        dive_time: '',
+        work_performed: ''
       }],
       observations: diveLog.observations || '',
       departure_time: diveLog.departure_time || '',
@@ -65,7 +68,8 @@ const getDefaultValues = (isEditMode: boolean, diveLog?: DiveLogWithFullDetails)
       standard_depth: true,
       start_time: '',
       end_time: '',
-      dive_time: ''
+      dive_time: '',
+      work_performed: ''
     }],
     log_date: new Date().toISOString().split('T')[0],
     center_id: '',

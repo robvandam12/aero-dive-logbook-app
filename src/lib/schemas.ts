@@ -12,6 +12,7 @@ export const diverSchema = z.object({
   start_time: z.string().optional(),
   end_time: z.string().optional(),
   dive_time: z.string().optional(),
+  work_performed: z.string().optional(), // Nuevo campo para trabajo realizado
 });
 
 export const diveLogSchema = z.object({
@@ -32,7 +33,7 @@ export const diveLogSchema = z.object({
   wave_height_meters: z.number().min(0).max(20).optional(),
   compressor1_serial: z.string().optional(),
   compressor2_serial: z.string().optional(),
-  work_type: z.enum(['MANTENCIÓN', 'INSPECCIÓN', 'REPARACIÓN', 'LIMPIEZA', 'INSTALACIÓN'], {
+  work_type: z.enum(['inspeccion', 'soldadura', 'corte', 'limpieza', 'reparacion'], {
     required_error: "Tipo de trabajo es requerido",
   }).optional(),
   work_details: z.string().optional(),

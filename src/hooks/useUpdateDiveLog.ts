@@ -33,18 +33,25 @@ export const useUpdateDiveLog = () => {
         }
       }
 
-      // Prepare update data - handle "none" values
+      // Helper function to convert empty strings to null for UUIDs
+      const toNullIfEmpty = (value: string | undefined) => {
+        return value && value.trim() !== '' ? value : null;
+      };
+
+      // Prepare update data - handle empty strings and "none" values
       const updateData = {
         supervisor_name: data.supervisor_name,
         log_date: data.log_date,
-        center_id: data.center_id,
-        dive_site_id: data.dive_site_id,
-        boat_id: data.boat_id === 'none' || !data.boat_id ? null : data.boat_id,
+        center_id: toNullIfEmpty(data.center_id),
+        dive_site_id: toNullIfEmpty(data.dive_site_id),
+        boat_id: toNullIfEmpty(data.boat_id),
         weather_conditions: `${data.weather_condition || 'N/A'}, Viento: ${data.wind_knots || 'N/A'} nudos, Oleaje: ${data.wave_height_meters || 'N/A'} m`,
         divers_manifest: data.divers_manifest,
         observations: data.observations || "",
         departure_time: data.departure_time || null,
         arrival_time: data.arrival_time || null,
+        work_type: data.work_type || null,
+        work_details: data.work_details || null,
         ...(signatureUrl && { signature_url: signatureUrl })
       };
 

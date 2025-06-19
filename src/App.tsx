@@ -9,6 +9,7 @@ import Dashboard from "@/pages/Dashboard";
 import AllDiveLogsPage from "@/pages/AllDiveLogs";
 import NewDiveLog from "@/pages/NewDiveLog";
 import DiveLogDetail from "@/pages/DiveLogDetail";
+import EditDiveLog from "@/pages/EditDiveLog";
 import Reports from "@/pages/Reports";
 import UserSettings from "@/pages/UserSettings";
 import Admin from "@/pages/Admin";
@@ -70,6 +71,13 @@ function App() {
                   <ProtectedRoute>
                     <ProtectedLayout>
                       <DiveLogDetail />
+                    </ProtectedLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/dive-logs/:id/edit" element={
+                  <ProtectedRoute>
+                    <ProtectedLayout>
+                      <EditDiveLog />
                     </ProtectedLayout>
                   </ProtectedRoute>
                 } />

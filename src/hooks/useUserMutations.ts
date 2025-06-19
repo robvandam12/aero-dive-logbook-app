@@ -36,7 +36,12 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (data: CreateUserData) => {
-      // Use the service role key for admin operations
+      // Helper function to convert empty strings to null for UUIDs
+      const toNullIfEmpty = (value: string | undefined) => {
+        return value && value.trim() !== '' && value !== 'none' ? value : null;
+      };
+
+      // Use regular signUp method instead of admin endpoint
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -60,7 +65,7 @@ export const useCreateUser = () => {
           id: authData.user.id,
           username: data.full_name || data.email.split('@')[0],
           role: data.role,
-          center_id: data.center_id === 'none' ? null : data.center_id
+          center_id: toNullIfEmpty(data.center_id)
         });
 
       if (profileError) throw profileError;
@@ -73,7 +78,7 @@ export const useCreateUser = () => {
           email: data.email,
           full_name: data.full_name,
           role: data.role,
-          center_id: data.center_id === 'none' ? null : data.center_id
+          center_id: toNullIfEmpty(data.center_id)
         });
 
       if (userMgmtError) throw userMgmtError;
@@ -103,13 +108,18 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: UpdateUserData) => {
+      // Helper function to convert empty strings to null for UUIDs
+      const toNullIfEmpty = (value: string | undefined) => {
+        return value && value.trim() !== '' && value !== 'none' ? value : null;
+      };
+
       // Actualizar user_management
       const { error: userMgmtError } = await supabase
         .from('user_management')
         .update({
           full_name: data.full_name,
           role: data.role,
-          center_id: data.center_id,
+          center_id: toNullIfEmpty(data.center_id),
           is_active: data.is_active,
           allow_multi_center: data.allow_multi_center,
           updated_at: new Date().toISOString()
@@ -131,7 +141,7 @@ export const useUpdateUser = () => {
           .update({
             username: data.full_name,
             role: data.role,
-            center_id: data.center_id
+            center_id: toNullIfEmpty(data.center_id)
           })
           .eq('id', userMgmt.user_id);
 
@@ -172,12 +182,17 @@ export const useSendInvitationEmail = () => {
         throw new Error('Usuario no encontrado');
       }
 
+      // Helper function to convert empty strings to null for UUIDs
+      const toNullIfEmpty = (value: string | undefined) => {
+        return value && value.trim() !== '' && value !== 'none' ? value : null;
+      };
+
       const { data, error } = await supabase.functions.invoke('send-invitation-email', {
         body: {
           email,
           fullName,
           role,
-          centerId: centerId === "none" ? null : centerId,
+          centerId: toNullIfEmpty(centerId),
           message,
           createdBy: profile.id,
         },
