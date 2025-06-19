@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DiveLogWithFullDetails } from '@/hooks/useDiveLog';
 
@@ -18,49 +19,21 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
           @media print {
             @page {
               size: letter;
-              margin: 0.5in;
+              margin: 20mm;
             }
             .printable-page {
               margin: 0;
               padding: 0;
               font-size: 10px;
-              width: 100%;
-              max-width: none;
-              box-shadow: none;
             }
             .no-print {
               display: none !important;
-            }
-            /* Optimizar para impresión */
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            /* Forzar saltos de página si es necesario */
-            .page-break-before {
-              page-break-before: always;
-            }
-            .page-break-after {
-              page-break-after: always;
-            }
-            /* Evitar saltos dentro de secciones */
-            .no-page-break {
-              page-break-inside: avoid;
-            }
-          }
-          @media screen {
-            .printable-page {
-              max-width: 8.5in;
-              min-height: 11in;
-              margin: 0 auto;
-              box-shadow: 0 0 10px rgba(0,0,0,0.1);
             }
           }
         `}</style>
 
         {/* Header Section */}
-        <header className="mb-4 no-page-break">
+        <header className="mb-4">
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center space-x-1">
@@ -100,7 +73,7 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
         </header>
 
         {/* Datos Generales Section */}
-        <section className="mb-4 p-2 border border-gray-400 no-page-break">
+        <section className="mb-4 p-2 border border-gray-400">
           <h2 className="font-bold text-sm mb-2 text-center bg-gray-200 p-1 -m-2 mb-2">DATOS GENERALES</h2>
           <div className="grid grid-cols-2 gap-x-4">
             <div>
@@ -191,7 +164,7 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
         </section>
 
         {/* Team de Buceo Section */}
-        <section className="mb-4 p-2 border border-gray-400 no-page-break">
+        <section className="mb-4 p-2 border border-gray-400">
           <h2 className="font-bold text-sm mb-2 text-center bg-gray-200 p-1 -m-2 mb-2">TEAM DE BUCEO</h2>
           <p className="text-center font-semibold mb-1">COMPOSICIÓN DE EQUIPO BUZOS Y ASISTENTES</p>
           <div className="border border-gray-600 text-xs">
@@ -282,7 +255,7 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
         </section>
 
         {/* Detalle de Trabajo Section */}
-        <section className="mb-4 p-2 border border-gray-400 no-page-break">
+        <section className="mb-4 p-2 border border-gray-400">
           <h2 className="font-bold text-sm mb-2 text-center bg-gray-200 p-1 -m-2 mb-2">DETALLE DE TRABAJO REALIZADO POR BUZO</h2>
           {[1, 2, 3, 4].map(buzoNum => {
             const diver = diversManifest[buzoNum - 1];
@@ -298,7 +271,7 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
         </section>
 
         {/* Observaciones Generales Section */}
-        <section className="mb-4 p-2 border border-gray-400 no-page-break">
+        <section className="mb-4 p-2 border border-gray-400">
           <div className="flex flex-col text-xs">
             <span className="font-semibold text-gray-600">OBSERVACIONES:</span>
             <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs min-h-[3.75rem] w-full">
@@ -308,7 +281,7 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
         </section>
 
         {/* Firmas Section */}
-        <section className="mt-6 pt-4 border-t border-gray-300 no-page-break">
+        <section className="mt-6 pt-4 border-t border-gray-300">
           <div className="grid grid-cols-2 gap-8">
             <div className="text-center">
               <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-16 w-full flex items-center justify-center mb-1">
