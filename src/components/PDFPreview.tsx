@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,12 +23,26 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   const handlePreview = async () => {
     setIsLoadingPreview(true);
     try {
+      // If we already have the dive log data, use it directly
+      if (diveLog) {
+        setFullDiveLog(diveLog);
+        setPreviewOpen(true);
+        return;
+      }
+
+      // Otherwise, try to fetch from the edge function (fallback)
       const { data, error } = await supabase.functions.invoke('export-dive-log-pdf', {
         body: { diveLogId, preview: true },
       });
 
       if (error) {
-        throw new Error(error.message);
+        console.log("Edge function not available, using existing dive log data");
+        // Fallback to using existing data if available
+        if (diveLog) {
+          setFullDiveLog(diveLog);
+          setPreviewOpen(true);
+        }
+        return;
       }
 
       if (data.success && data.diveLog) {
@@ -38,6 +51,11 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       }
     } catch (error) {
       console.error('Error previewing PDF:', error);
+      // Fallback to using existing data
+      if (diveLog) {
+        setFullDiveLog(diveLog);
+        setPreviewOpen(true);
+      }
     } finally {
       setIsLoadingPreview(false);
     }
@@ -46,33 +64,24 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   const handleDownload = async () => {
     console.log("Download button clicked");
     
-    let diveLogData = fullDiveLog;
+    // Use the current preview data or the provided dive log
+    let diveLogData = fullDiveLog || diveLog;
     
     if (!diveLogData) {
-      console.log("Loading dive log data for download...");
-      // Load dive log data if not already loaded
-      const { data, error } = await supabase.functions.invoke('export-dive-log-pdf', {
-        body: { diveLogId, preview: true },
-      });
-
-      if (error || !data.success) {
-        console.error('Error loading dive log for download:', error);
-        return;
-      }
-
-      diveLogData = data.diveLog;
-      setFullDiveLog(diveLogData);
+      console.log("No dive log data available for download");
+      return;
     }
 
-    if (diveLogData && printableRef.current) {
-      const dateStr = diveLogData.log_date ? new Date(diveLogData.log_date).toISOString().split('T')[0] : 'sin-fecha';
-      const centerName = diveLogData.centers?.name ? diveLogData.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
-      const filename = `bitacora-${centerName}-${dateStr}-${diveLogData.id?.slice(-6)}.pdf`;
-      
+    // Generate filename
+    const dateStr = diveLogData.log_date ? new Date(diveLogData.log_date).toISOString().split('T')[0] : 'sin-fecha';
+    const centerName = diveLogData.centers?.name ? diveLogData.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
+    const filename = `bitacora-${centerName}-${dateStr}-${diveLogData.id?.slice(-6)}.pdf`;
+    
+    if (printableRef.current) {
       console.log("Generating PDF with filename:", filename);
       await generatePDF(printableRef.current, filename);
     } else {
-      console.error("Missing dive log data or printable ref");
+      console.error("Printable ref not available");
     }
   };
 
@@ -93,7 +102,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
         variant="outline" 
         size="sm" 
         onClick={handleDownload}
-        disabled={isExporting}
+        disabled={isExporting || !diveLog}
         className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
       >
         <Download className="w-4 h-4 mr-2" />
@@ -107,11 +116,11 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
               Previsualización de Bitácora PDF
             </DialogTitle>
           </DialogHeader>
-          <div className="overflow-auto bg-white rounded max-h-[80vh]">
-            <div ref={printableRef}>
-              {fullDiveLog && (
+          <div className="overflow-auto bg-white rounded max-h-[80vh] p-4">
+            <div ref={printableRef} id="printable-dive-log">
+              {(fullDiveLog || diveLog) && (
                 <PrintableDiveLog 
-                  diveLog={fullDiveLog} 
+                  diveLog={fullDiveLog || diveLog!} 
                   hasSignature={hasSignature}
                 />
               )}
