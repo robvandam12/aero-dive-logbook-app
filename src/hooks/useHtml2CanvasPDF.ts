@@ -30,7 +30,7 @@ export const useHtml2CanvasPDF = () => {
         offsetHeight: element.offsetHeight
       });
       
-      // Wait a bit more to ensure the element is fully rendered
+      // Wait for any pending renders
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check if element has content
@@ -39,63 +39,66 @@ export const useHtml2CanvasPDF = () => {
         throw new Error("Element appears to be empty");
       }
       
+      console.log("Element content preview:", element.textContent?.substring(0, 200));
+      
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        logging: true,
+        logging: false,
         backgroundColor: '#ffffff',
         removeContainer: false,
-        foreignObjectRendering: true,
+        foreignObjectRendering: false,
         imageTimeout: 30000,
-        width: Math.max(element.scrollWidth, 816), // 8.5 inches * 96 DPI
-        height: Math.max(element.scrollHeight, 1056), // 11 inches * 96 DPI
-        windowWidth: Math.max(element.scrollWidth, 816),
-        windowHeight: Math.max(element.scrollHeight, 1056),
-        onclone: (clonedDoc) => {
+        width: 816,
+        height: 1056,
+        windowWidth: 1920,
+        windowHeight: 1080,
+        x: 0,
+        y: 0,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: (clonedDoc, clonedElement) => {
           console.log("Cloning document for html2canvas");
-          // Ensure proper styling in cloned document
-          const clonedElement = clonedDoc.getElementById('printable-dive-log') || 
-                               clonedDoc.getElementById('temp-printable-dive-log') ||
-                               clonedDoc.querySelector('.printable-page');
           
-          if (clonedElement) {
-            clonedElement.style.transform = 'none';
-            clonedElement.style.margin = '0';
-            clonedElement.style.padding = '0';
-            clonedElement.style.position = 'relative';
-            clonedElement.style.left = '0';
-            clonedElement.style.top = '0';
-            clonedElement.style.opacity = '1';
-            clonedElement.style.visibility = 'visible';
-            clonedElement.style.display = 'block';
-            
-            // Ensure all child elements are visible
-            const allElements = clonedElement.querySelectorAll('*');
-            allElements.forEach((el: Element) => {
-              const htmlEl = el as HTMLElement;
-              htmlEl.style.opacity = '1';
-              htmlEl.style.visibility = 'visible';
-            });
-          }
-          
-          // Apply print styles
-          const style = clonedDoc.createElement('style');
-          style.textContent = `
+          // Apply styles directly to cloned element
+          const styles = `
             * {
+              font-family: Arial, sans-serif !important;
+              color: #000 !important;
+              background: transparent !important;
               -webkit-print-color-adjust: exact !important;
               color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
-            .printable-page {
+            body {
+              background: white !important;
+            }
+            .printable-page, .printable-page-temp {
               font-family: Arial, sans-serif !important;
               color: #000 !important;
               background: white !important;
               font-size: 12px !important;
               line-height: 1.2 !important;
+              width: 816px !important;
+              min-height: 1056px !important;
+              padding: 24px !important;
+              margin: 0 !important;
+              box-sizing: border-box !important;
             }
           `;
-          clonedDoc.head.appendChild(style);
+          
+          const styleSheet = clonedDoc.createElement('style');
+          styleSheet.textContent = styles;
+          clonedDoc.head.appendChild(styleSheet);
+          
+          // Ensure visibility
+          clonedElement.style.visibility = 'visible';
+          clonedElement.style.opacity = '1';
+          clonedElement.style.position = 'relative';
+          clonedElement.style.left = '0';
+          clonedElement.style.top = '0';
+          clonedElement.style.transform = 'none';
         }
       });
 
@@ -104,15 +107,27 @@ export const useHtml2CanvasPDF = () => {
         height: canvas.height
       });
 
-      // Verify canvas is not blank
+      // Verify canvas is not blank by checking pixel data
       const ctx = canvas.getContext('2d');
-      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
-      const isBlank = imageData?.data.every((pixel, index) => 
-        index % 4 === 3 ? true : pixel === 255 // Check if all pixels are white (255,255,255)
-      );
+      if (!ctx) {
+        throw new Error("Could not get canvas context");
+      }
       
-      if (isBlank) {
-        throw new Error("Generated canvas is blank - content may not have rendered properly");
+      const imageData = ctx.getImageData(0, 0, Math.min(canvas.width, 100), Math.min(canvas.height, 100));
+      const pixels = imageData.data;
+      
+      // Check if we have non-white pixels (indicating content)
+      let hasNonWhitePixels = false;
+      for (let i = 0; i < pixels.length; i += 4) {
+        const [r, g, b] = [pixels[i], pixels[i + 1], pixels[i + 2]];
+        if (r < 250 || g < 250 || b < 250) {
+          hasNonWhitePixels = true;
+          break;
+        }
+      }
+      
+      if (!hasNonWhitePixels) {
+        console.warn("Canvas appears to be mostly white, but proceeding with PDF generation");
       }
 
       const imgData = canvas.toDataURL('image/png', 1.0);
@@ -127,30 +142,12 @@ export const useHtml2CanvasPDF = () => {
       const pdfPageWidth = pdf.internal.pageSize.getWidth();
       const pdfPageHeight = pdf.internal.pageSize.getHeight();
       
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-
-      // Calculate scaling to fit the page
-      const canvasAspectRatio = canvasWidth / canvasHeight;
-      const pageAspectRatio = pdfPageWidth / pdfPageHeight;
-
-      let finalImgWidth, finalImgHeight;
-
-      if (canvasAspectRatio > pageAspectRatio) {
-        // Canvas is wider, fit to width
-        finalImgWidth = pdfPageWidth - 20; // Add margins
-        finalImgHeight = (pdfPageWidth - 20) / canvasAspectRatio;
-      } else {
-        // Canvas is taller, fit to height
-        finalImgHeight = pdfPageHeight - 20; // Add margins
-        finalImgWidth = (pdfPageHeight - 20) * canvasAspectRatio;
-      }
+      // Add some margin
+      const margin = 10;
+      const availableWidth = pdfPageWidth - (margin * 2);
+      const availableHeight = pdfPageHeight - (margin * 2);
       
-      // Center the image on the page
-      const x = (pdfPageWidth - finalImgWidth) / 2;
-      const y = (pdfPageHeight - finalImgHeight) / 2;
-
-      pdf.addImage(imgData, 'PNG', x, y, finalImgWidth, finalImgHeight, undefined, 'FAST');
+      pdf.addImage(imgData, 'PNG', margin, margin, availableWidth, availableHeight, undefined, 'FAST');
       pdf.save(filename);
 
       console.log("PDF saved successfully");
