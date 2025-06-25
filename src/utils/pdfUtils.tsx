@@ -2,8 +2,13 @@
 import { createRoot } from 'react-dom/client';
 import { DiveLogWithFullDetails } from '@/hooks/useDiveLog';
 import { PrintableDiveLog } from '@/components/PrintableDiveLog';
+import { PrintableDiveLogProfessional } from '@/components/PrintableDiveLogProfessional';
 
-export const createTempPDFContainer = (diveLogData: DiveLogWithFullDetails, hasSignature: boolean) => {
+export const createTempPDFContainer = (
+  diveLogData: DiveLogWithFullDetails, 
+  hasSignature: boolean, 
+  template: 'basic' | 'professional' = 'professional'
+) => {
   const tempContainer = document.createElement('div');
   tempContainer.id = 'temp-pdf-container';
   tempContainer.style.cssText = `
@@ -26,21 +31,29 @@ export const createTempPDFContainer = (diveLogData: DiveLogWithFullDetails, hasS
   return tempContainer;
 };
 
-export const renderPDFComponent = async (container: HTMLElement, diveLogData: DiveLogWithFullDetails, hasSignature: boolean) => {
+export const renderPDFComponent = async (
+  container: HTMLElement, 
+  diveLogData: DiveLogWithFullDetails, 
+  hasSignature: boolean,
+  template: 'basic' | 'professional' = 'professional'
+) => {
   const root = createRoot(container);
   
   return new Promise<void>((resolve, reject) => {
+    const TemplateComponent = template === 'professional' ? PrintableDiveLogProfessional : PrintableDiveLog;
+    
     root.render(
       <div style={{ 
         width: '816px', 
-        height: '1056px', 
+        height: 'auto',
+        minHeight: '1056px',
         background: 'white',
         fontFamily: 'Arial, sans-serif',
         fontSize: '12px',
         lineHeight: '1.2',
         color: '#000'
       }}>
-        <PrintableDiveLog 
+        <TemplateComponent 
           diveLog={diveLogData} 
           hasSignature={hasSignature}
           isTemporary={true}
@@ -52,10 +65,10 @@ export const renderPDFComponent = async (container: HTMLElement, diveLogData: Di
     setTimeout(() => {
       const content = container.textContent || '';
       if (content.trim().length > 100) {
-        console.log("React component rendered successfully, content length:", content.length);
+        console.log(`React component rendered successfully (${template} template), content length:`, content.length);
         resolve();
       } else {
-        reject(new Error("React component not properly rendered"));
+        reject new Error(`React component not properly rendered (${template} template)`);
       }
     }, 2000);
   });
