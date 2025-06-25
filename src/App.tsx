@@ -14,10 +14,11 @@ import Reports from "@/pages/Reports";
 import UserSettings from "@/pages/UserSettings";
 import Admin from "@/pages/Admin";
 
-import { AuthProvider, useAuth } from "@/contexts/AuthProvider";
+import { AuthProvider } from "@/contexts/AuthProvider";
 import NavigationLoader from "@/components/NavigationLoader";
 import { LoadingProvider } from "@/contexts/LoadingProvider";
 import ProtectedLayout from "@/components/ProtectedLayout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -102,20 +103,6 @@ function App() {
       </QueryClientProvider>
     </BrowserRouter>
   );
-}
-
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <NavigationLoader />;
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  return children;
 }
 
 export default App;
