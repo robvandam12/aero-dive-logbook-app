@@ -73,16 +73,49 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       return;
     }
 
-    // Generate filename
-    const dateStr = diveLogData.log_date ? new Date(diveLogData.log_date).toISOString().split('T')[0] : 'sin-fecha';
-    const centerName = diveLogData.centers?.name ? diveLogData.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
-    const filename = `bitacora-${centerName}-${dateStr}-${diveLogData.id?.slice(-6)}.pdf`;
-    
-    if (printableRef.current) {
+    // Create a temporary element for PDF generation
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '-9999px';
+    tempContainer.style.width = '8.5in';
+    tempContainer.style.backgroundColor = 'white';
+    document.body.appendChild(tempContainer);
+
+    try {
+      // Create a temporary React root to render the printable component
+      const { createRoot } = await import('react-dom/client');
+      const root = createRoot(tempContainer);
+      
+      // Render the PrintableDiveLog component
+      const printableElement = React.createElement(PrintableDiveLog, {
+        diveLog: diveLogData,
+        hasSignature: hasSignature
+      });
+      
+      root.render(printableElement);
+      
+      // Wait for the component to render
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Generate filename
+      const dateStr = diveLogData.log_date ? new Date(diveLogData.log_date).toISOString().split('T')[0] : 'sin-fecha';
+      const centerName = diveLogData.centers?.name ? diveLogData.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
+      const filename = `bitacora-${centerName}-${dateStr}-${diveLogData.id?.slice(-6)}.pdf`;
+      
       console.log("Generating PDF with filename:", filename);
-      await generatePDF(printableRef.current, filename);
-    } else {
-      console.error("Printable ref not available");
+      await generatePDF(tempContainer, filename);
+      
+      // Clean up
+      root.unmount();
+      document.body.removeChild(tempContainer);
+      
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      // Clean up on error
+      if (document.body.contains(tempContainer)) {
+        document.body.removeChild(tempContainer);
+      }
     }
   };
 
