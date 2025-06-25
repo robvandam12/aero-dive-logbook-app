@@ -1,21 +1,21 @@
 
 import { createRoot } from 'react-dom/client';
 import { DiveLogWithFullDetails } from '@/hooks/useDiveLog';
-import { PrintableDiveLog } from '@/components/PrintableDiveLog';
+import { PrintableDiveLogPaginated } from '@/components/PrintableDiveLogPaginated';
 
 export const createTempPDFContainer = (diveLogData: DiveLogWithFullDetails, hasSignature: boolean) => {
   const tempContainer = document.createElement('div');
   tempContainer.id = 'temp-pdf-container';
   tempContainer.style.cssText = `
     position: fixed;
-    top: 0;
-    left: 0;
+    top: -9999px;
+    left: -9999px;
     width: 816px;
-    height: 1056px;
+    height: auto;
     background: white;
-    z-index: 9999;
-    opacity: 1;
-    visibility: visible;
+    z-index: -1;
+    opacity: 0;
+    visibility: hidden;
     overflow: visible;
     transform: none;
     pointer-events: none;
@@ -33,14 +33,14 @@ export const renderPDFComponent = async (container: HTMLElement, diveLogData: Di
     root.render(
       <div style={{ 
         width: '816px', 
-        height: '1056px', 
+        height: 'auto',
         background: 'white',
         fontFamily: 'Arial, sans-serif',
         fontSize: '12px',
         lineHeight: '1.2',
         color: '#000'
       }}>
-        <PrintableDiveLog 
+        <PrintableDiveLogPaginated 
           diveLog={diveLogData} 
           hasSignature={hasSignature}
           isTemporary={true}
