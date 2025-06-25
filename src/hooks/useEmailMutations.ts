@@ -1,6 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useReactPDFGenerator } from '@/hooks/useReactPDFGenerator';
+import { useDiveLog } from '@/hooks/useDiveLog';
 
 interface SendEmailRequest {
   diveLogId: string;
@@ -20,11 +22,44 @@ interface SendInvitationRequest {
 
 export const useSendDiveLogEmail = () => {
   const { toast } = useToast();
+  const { generatePDFBlob } = useReactPDFGenerator();
 
   return useMutation({
     mutationFn: async ({ diveLogId, recipientEmail, recipientName, message, includePDF }: SendEmailRequest) => {
       console.log('Sending dive log email:', { diveLogId, recipientEmail, includePDF });
       
+      // If PDF is requested, generate it first
+      if (includePDF) {
+        console.log('Generating PDF before sending email...');
+        
+        // First, fetch the dive log data
+        const { data: diveLog, error: diveLogError } = await supabase
+          .from('dive_logs')
+          .select(`
+            *,
+            profiles!inner(username),
+            centers(name),
+            dive_sites(name),
+            boats(name)
+          `)
+          .eq('id', diveLogId)
+          .single();
+
+        if (diveLogError || !diveLog) {
+          throw new Error('No se pudo cargar la bitácora para generar el PDF');
+        }
+
+        // Generate and upload PDF
+        const pdfBlob = await generatePDFBlob(diveLog, !!diveLog.signature_url);
+        
+        if (!pdfBlob) {
+          throw new Error('No se pudo generar el PDF. Inténtalo de nuevo.');
+        }
+
+        console.log('PDF generated successfully, proceeding with email...');
+      }
+      
+      // Now send the email
       const { data, error } = await supabase.functions.invoke('send-dive-log-email', {
         body: {
           diveLogId,
@@ -42,16 +77,30 @@ export const useSendDiveLogEmail = () => {
 
       if (!data?.success) {
         console.error('Function returned error:', data?.error);
+        
+        // If PDF not found, provide helpful error message
+        if (data?.error?.includes('PDF no encontrado')) {
+          throw new Error('PDF no encontrado. Se intentó generar automáticamente. Por favor, intenta enviar el email nuevamente.');
+        }
+        
         throw new Error(data?.error || 'Error al enviar el correo');
       }
 
       return data;
     },
-    onSuccess: () => {
-      toast({
-        title: "📧 Correo enviado",
-        description: "La bitácora ha sido enviada por correo exitosamente con el PDF adjunto.",
-      });
+    onSuccess: (data) => {
+      if (data.pdfError) {
+        toast({
+          title: "⚠️ Correo enviado con advertencia",
+          description: "El correo se envió pero sin el PDF adjunto. " + data.pdfError,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "📧 Correo enviado",
+          description: "La bitácora ha sido enviada por correo exitosamente con el PDF adjunto.",
+        });
+      }
     },
     onError: (error: any) => {
       console.error('Email mutation error:', error);

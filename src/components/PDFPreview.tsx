@@ -60,7 +60,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       }
     }
 
-    // Use React-PDF for generation
+    // Use React-PDF for generation - this will automatically upload to Storage
     await generateReactPDF(diveLogData, hasSignature);
   };
 

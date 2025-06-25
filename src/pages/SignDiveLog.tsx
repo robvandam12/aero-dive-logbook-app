@@ -10,6 +10,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useState } from "react";
 import { useUpdateDiveLog } from "@/hooks/useDiveLogMutations";
 import { useSendDiveLogEmail } from "@/hooks/useEmailMutations";
+import { useReactPDFGenerator } from "@/hooks/useReactPDFGenerator";
 import { useAuth } from "@/contexts/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,6 +25,7 @@ const SignDiveLogPage = () => {
   const [isJustSigned, setIsJustSigned] = useState(false);
   const updateDiveLogMutation = useUpdateDiveLog();
   const sendEmailMutation = useSendDiveLogEmail();
+  const { generatePDFBlob } = useReactPDFGenerator();
 
   const handleBack = () => {
     navigate(`/dive-logs/${id}`);
@@ -77,8 +79,18 @@ const SignDiveLogPage = () => {
         currentSignatureUrl: diveLog.signature_url 
       },
       {
-        onSuccess: () => {
+        onSuccess: async (updatedDiveLog) => {
           setIsJustSigned(true);
+          
+          // Generate PDF after signing
+          try {
+            console.log("Generating PDF after signing...");
+            await generatePDFBlob(updatedDiveLog, true);
+            console.log("PDF generated successfully after signing");
+          } catch (error) {
+            console.error("Error generating PDF after signing:", error);
+          }
+          
           toast({
             title: "Bitácora firmada",
             description: "La bitácora ha sido firmada correctamente. ¿Desea enviarla por correo?"
