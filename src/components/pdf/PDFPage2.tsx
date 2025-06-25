@@ -124,22 +124,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   signatureArea: {
-    border: '2px dashed #d1d5db',
+    border: '2px solid #d1d5db',
     borderRadius: 5,
-    height: 50,
+    height: 60,
     marginBottom: 8,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  signaturePlaceholder: {
-    fontSize: 8,
-    color: '#9ca3af',
-    fontStyle: 'italic',
+    padding: 5,
   },
   signatureImage: {
-    maxHeight: 40,
-    maxWidth: '100%',
+    maxHeight: 50,
+    maxWidth: 120,
+    objectFit: 'contain',
   },
   signatureLine: {
     borderTop: '2px solid #374151',
@@ -265,7 +262,7 @@ export const PDFPage2: React.FC<PDFPage2Props> = ({ diveLog, hasSignature }) => 
         <View style={styles.signaturesGrid}>
           <View style={styles.signatureBox}>
             <View style={styles.signatureArea}>
-              <Text style={styles.signaturePlaceholder}>Área de Firma</Text>
+              {/* Empty signature area for center manager */}
             </View>
             <View style={styles.signatureLine}>
               <Text style={styles.signatureLabel}>Nombre y Cargo</Text>
@@ -280,9 +277,7 @@ export const PDFPage2: React.FC<PDFPage2Props> = ({ diveLog, hasSignature }) => 
                   src={diveLog.signature_url} 
                   style={styles.signatureImage}
                 />
-              ) : (
-                <Text style={styles.signaturePlaceholder}>Área de Firma y Timbre</Text>
-              )}
+              ) : null}
             </View>
             <View style={styles.signatureLine}>
               <Text style={styles.signatureLabel}>Nombre y Cargo</Text>
