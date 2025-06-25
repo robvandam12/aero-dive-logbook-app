@@ -1,5 +1,8 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { pdf } from "https://esm.sh/@react-pdf/renderer@4.3.0";
+import React from "https://esm.sh/react@18.3.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,42 +35,115 @@ function safeFormatDate(date: string | null): string {
   }
 }
 
-// Helper function to find PDF in storage
-async function findPDFInStorage(diveLogId: string): Promise<string | null> {
-  try {
-    console.log(`Looking for PDF files for dive log: ${diveLogId}`);
+// Simple PDF Document Component (server-side compatible)
+const createPDFDocument = (diveLog: any) => {
+  const diversManifest = Array.isArray(diveLog.divers_manifest) ? diveLog.divers_manifest : [];
+  
+  return React.createElement('div', {
+    style: {
+      fontFamily: 'Arial, sans-serif',
+      padding: '20px',
+      fontSize: '12px',
+      lineHeight: '1.4'
+    }
+  }, [
+    React.createElement('h1', { 
+      key: 'title',
+      style: { fontSize: '18px', marginBottom: '20px', textAlign: 'center' }
+    }, 'BITÁCORA DE BUCEO'),
     
-    const { data: files, error } = await supabase.storage
+    React.createElement('div', { 
+      key: 'info',
+      style: { marginBottom: '20px' }
+    }, [
+      React.createElement('p', { key: 'date' }, `Fecha: ${safeFormatDate(diveLog.log_date)}`),
+      React.createElement('p', { key: 'center' }, `Centro: ${safeGet(diveLog, 'centers.name')}`),
+      React.createElement('p', { key: 'supervisor' }, `Supervisor: ${safeGet(diveLog, 'supervisor_name')}`),
+      React.createElement('p', { key: 'site' }, `Sitio de Buceo: ${safeGet(diveLog, 'dive_sites.name')}`),
+      React.createElement('p', { key: 'boat' }, `Embarcación: ${safeGet(diveLog, 'boats.name')}`),
+    ]),
+
+    React.createElement('div', { 
+      key: 'divers',
+      style: { marginBottom: '20px' }
+    }, [
+      React.createElement('h3', { key: 'divers-title' }, 'MANIFIESTO DE BUZOS'),
+      ...diversManifest.map((diver: any, index: number) => 
+        React.createElement('div', { 
+          key: `diver-${index}`,
+          style: { 
+            border: '1px solid #ccc', 
+            padding: '10px', 
+            marginBottom: '10px',
+            borderRadius: '5px'
+          }
+        }, [
+          React.createElement('p', { key: 'name' }, `Nombre: ${diver.name || 'N/A'}`),
+          React.createElement('p', { key: 'role' }, `Rol: ${diver.role || 'N/A'}`),
+          React.createElement('p', { key: 'license' }, `Licencia: ${diver.license || 'N/A'}`),
+          React.createElement('p', { key: 'depth' }, `Profundidad: ${diver.working_depth || 'N/A'}m`),
+        ])
+      )
+    ]),
+
+    React.createElement('div', { 
+      key: 'observations',
+      style: { marginTop: '30px' }
+    }, [
+      React.createElement('h3', { key: 'obs-title' }, 'OBSERVACIONES'),
+      React.createElement('p', { key: 'obs-text' }, diveLog.observations || 'Sin observaciones especiales.')
+    ]),
+
+    React.createElement('div', { 
+      key: 'footer',
+      style: { 
+        marginTop: '50px', 
+        textAlign: 'center',
+        fontSize: '10px',
+        color: '#666'
+      }
+    }, 'Documento generado por Sistema Aerocam - ' + new Date().toLocaleDateString('es-ES'))
+  ]);
+};
+
+// Generate PDF and upload to storage
+async function generateAndUploadPDF(diveLog: any): Promise<string | null> {
+  try {
+    console.log(`Generating PDF for dive log: ${diveLog.id}`);
+    
+    // Create the PDF document
+    const pdfDocument = createPDFDocument(diveLog);
+    
+    // Generate PDF blob
+    const pdfBlob = await pdf(pdfDocument).toBlob();
+    
+    // Create filename
+    const fileName = `dive-log-${diveLog.id}-${Date.now()}.pdf`;
+    
+    console.log(`Uploading PDF to storage: ${fileName}`);
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
       .from('temp-pdfs')
-      .list('', {
-        search: `dive-log-${diveLogId}`
+      .upload(fileName, pdfBlob, {
+        contentType: 'application/pdf',
+        upsert: true
       });
 
     if (error) {
-      console.error('Error listing files from storage:', error);
+      console.error('Error uploading PDF to storage:', error);
       return null;
     }
 
-    if (!files || files.length === 0) {
-      console.log('No PDF files found in storage for this dive log');
-      return null;
-    }
-
-    // Sort by created date and get the most recent
-    const sortedFiles = files.sort((a, b) => 
-      new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-    );
-
-    const latestFile = sortedFiles[0];
-    console.log(`Found PDF file: ${latestFile.name}`);
-    return latestFile.name;
+    console.log(`PDF uploaded successfully: ${data.path}`);
+    return data.path;
   } catch (error) {
-    console.error('Error in findPDFInStorage:', error);
+    console.error('Error generating PDF:', error);
     return null;
   }
 }
 
-// Helper function to download PDF from storage
+// Download PDF from storage and convert to base64
 async function downloadPDFFromStorage(fileName: string): Promise<string | null> {
   try {
     console.log(`Downloading PDF from storage: ${fileName}`);
@@ -95,38 +171,6 @@ async function downloadPDFFromStorage(fileName: string): Promise<string | null> 
   } catch (error) {
     console.error('Error in downloadPDFFromStorage:', error);
     return null;
-  }
-}
-
-// Helper function to clean up old PDFs (optional cleanup)
-async function cleanupOldPDFs(diveLogId: string, keepLatest: boolean = true): Promise<void> {
-  try {
-    const { data: files, error } = await supabase.storage
-      .from('temp-pdfs')
-      .list('', {
-        search: `dive-log-${diveLogId}`
-      });
-
-    if (error || !files || files.length <= 1) return;
-
-    // Sort by created date
-    const sortedFiles = files.sort((a, b) => 
-      new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-    );
-
-    // Keep the latest file, delete the rest
-    const filesToDelete = keepLatest ? sortedFiles.slice(1) : sortedFiles;
-    
-    if (filesToDelete.length > 0) {
-      const fileNames = filesToDelete.map(f => f.name);
-      await supabase.storage
-        .from('temp-pdfs')
-        .remove(fileNames);
-      
-      console.log(`Cleaned up ${fileNames.length} old PDF files`);
-    }
-  } catch (error) {
-    console.warn('Error cleaning up old PDFs:', error);
   }
 }
 
@@ -185,30 +229,27 @@ serve(async (req) => {
     
     if (includePDF) {
       try {
-        console.log("Looking for existing PDF in storage...");
+        console.log("Generating PDF for email attachment...");
         
-        // Try to find existing PDF in storage
-        const pdfFileName = await findPDFInStorage(diveLogId);
+        // Always generate and upload new PDF
+        const pdfPath = await generateAndUploadPDF(diveLog);
         
-        if (pdfFileName) {
-          // Download PDF from storage
-          base64PDF = await downloadPDFFromStorage(pdfFileName) || '';
+        if (pdfPath) {
+          // Download the PDF from storage and convert to base64
+          base64PDF = await downloadPDFFromStorage(pdfPath) || '';
           
           if (base64PDF) {
-            console.log("PDF retrieved from storage successfully");
-            
-            // Clean up old PDFs for this dive log (keep only the latest)
-            await cleanupOldPDFs(diveLogId, true);
+            console.log("PDF generated and prepared for email successfully");
           } else {
             console.log("Failed to download PDF from storage");
-            pdfError = "No se pudo descargar el PDF desde el almacenamiento";
+            pdfError = "No se pudo preparar el PDF para el email";
           }
         } else {
-          console.log("No PDF found in storage");
-          pdfError = "PDF no encontrado. Por favor, descarga el PDF primero desde la web para poder enviarlo por email.";
+          console.log("Failed to generate and upload PDF");
+          pdfError = "No se pudo generar el PDF";
         }
       } catch (error) {
-        console.error("Error handling PDF from storage:", error);
+        console.error("Error handling PDF generation:", error);
         pdfError = error.message;
       }
     }
@@ -236,7 +277,7 @@ serve(async (req) => {
       }] : []
     };
 
-    console.log("Sending email with Resend...");
+    console.log("Sending email with Resend...", { hasAttachment: !!(includePDF && base64PDF) });
     
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
