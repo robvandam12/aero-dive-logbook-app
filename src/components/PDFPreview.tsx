@@ -73,13 +73,29 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       return;
     }
 
-    // Create a temporary element for PDF generation
+    // If preview is open, use the preview element directly
+    if (previewOpen && printableRef.current) {
+      const dateStr = diveLogData.log_date ? new Date(diveLogData.log_date).toISOString().split('T')[0] : 'sin-fecha';
+      const centerName = diveLogData.centers?.name ? diveLogData.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
+      const filename = `bitacora-${centerName}-${dateStr}-${diveLogData.id?.slice(-6)}.pdf`;
+      
+      console.log("Using preview element for PDF generation");
+      await generatePDF(printableRef.current, filename);
+      return;
+    }
+
+    // Create a temporary visible element for PDF generation
     const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.top = '-9999px';
+    tempContainer.style.position = 'fixed';
+    tempContainer.style.top = '0';
+    tempContainer.style.left = '0';
     tempContainer.style.width = '8.5in';
+    tempContainer.style.height = '11in';
     tempContainer.style.backgroundColor = 'white';
+    tempContainer.style.zIndex = '-1000';
+    tempContainer.style.opacity = '0';
+    tempContainer.style.pointerEvents = 'none';
+    tempContainer.id = 'temp-printable-dive-log';
     document.body.appendChild(tempContainer);
 
     try {
@@ -87,16 +103,27 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       const { createRoot } = await import('react-dom/client');
       const root = createRoot(tempContainer);
       
+      console.log("Creating temporary element for PDF generation");
+      
       // Render the PrintableDiveLog component
       const printableElement = React.createElement(PrintableDiveLog, {
         diveLog: diveLogData,
-        hasSignature: hasSignature
+        hasSignature: hasSignature,
+        isTemporary: true
       });
       
       root.render(printableElement);
       
-      // Wait for the component to render
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait for the component to render and styles to be applied
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Verify content has been rendered
+      const contentCheck = tempContainer.querySelector('.printable-page');
+      if (!contentCheck) {
+        throw new Error("Content not properly rendered");
+      }
+      
+      console.log("Temporary element rendered, content height:", tempContainer.scrollHeight);
       
       // Generate filename
       const dateStr = diveLogData.log_date ? new Date(diveLogData.log_date).toISOString().split('T')[0] : 'sin-fecha';
@@ -114,7 +141,11 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       console.error("Error generating PDF:", error);
       // Clean up on error
       if (document.body.contains(tempContainer)) {
-        document.body.removeChild(tempContainer);
+        try {
+          document.body.removeChild(tempContainer);
+        } catch (cleanupError) {
+          console.error("Error during cleanup:", cleanupError);
+        }
       }
     }
   };

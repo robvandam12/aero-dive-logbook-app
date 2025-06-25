@@ -4,23 +4,28 @@ import { DiveLogWithFullDetails } from '@/hooks/useDiveLog';
 interface PrintableDiveLogProps {
   diveLog: DiveLogWithFullDetails;
   hasSignature: boolean;
+  isTemporary?: boolean;
 }
 
 export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLogProps>(
-  ({ diveLog, hasSignature }, ref) => {
+  ({ diveLog, hasSignature, isTemporary = false }, ref) => {
     const diversManifest = Array.isArray(diveLog.divers_manifest) 
       ? diveLog.divers_manifest as any[]
       : [];
 
+    const containerClass = isTemporary 
+      ? "printable-page-temp bg-white p-6 font-sans text-gray-800 text-xs min-h-[11in] w-[8.5in] mx-auto"
+      : "printable-page bg-white p-6 font-sans text-gray-800 text-xs min-h-[11in] w-[8.5in] mx-auto";
+
     return (
-      <div ref={ref} className="printable-page bg-white p-6 font-sans text-gray-800 text-xs min-h-[11in] w-[8.5in] mx-auto">
+      <div ref={ref} className={containerClass}>
         <style>{`
           @media print {
             @page {
               size: letter;
               margin: 0.5in;
             }
-            .printable-page {
+            .printable-page, .printable-page-temp {
               margin: 0 !important;
               padding: 16px !important;
               font-size: 10px !important;
@@ -39,15 +44,27 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
             }
           }
           
-          .printable-page {
-            font-family: Arial, sans-serif;
-            line-height: 1.2;
-            color: #000;
-            background: white;
+          .printable-page, .printable-page-temp {
+            font-family: Arial, sans-serif !important;
+            line-height: 1.2 !important;
+            color: #000 !important;
+            background: white !important;
+            position: relative !important;
+            visibility: visible !important;
+            opacity: 1 !important;
           }
           
-          .printable-page * {
-            box-sizing: border-box;
+          .printable-page *, .printable-page-temp * {
+            box-sizing: border-box !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+          }
+          
+          .printable-page-temp {
+            position: relative !important;
+            left: 0 !important;
+            top: 0 !important;
+            transform: none !important;
           }
         `}</style>
 
