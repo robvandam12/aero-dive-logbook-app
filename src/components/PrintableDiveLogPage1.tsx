@@ -13,243 +13,189 @@ export const PrintableDiveLogPage1 = React.forwardRef<HTMLDivElement, PrintableD
       : [];
 
     return (
-      <div ref={ref} className="bg-white p-4 font-sans text-gray-800 text-xs" style={{ width: '210mm', minHeight: '297mm' }}>
-        {/* Header Section with better spacing */}
-        <header className="mb-3 pb-2 border-b border-gray-300">
-          <div className="flex justify-between items-start mb-2">
+      <div ref={ref} className="bg-white p-6 font-sans text-gray-800" style={{ width: '210mm', minHeight: '297mm' }}>
+        {/* Header Section */}
+        <header className="mb-6">
+          <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="flex items-center space-x-2 mb-1">
+              <div className="flex items-center space-x-3 mb-2">
                 <img 
                   src="/lovable-uploads/d1c62fdb-bdb7-4af0-b045-961a93bfb9bb.png" 
                   alt="Aerocam Logo" 
-                  className="h-8 w-8 object-contain"
+                  className="h-10 w-10 object-contain"
                 />
-                <span className="text-xl font-bold text-blue-600">aerocam</span>
+                <div>
+                  <span className="text-2xl font-bold text-blue-600">aerocam</span>
+                  <p className="text-xs text-gray-600 mt-1">SOCIEDAD DE SERVICIOS AEROCAM SPA</p>
+                </div>
               </div>
-              <p className="text-xs font-bold leading-tight">SOCIEDAD DE SERVICIOS AEROCAM SPA</p>
-              <p className="text-xs leading-tight">Ignacio Carrera Pinto Nº 200, Quellón – Chiloé</p>
-              <p className="text-xs leading-tight">(65) 2 353 322 • contacto@aerocamchile.cl • www.aerocamchile.cl</p>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p>Ignacio Carrera Pinto Nº 200, Quellón – Chiloé</p>
+                <p>(65) 2 353 322 • contacto@aerocamchile.cl • www.aerocamchile.cl</p>
+              </div>
             </div>
             <div className="text-right">
-              <div className="flex justify-end items-center mb-1">
-                <span className="font-semibold text-gray-600 pr-2 text-xs">Fecha:</span>
-                <div className="border border-gray-400 px-2 py-1 text-gray-700 text-xs h-5 w-24 flex items-center">
-                  {diveLog.log_date || ''}
-                </div>
-              </div>
-              <div className="flex justify-end items-center">
-                <span className="font-semibold text-xs pr-2">Nº:</span>
-                <div className="border border-gray-400 px-2 py-1 text-green-600 font-bold text-xs h-5 w-24 flex items-center">
-                  {diveLog.id?.slice(-6) || ''}
-                </div>
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <p className="text-xs text-gray-600 mb-1">Fecha</p>
+                <p className="font-semibold">{diveLog.log_date || ''}</p>
+                <p className="text-xs text-gray-600 mt-2 mb-1">Nº</p>
+                <p className="font-bold text-blue-600">{diveLog.id?.slice(-6) || ''}</p>
               </div>
             </div>
           </div>
           
-          <h1 className="text-base font-bold text-center my-2">BITÁCORA BUCEO E INFORME DE TRABAJO REALIZADO</h1>
+          <div className="text-center mb-4">
+            <h1 className="text-xl font-bold text-gray-800 border-b-2 border-blue-600 pb-2 inline-block">
+              BITÁCORA BUCEO E INFORME DE TRABAJO REALIZADO
+            </h1>
+          </div>
           
-          <div className="flex items-center">
-            <span className="font-bold text-gray-600 pr-2 text-xs whitespace-nowrap">CENTRO DE CULTIVO:</span>
-            <div className="border border-gray-400 px-2 py-1 text-gray-700 text-xs h-5 flex-grow flex items-center">
-              {diveLog.centers?.name || 'N/A'}
-            </div>
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <p className="text-sm font-semibold text-blue-800">
+              Centro de Cultivo: <span className="font-normal text-gray-800">{diveLog.centers?.name || 'N/A'}</span>
+            </p>
           </div>
         </header>
 
-        {/* Datos Generales Section with improved layout */}
-        <section className="mb-3 border border-gray-400">
-          <div className="bg-gray-200 p-1 border-b border-gray-400">
-            <h2 className="font-bold text-xs text-center">DATOS GENERALES</h2>
-          </div>
-          <div className="p-2">
-            <div className="grid grid-cols-2 gap-3 mb-2">
-              <div className="space-y-1">
-                <div className="flex items-center">
-                  <span className="font-semibold text-gray-600 pr-2 text-xs w-20 shrink-0">SUPERVISOR:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 flex-grow flex items-center">
-                    {diveLog.profiles?.username || 'N/A'}
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <span className="font-semibold text-gray-600 pr-2 text-xs w-20 shrink-0">N° MATRICULA:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 flex-grow flex items-center">
-                    {diveLog.supervisor_license || 'N/A'}
-                  </div>
-                </div>
+        {/* Datos Generales Section */}
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4 border-l-4 border-blue-600 pl-3">DATOS GENERALES</h2>
+          
+          <div className="grid grid-cols-2 gap-6 mb-4">
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Supervisor</label>
+                <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.profiles?.username || 'N/A'}</p>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center">
-                  <span className="font-semibold text-gray-600 pr-2 text-xs w-24 shrink-0">JEFE DE CENTRO:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 flex-grow flex items-center">
-                    {diveLog.center_manager || 'N/A'}
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <span className="font-semibold text-gray-600 pr-2 text-xs w-24 shrink-0">ASISTENTE DE CENTRO:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 flex-grow flex items-center">
-                    {diveLog.center_assistant || 'N/A'}
-                  </div>
-                </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">N° Matrícula</label>
+                <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.supervisor_license || 'N/A'}</p>
               </div>
             </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Jefe de Centro</label>
+                <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.center_manager || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Asistente de Centro</label>
+                <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.center_assistant || 'N/A'}</p>
+              </div>
+            </div>
+          </div>
 
-            {/* Weather conditions with proper spacing */}
-            <div className="border-t border-gray-300 pt-2 mb-2">
-              <h3 className="font-semibold text-xs text-center mb-1">CONDICIÓN TIEMPO VARIABLES</h3>
+          {/* Weather and Conditions */}
+          <div className="bg-gray-50 p-4 rounded-lg mb-4">
+            <h3 className="text-sm font-semibold text-gray-800 mb-3">CONDICIÓN TIEMPO VARIABLES</h3>
+            <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 border border-black flex items-center justify-center">
-                      {diveLog.weather_good === true && <span className="text-xs font-bold">✓</span>}
-                    </div>
-                    <span className="text-xs">SÍ</span>
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${diveLog.weather_good === true ? 'bg-green-500 border-green-500' : 'border-gray-400'}`}>
+                    {diveLog.weather_good === true && <span className="text-white text-xs">✓</span>}
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 border border-black flex items-center justify-center">
-                      {diveLog.weather_good === false && <span className="text-xs font-bold">✓</span>}
-                    </div>
-                    <span className="text-xs">NO</span>
-                  </div>
+                  <span className="text-sm">Favorable</span>
                 </div>
-                <div className="flex items-center flex-grow">
-                  <span className="font-semibold text-gray-600 pr-2 text-xs whitespace-nowrap">OBSERVACIONES:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 flex-grow flex items-center">
-                    {diveLog.weather_conditions || 'Buen tiempo'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Compressors section with better alignment */}
-            <div className="border-t border-gray-300 pt-2">
-              <h3 className="font-semibold text-xs text-center mb-1">REGISTRO DE COMPRESORES</h3>
-              <div className="space-y-1">
                 <div className="flex items-center space-x-2">
-                  <span className="font-semibold text-xs whitespace-nowrap">COMPRESOR 1:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 w-20 flex items-center">
-                    {diveLog.compressor_1 || ''}
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${diveLog.weather_good === false ? 'bg-red-500 border-red-500' : 'border-gray-400'}`}>
+                    {diveLog.weather_good === false && <span className="text-white text-xs">✓</span>}
                   </div>
-                  <span className="font-semibold text-xs whitespace-nowrap ml-3">COMPRESOR 2:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 w-20 flex items-center">
-                    {diveLog.compressor_2 || ''}
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <span className="font-semibold text-gray-600 pr-2 text-xs whitespace-nowrap">Nº SOLICITUD DE FAENA:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 flex-grow flex items-center">
-                    {diveLog.work_order_number || 'N/A'}
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <span className="font-semibold text-gray-600 pr-2 text-xs whitespace-nowrap">FECHA Y HORA DE INICIO:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 flex-grow flex items-center">
-                    {diveLog.start_time || diveLog.departure_time || 'N/A'}
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <span className="font-semibold text-gray-600 pr-2 text-xs whitespace-nowrap">FECHA Y HORA DE TÉRMINO:</span>
-                  <div className="border border-gray-400 px-1 py-1 text-gray-700 text-xs h-5 flex-grow flex items-center">
-                    {diveLog.end_time || diveLog.arrival_time || 'N/A'}
-                  </div>
+                  <span className="text-sm">Desfavorable</span>
                 </div>
               </div>
+              <div className="flex-1">
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Observaciones</label>
+                <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.weather_conditions || 'Buen tiempo'}</p>
+              </div>
             </div>
+          </div>
+
+          {/* Compressors and Work Info */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Compresor 1</label>
+                <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.compressor_1 || ''}</p>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Hora de Inicio</label>
+                <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.start_time || diveLog.departure_time || 'N/A'}</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Compresor 2</label>
+                <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.compressor_2 || ''}</p>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Hora de Término</label>
+                <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.end_time || diveLog.arrival_time || 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-3">
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">N° Solicitud de Faena</label>
+            <p className="text-sm text-gray-800 border-b border-gray-300 pb-1">{diveLog.work_order_number || 'N/A'}</p>
           </div>
         </section>
 
-        {/* Team de Buceo Section - Optimized table */}
-        <section className="border border-gray-400">
-          <div className="bg-gray-200 p-1 border-b border-gray-400">
-            <h2 className="font-bold text-xs text-center">TEAM DE BUCEO</h2>
-            <p className="text-center font-semibold text-xs">COMPOSICIÓN DE EQUIPO BUZOS Y ASISTENTES</p>
-          </div>
+        {/* Team de Buceo Section */}
+        <section className="mb-4">
+          <h2 className="text-lg font-bold text-gray-800 mb-4 border-l-4 border-blue-600 pl-3">TEAM DE BUCEO</h2>
+          <p className="text-sm text-gray-600 mb-4">Composición de Equipo Buzos y Asistentes</p>
+          
           <div className="overflow-hidden">
-            <table className="w-full border-collapse text-xs" style={{ fontSize: '8px' }}>
+            <table className="w-full text-xs border-collapse">
               <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-600 p-0.5 text-center font-semibold" style={{ width: '6%' }}>BUZO</th>
-                  <th className="border border-gray-600 p-0.5 text-center font-semibold leading-tight" style={{ width: '20%' }}>IDENTIFICACIÓN</th>
-                  <th className="border border-gray-600 p-0.5 text-center font-semibold leading-tight" style={{ width: '12%' }}>Nº MATRICULA</th>
-                  <th className="border border-gray-600 p-0.5 text-center font-semibold" style={{ width: '10%' }}>CARGO</th>
-                  <th className="border border-gray-600 p-0.5 text-center font-semibold leading-tight" style={{ width: '14%' }}>
-                    BUCEO ESTÁNDAR<br/>PROF. 20M MAX<br/>(SÍ/NO)
-                  </th>
-                  <th className="border border-gray-600 p-0.5 text-center font-semibold leading-tight" style={{ width: '10%' }}>
-                    PROF.<br/>TRABAJO<br/>(m)
-                  </th>
-                  <th className="border border-gray-600 p-0.5 text-center font-semibold" style={{ width: '9%' }}>INICIO</th>
-                  <th className="border border-gray-600 p-0.5 text-center font-semibold" style={{ width: '9%' }}>TÉRMINO</th>
-                  <th className="border border-gray-600 p-0.5 text-center font-semibold leading-tight" style={{ width: '10%' }}>
-                    TIEMPO<br/>(min)
-                  </th>
+                <tr className="bg-blue-600 text-white">
+                  <th className="p-2 text-left font-semibold" style={{ width: '5%' }}>#</th>
+                  <th className="p-2 text-left font-semibold" style={{ width: '25%' }}>Identificación</th>
+                  <th className="p-2 text-left font-semibold" style={{ width: '12%' }}>N° Matrícula</th>
+                  <th className="p-2 text-left font-semibold" style={{ width: '12%' }}>Cargo</th>
+                  <th className="p-2 text-center font-semibold" style={{ width: '12%' }}>Estándar (≤20m)</th>
+                  <th className="p-2 text-center font-semibold" style={{ width: '8%' }}>Prof. (m)</th>
+                  <th className="p-2 text-center font-semibold" style={{ width: '8%' }}>Inicio</th>
+                  <th className="p-2 text-center font-semibold" style={{ width: '8%' }}>Término</th>
+                  <th className="p-2 text-center font-semibold" style={{ width: '10%' }}>Tiempo (min)</th>
                 </tr>
               </thead>
               <tbody>
                 {[1, 2, 3, 4].map(buzoNum => {
                   const diver = diversManifest[buzoNum - 1];
+                  const isEven = buzoNum % 2 === 0;
                   return (
-                    <tr key={buzoNum} style={{ height: '18px' }}>
-                      <td className="border border-gray-600 p-0.5 text-center">{buzoNum}</td>
-                      <td className="border border-gray-600 p-0.5">
-                        <div className="border border-gray-400 px-1 text-gray-700 h-4 w-full flex items-center text-xs overflow-hidden">
-                          {diver?.name || ''}
-                        </div>
-                      </td>
-                      <td className="border border-gray-600 p-0.5">
-                        <div className="border border-gray-400 px-1 text-gray-700 h-4 w-full flex items-center text-xs overflow-hidden">
-                          {diver?.license || ''}
-                        </div>
-                      </td>
-                      <td className="border border-gray-600 p-0.5">
-                        <div className="border border-gray-400 px-1 text-gray-700 h-4 w-full flex items-center text-xs overflow-hidden">
-                          {diver?.role || ''}
-                        </div>
-                      </td>
-                      <td className="border border-gray-600 p-0.5 text-center">
-                        <div className="flex items-center justify-center space-x-1">
-                          <div className="flex items-center space-x-0.5">
-                            <div className="w-2.5 h-2.5 border border-black flex items-center justify-center">
-                              {diver?.standard_depth === true && <span className="text-xs font-bold">✓</span>}
+                    <tr key={buzoNum} className={`${isEven ? 'bg-gray-50' : 'bg-white'} border-b border-gray-200`}>
+                      <td className="p-2 text-center font-semibold text-blue-600">{buzoNum}</td>
+                      <td className="p-2 text-xs">{diver?.name || ''}</td>
+                      <td className="p-2 text-xs">{diver?.license || ''}</td>
+                      <td className="p-2 text-xs">{diver?.role || ''}</td>
+                      <td className="p-2 text-center">
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="flex items-center space-x-1">
+                            <div className={`w-3 h-3 rounded border flex items-center justify-center ${diver?.standard_depth === true ? 'bg-green-500 border-green-500' : 'border-gray-400'}`}>
+                              {diver?.standard_depth === true && <span className="text-white text-xs">✓</span>}
                             </div>
-                            <span style={{ fontSize: '7px' }}>S</span>
+                            <span className="text-xs">Sí</span>
                           </div>
-                          <div className="flex items-center space-x-0.5">
-                            <div className="w-2.5 h-2.5 border border-black flex items-center justify-center">
-                              {diver?.standard_depth === false && <span className="text-xs font-bold">✓</span>}
+                          <div className="flex items-center space-x-1">
+                            <div className={`w-3 h-3 rounded border flex items-center justify-center ${diver?.standard_depth === false ? 'bg-red-500 border-red-500' : 'border-gray-400'}`}>
+                              {diver?.standard_depth === false && <span className="text-white text-xs">✓</span>}
                             </div>
-                            <span style={{ fontSize: '7px' }}>N</span>
+                            <span className="text-xs">No</span>
                           </div>
                         </div>
                       </td>
-                      <td className="border border-gray-600 p-0.5">
-                        <div className="border border-gray-400 px-1 text-gray-700 h-4 w-full flex items-center text-center text-xs overflow-hidden">
-                          {diver?.working_depth || ''}
-                        </div>
-                      </td>
-                      <td className="border border-gray-600 p-0.5">
-                        <div className="border border-gray-400 px-1 text-gray-700 h-4 w-full flex items-center text-center text-xs overflow-hidden">
-                          {diver?.start_time || ''}
-                        </div>
-                      </td>
-                      <td className="border border-gray-600 p-0.5">
-                        <div className="border border-gray-400 px-1 text-gray-700 h-4 w-full flex items-center text-center text-xs overflow-hidden">
-                          {diver?.end_time || ''}
-                        </div>
-                      </td>
-                      <td className="border border-gray-600 p-0.5">
-                        <div className="border border-gray-400 px-1 text-gray-700 h-4 w-full flex items-center text-center text-xs overflow-hidden">
-                          {diver?.dive_time || ''}
-                        </div>
-                      </td>
+                      <td className="p-2 text-center text-xs">{diver?.working_depth || ''}</td>
+                      <td className="p-2 text-center text-xs">{diver?.start_time || ''}</td>
+                      <td className="p-2 text-center text-xs">{diver?.end_time || ''}</td>
+                      <td className="p-2 text-center text-xs">{diver?.dive_time || ''}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-          <div className="p-1 text-center">
-            <p className="text-xs">Nota: Capacidad máxima permitida de 20 metros.</p>
-          </div>
+          <p className="text-xs text-gray-600 mt-2 italic">* Capacidad máxima permitida: 20 metros de profundidad</p>
         </section>
       </div>
     );
