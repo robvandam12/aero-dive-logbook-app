@@ -68,7 +68,7 @@ export const renderPDFComponent = async (
         console.log(`React component rendered successfully (${template} template), content length:`, content.length);
         resolve();
       } else {
-        reject new Error(`React component not properly rendered (${template} template)`);
+        reject(new Error(`React component not properly rendered (${template} template)`));
       }
     }, 2000);
   });
