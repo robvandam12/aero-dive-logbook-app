@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,7 +83,7 @@ const SignDiveLogPage = () => {
         onSuccess: async (updatedDiveLog) => {
           setIsJustSigned(true);
           
-          // Generate PDF after signing
+          // Generate PDF after signing using the full updated dive log data
           try {
             console.log("Generating PDF after signing...");
             await generatePDFBlob(updatedDiveLog, true);

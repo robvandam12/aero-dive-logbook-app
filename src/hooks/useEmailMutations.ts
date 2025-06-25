@@ -1,3 +1,4 @@
+
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -32,15 +33,15 @@ export const useSendDiveLogEmail = () => {
       if (includePDF) {
         console.log('Generating PDF before sending email...');
         
-        // First, fetch the dive log data
+        // First, fetch the dive log data with all required fields
         const { data: diveLog, error: diveLogError } = await supabase
           .from('dive_logs')
           .select(`
             *,
             profiles!inner(username),
             centers(name),
-            dive_sites(name),
-            boats(name)
+            dive_sites(name, location),
+            boats(name, registration_number)
           `)
           .eq('id', diveLogId)
           .single();
