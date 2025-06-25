@@ -4,35 +4,28 @@ import { DiveLogWithFullDetails } from '@/hooks/useDiveLog';
 interface PrintableDiveLogProps {
   diveLog: DiveLogWithFullDetails;
   hasSignature: boolean;
-  isTemporary?: boolean;
 }
 
 export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLogProps>(
-  ({ diveLog, hasSignature, isTemporary = false }, ref) => {
+  ({ diveLog, hasSignature }, ref) => {
     const diversManifest = Array.isArray(diveLog.divers_manifest) 
       ? diveLog.divers_manifest as any[]
       : [];
 
-    const containerClass = isTemporary 
-      ? "printable-page-temp bg-white p-6 font-sans text-gray-800 text-xs min-h-[11in] w-[8.5in] mx-auto"
-      : "printable-page bg-white p-6 font-sans text-gray-800 text-xs min-h-[11in] w-[8.5in] mx-auto";
-
     return (
-      <div ref={ref} className={containerClass}>
+      <div ref={ref} className="printable-page bg-white p-6 font-sans text-gray-800 text-xs">
         <style>{`
           @media print {
             @page {
               size: letter;
               margin: 0.5in;
             }
-            .printable-page, .printable-page-temp {
-              margin: 0 !important;
-              padding: 16px !important;
-              font-size: 10px !important;
-              width: 100% !important;
-              height: auto !important;
-              min-height: auto !important;
-              box-shadow: none !important;
+            .printable-page {
+              margin: 0;
+              padding: 0;
+              font-size: 10px;
+              width: 100%;
+              height: auto;
             }
             .no-print {
               display: none !important;
@@ -40,39 +33,23 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
             * {
               -webkit-print-color-adjust: exact !important;
               color-adjust: exact !important;
-              print-color-adjust: exact !important;
             }
           }
-          
-          .printable-page, .printable-page-temp {
-            font-family: Arial, sans-serif !important;
-            line-height: 1.2 !important;
-            color: #000 !important;
-            background: white !important;
-            position: relative !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-          }
-          
-          .printable-page *, .printable-page-temp * {
-            box-sizing: border-box !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-          }
-          
-          .printable-page-temp {
-            position: relative !important;
-            left: 0 !important;
-            top: 0 !important;
-            transform: none !important;
+          @media screen {
+            .printable-page {
+              max-width: 8.5in;
+              min-height: 11in;
+              margin: 0 auto;
+              box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
           }
         `}</style>
 
         {/* Header Section */}
-        <header className="mb-4 relative">
+        <header className="mb-4">
           <div className="flex justify-between items-start">
-            <div className="flex-shrink-0">
-              <div className="flex items-center space-x-1 mb-1">
+            <div>
+              <div className="flex items-center space-x-1">
                 <img 
                   src="/lovable-uploads/d1c62fdb-bdb7-4af0-b045-961a93bfb9bb.png" 
                   alt="Aerocam Logo" 
@@ -84,25 +61,25 @@ export const PrintableDiveLog = React.forwardRef<HTMLDivElement, PrintableDiveLo
               <p className="text-[10px]">Ignacio Carrera Pinto Nº 200, Quellón – Chiloé</p>
               <p className="text-[10px]">(65) 2 353 322 • contacto@aerocamchile.cl • www.aerocamchile.cl</p>
             </div>
-            <div className="text-right flex-shrink-0">
+            <div className="text-right">
               <div className="flex justify-end items-center text-xs mb-1">
                 <span className="font-semibold text-gray-600 pr-1">Fecha:</span>
-                <div className="border border-gray-400 px-2 py-1 text-gray-700 text-xs min-h-[24px] w-28 flex items-center">
+                <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 w-28">
                   {diveLog.log_date || ''}
                 </div>
               </div>
               <div className="flex justify-end items-center mt-1">
                 <span className="font-semibold text-xs mr-1">Nº:</span>
-                <div className="border border-gray-400 px-2 py-1 text-green-600 font-bold text-xs min-h-[24px] w-28 flex items-center">
+                <div className="border border-gray-400 px-1 py-0.5 text-green-600 font-bold text-xs h-6 w-28">
                   {diveLog.id?.slice(-6) || ''}
                 </div>
               </div>
             </div>
           </div>
-          <h1 className="text-lg font-bold text-center my-3 uppercase">BITÁCORA BUCEO E INFORME DE TRABAJO REALIZADO</h1>
+          <h1 className="text-lg font-bold text-center my-2">BITÁCORA BUCEO E INFORME DE TRABAJO REALIZADO</h1>
           <div className="flex items-center text-xs mb-1">
             <span className="font-semibold text-gray-600 pr-1 font-bold">CENTRO DE CULTIVO:</span>
-            <div className="border border-gray-400 px-2 py-1 text-gray-700 text-xs min-h-[24px] flex-grow flex items-center">
+            <div className="border border-gray-400 px-1 py-0.5 text-gray-700 text-xs h-6 flex-grow">
               {diveLog.centers?.name || 'N/A'}
             </div>
           </div>
