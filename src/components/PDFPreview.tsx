@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Eye, Download } from "lucide-react";
@@ -19,12 +19,20 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [fullDiveLog, setFullDiveLog] = useState<DiveLogWithFullDetails | null>(null);
+  const [isDataReady, setIsDataReady] = useState(false);
   const page1Ref = useRef<HTMLDivElement>(null);
   const page2Ref = useRef<HTMLDivElement>(null);
   const { generateMultiPagePDF, isGenerating } = useAdvancedPDFGenerator();
 
-  const handlePreview = async () => {
-    setIsLoadingPreview(true);
+  // Load dive log data when component mounts or diveLogId changes
+  useEffect(() => {
+    if (diveLog) {
+      setFullDiveLog(diveLog);
+      setIsDataReady(true);
+    }
+  }, [diveLog]);
+
+  const loadDiveLogData = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('export-dive-log-pdf', {
         body: { diveLogId, preview: true },
@@ -36,6 +44,20 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
 
       if (data.success && data.diveLog) {
         setFullDiveLog(data.diveLog);
+        setIsDataReady(true);
+        return data.diveLog;
+      }
+    } catch (error) {
+      console.error('Error loading dive log:', error);
+      return null;
+    }
+  };
+
+  const handlePreview = async () => {
+    setIsLoadingPreview(true);
+    try {
+      const diveLogData = fullDiveLog || await loadDiveLogData();
+      if (diveLogData) {
         setPreviewOpen(true);
       }
     } catch (error) {
@@ -50,20 +72,19 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
     
     let diveLogData = fullDiveLog;
     
+    // Load data if not already available
     if (!diveLogData) {
       console.log("Loading dive log data for download...");
-      const { data, error } = await supabase.functions.invoke('export-dive-log-pdf', {
-        body: { diveLogId, preview: true },
-      });
-
-      if (error || !data.success) {
-        console.error('Error loading dive log for download:', error);
+      diveLogData = await loadDiveLogData();
+      
+      if (!diveLogData) {
+        console.error('Failed to load dive log data');
         return;
       }
-
-      diveLogData = data.diveLog;
-      setFullDiveLog(diveLogData);
     }
+
+    // Wait a moment to ensure refs are available after data is loaded
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     if (diveLogData && page1Ref.current && page2Ref.current) {
       const dateStr = diveLogData.log_date ? new Date(diveLogData.log_date).toISOString().split('T')[0] : 'sin-fecha';
@@ -73,7 +94,11 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
       console.log("Generating multi-page PDF with filename:", filename);
       await generateMultiPagePDF(page1Ref.current, page2Ref.current, filename);
     } else {
-      console.error("Missing dive log data or page refs");
+      console.error("Missing dive log data or page refs", {
+        diveLogData: !!diveLogData,
+        page1Ref: !!page1Ref.current,
+        page2Ref: !!page2Ref.current
+      });
     }
   };
 
@@ -101,6 +126,18 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
         {isGenerating ? 'Generando...' : 'Descargar PDF'}
       </Button>
 
+      {/* Hidden components for PDF generation - always render when data is ready */}
+      {isDataReady && fullDiveLog && (
+        <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+          <div ref={page1Ref}>
+            <PrintableDiveLogPage1 diveLog={fullDiveLog} />
+          </div>
+          <div ref={page2Ref}>
+            <PrintableDiveLogPage2 diveLog={fullDiveLog} hasSignature={hasSignature} />
+          </div>
+        </div>
+      )}
+
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-7xl max-h-[90vh] bg-slate-900 border-slate-700">
           <DialogHeader>
@@ -113,9 +150,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
               <div className="space-y-8">
                 {/* Página 1 */}
                 <div className="bg-white shadow-lg">
-                  <div ref={page1Ref}>
-                    <PrintableDiveLogPage1 diveLog={fullDiveLog} />
-                  </div>
+                  <PrintableDiveLogPage1 diveLog={fullDiveLog} />
                 </div>
                 
                 {/* Separador visual */}
@@ -125,9 +160,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
                 
                 {/* Página 2 */}
                 <div className="bg-white shadow-lg">
-                  <div ref={page2Ref}>
-                    <PrintableDiveLogPage2 diveLog={fullDiveLog} hasSignature={hasSignature} />
-                  </div>
+                  <PrintableDiveLogPage2 diveLog={fullDiveLog} hasSignature={hasSignature} />
                 </div>
               </div>
             )}
