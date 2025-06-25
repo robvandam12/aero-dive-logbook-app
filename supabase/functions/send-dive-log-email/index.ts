@@ -1,6 +1,9 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import React from "https://esm.sh/react@18.2.0";
+import { pdf } from "https://esm.sh/@react-pdf/renderer@4.3.0";
+import { Document, Page, Text, View, StyleSheet, Image } from "https://esm.sh/@react-pdf/renderer@4.3.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +15,102 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// PDF Styles
+const pdfStyles = StyleSheet.create({
+  page: {
+    fontFamily: 'Helvetica',
+    fontSize: 10,
+    paddingTop: 30,
+    paddingLeft: 40,	
+    paddingRight: 40,
+    paddingBottom: 30,
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1e40af',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 20,
+  },
+  section: {
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#1e40af',
+    textTransform: 'uppercase',
+  },
+  row: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  label: {
+    width: '30%',
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  value: {
+    width: '70%',
+    color: '#111827',
+  },
+  table: {
+    marginTop: 15,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    padding: 8,
+    borderBottom: 1,
+    borderColor: '#d1d5db',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    padding: 6,
+    borderBottom: 0.5,
+    borderColor: '#e5e7eb',
+  },
+  tableCell: {
+    flex: 1,
+    fontSize: 9,
+  },
+  signatureSection: {
+    marginTop: 30,
+    alignItems: 'center',
+  },
+  signatureImage: {
+    width: 200,
+    height: 100,
+    objectFit: 'contain',
+    backgroundColor: '#ffffff',
+  },
+  signatureText: {
+    marginTop: 10,
+    fontSize: 10,
+    color: '#64748b',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    color: '#9ca3af',
+    fontSize: 8,
+  },
+});
 
 // Helper function to safely get data
 function safeGet(obj: any, path: string, fallback: string = 'N/A'): string {
@@ -30,527 +129,6 @@ function safeFormatDate(date: string | null): string {
     return new Date(date).toLocaleDateString('es-ES');
   } catch {
     return 'N/A';
-  }
-}
-
-// Generate PDF using Puppeteer-compatible HTML
-async function generatePDFFromHTML(diveLog: any, hasSignature: boolean): Promise<Uint8Array> {
-  console.log("Generating PDF from HTML...");
-  
-  const diversManifest = Array.isArray(diveLog.divers_manifest) ? diveLog.divers_manifest : [];
-  
-  const htmlContent = `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitácora de Buceo</title>
-    <style>
-        @page {
-            size: A4;
-            margin: 20mm;
-        }
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-        }
-        body { 
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
-            color: #333;
-            background: white;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #2563eb;
-        }
-        .logo-section {
-            display: flex;
-            align-items: center;
-        }
-        .company-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 5px;
-        }
-        .company-subtitle {
-            font-size: 10px;
-            color: #666;
-            margin-bottom: 2px;
-        }
-        .date-box {
-            background: #f3f4f6;
-            padding: 10px;
-            border-radius: 5px;
-            min-width: 120px;
-            text-align: center;
-        }
-        .date-label {
-            font-size: 10px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        .date-value {
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .title {
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            margin: 20px 0;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
-        .center-info {
-            background: #dbeafe;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            color: #1e40af;
-        }
-        .section {
-            margin-bottom: 20px;
-            border: 1px solid #e5e7eb;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .section-title {
-            background: #2563eb;
-            color: white;
-            padding: 10px 15px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .section-content {
-            padding: 15px;
-        }
-        .field-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .field {
-            margin-bottom: 10px;
-        }
-        .field-label {
-            font-size: 10px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 3px;
-        }
-        .field-value {
-            border-bottom: 1px solid #d1d5db;
-            padding-bottom: 3px;
-            font-size: 12px;
-            min-height: 20px;
-        }
-        .weather-section {
-            background: #f9fafb;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .weather-title {
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .weather-options {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .checkbox {
-            width: 12px;
-            height: 12px;
-            border: 1px solid #666;
-            display: inline-block;
-            margin-right: 5px;
-            text-align: center;
-            font-size: 10px;
-            line-height: 10px;
-        }
-        .checkbox-checked {
-            background: #10b981;
-            color: white;
-        }
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 10px 0;
-        }
-        .table th,
-        .table td {
-            border: 1px solid #d1d5db;
-            padding: 8px;
-            text-align: center;
-            font-size: 10px;
-        }
-        .table th {
-            background: #2563eb;
-            color: white;
-            font-weight: bold;
-        }
-        .table-row-even {
-            background: #f9fafb;
-        }
-        .signatures {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-top: 40px;
-        }
-        .signature-box {
-            text-align: center;
-        }
-        .signature-area {
-            border: 2px solid #d1d5db;
-            height: 80px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-        }
-        .signature-line {
-            border-top: 2px solid #333;
-            padding-top: 5px;
-        }
-        .signature-label {
-            font-size: 10px;
-            color: #666;
-            text-transform: uppercase;
-            margin-bottom: 3px;
-        }
-        .signature-name {
-            font-weight: bold;
-        }
-        .digital-signature {
-            background: #dcfce7;
-            border: 1px solid #bbf7d0;
-            padding: 5px;
-            border-radius: 3px;
-            margin-top: 5px;
-        }
-        .digital-signature-text {
-            font-size: 9px;
-            color: #16a34a;
-            font-weight: bold;
-        }
-        .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 9px;
-            color: #666;
-            text-align: center;
-            font-style: italic;
-        }
-        .page-break {
-            page-break-before: always;
-        }
-        .work-detail {
-            margin-bottom: 15px;
-        }
-        .work-detail-title {
-            font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 5px;
-        }
-        .work-detail-content {
-            border: 1px solid #d1d5db;
-            padding: 10px;
-            min-height: 60px;
-            background: #f9fafb;
-        }
-        .observations-box {
-            border: 1px solid #d1d5db;
-            padding: 15px;
-            min-height: 80px;
-            background: #f0fdf4;
-            border-left: 4px solid #22c55e;
-        }
-    </style>
-</head>
-<body>
-    <!-- Page 1 -->
-    <div class="header">
-        <div>
-            <div class="company-name">aerocam</div>
-            <div class="company-subtitle">SOCIEDAD DE SERVICIOS AEROCAM SPA</div>
-            <div class="company-subtitle">Ignacio Carrera Pinto Nº 200, Quellón – Chiloé</div>
-            <div class="company-subtitle">(65) 2 353 322 • contacto@aerocamchile.cl • www.aerocamchile.cl</div>
-        </div>
-        <div class="date-box">
-            <div class="date-label">Fecha</div>
-            <div class="date-value">${safeFormatDate(diveLog.log_date)}</div>
-            <div class="date-label">Nº</div>
-            <div class="date-value" style="color: #2563eb;">${diveLog.id?.slice(-6) || ''}</div>
-        </div>
-    </div>
-
-    <div class="title">BITÁCORA BUCEO E INFORME DE TRABAJO REALIZADO</div>
-
-    <div class="center-info">
-        Centro de Cultivo: ${safeGet(diveLog, 'centers.name', 'N/A')}
-    </div>
-
-    <div class="section">
-        <div class="section-title">DATOS GENERALES</div>
-        <div class="section-content">
-            <div class="field-grid">
-                <div class="field">
-                    <div class="field-label">Supervisor</div>
-                    <div class="field-value">${safeGet(diveLog, 'profiles.username', 'N/A')}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Jefe de Centro</div>
-                    <div class="field-value">${diveLog.center_manager || 'N/A'}</div>
-                </div>
-            </div>
-            
-            <div class="field-grid">
-                <div class="field">
-                    <div class="field-label">N° Matrícula</div>
-                    <div class="field-value">${diveLog.supervisor_license || 'N/A'}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Asistente de Centro</div>
-                    <div class="field-value">${diveLog.center_assistant || 'N/A'}</div>
-                </div>
-            </div>
-
-            <div class="weather-section">
-                <div class="weather-title">CONDICIÓN TIEMPO VARIABLES</div>
-                <div class="weather-options">
-                    <div>
-                        <span class="checkbox ${diveLog.weather_good === true ? 'checkbox-checked' : ''}">
-                            ${diveLog.weather_good === true ? '✓' : ''}
-                        </span>
-                        Favorable
-                    </div>
-                    <div>
-                        <span class="checkbox ${diveLog.weather_good === false ? 'checkbox-checked' : ''}">
-                            ${diveLog.weather_good === false ? '✓' : ''}
-                        </span>
-                        Desfavorable
-                    </div>
-                    <div style="flex: 1; margin-left: 20px;">
-                        <div class="field-label">Observaciones</div>
-                        <div class="field-value">${diveLog.weather_conditions || 'Buen tiempo'}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="field-grid">
-                <div class="field">
-                    <div class="field-label">Compresor 1</div>
-                    <div class="field-value">${diveLog.compressor_1 || ''}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Compresor 2</div>
-                    <div class="field-value">${diveLog.compressor_2 || ''}</div>
-                </div>
-            </div>
-
-            <div class="field-grid">
-                <div class="field">
-                    <div class="field-label">Hora de Inicio</div>
-                    <div class="field-value">${diveLog.start_time || diveLog.departure_time || 'N/A'}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Hora de Término</div>
-                    <div class="field-value">${diveLog.end_time || diveLog.arrival_time || 'N/A'}</div>
-                </div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">N° Solicitud de Faena</div>
-                <div class="field-value">${diveLog.work_order_number || 'N/A'}</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">TEAM DE BUCEO</div>
-        <div class="section-content">
-            <div style="text-align: center; font-weight: bold; margin-bottom: 15px;">
-                Composición de Equipo Buzos y Asistentes
-            </div>
-            
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th style="width: 8%;">#</th>
-                        <th style="width: 25%;">IDENTIFICACIÓN</th>
-                        <th style="width: 15%;">MATRÍCULA</th>
-                        <th style="width: 12%;">CARGO</th>
-                        <th style="width: 15%;">ESTÁNDAR<br/>(≤20m)</th>
-                        <th style="width: 8%;">PROF.</th>
-                        <th style="width: 8%;">INICIO</th>
-                        <th style="width: 8%;">TÉRMINO</th>
-                        <th style="width: 8%;">TIEMPO</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${[1, 2, 3, 4].map((buzoNum, index) => {
-                      const diver = diversManifest[buzoNum - 1];
-                      const isEven = index % 2 === 0;
-                      return `
-                        <tr class="${isEven ? 'table-row-even' : ''}">
-                            <td style="font-weight: bold; color: #2563eb;">${buzoNum}</td>
-                            <td style="text-align: left;">${diver?.name || ''}</td>
-                            <td>${diver?.license || ''}</td>
-                            <td>${diver?.role || ''}</td>
-                            <td>
-                                <span class="checkbox ${diver?.standard_depth === true ? 'checkbox-checked' : ''}" style="font-size: 8px;">
-                                    ${diver?.standard_depth === true ? '✓' : ''}
-                                </span> Sí
-                                <span class="checkbox ${diver?.standard_depth === false ? 'checkbox-checked' : ''}" style="font-size: 8px; margin-left: 5px;">
-                                    ${diver?.standard_depth === false ? '✓' : ''}
-                                </span> No
-                            </td>
-                            <td>${diver?.working_depth || ''}</td>
-                            <td>${diver?.start_time || ''}</td>
-                            <td>${diver?.end_time || ''}</td>
-                            <td>${diver?.dive_time || ''}</td>
-                        </tr>
-                      `;
-                    }).join('')}
-                </tbody>
-            </table>
-            <div style="font-size: 9px; color: #666; margin-top: 5px; text-align: center;">
-                * Capacidad máxima permitida: 20 metros de profundidad
-            </div>
-        </div>
-    </div>
-
-    <!-- Page Break -->
-    <div class="page-break"></div>
-
-    <!-- Page 2 -->
-    <div class="header">
-        <div>
-            <div class="company-name">aerocam</div>
-            <div class="company-subtitle">Bitácora de Buceo - Página 2</div>
-        </div>
-        <div class="date-box">
-            <div class="date-label">Nº</div>
-            <div class="date-value" style="color: #2563eb;">${diveLog.id?.slice(-6) || ''}</div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">DETALLE DE TRABAJO REALIZADO POR BUZO</div>
-        <div class="section-content">
-            ${[1, 2, 3, 4].map(buzoNum => {
-              const diver = diversManifest[buzoNum - 1];
-              return `
-                <div class="work-detail">
-                    <div class="work-detail-title">
-                        BUZO ${buzoNum}${diver?.name ? ` - ${diver.name}` : ''}
-                    </div>
-                    <div class="work-detail-content">
-                        ${diver?.work_description || diver?.work_performed || ''}
-                    </div>
-                </div>
-              `;
-            }).join('')}
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">OBSERVACIONES GENERALES</div>
-        <div class="section-content">
-            <div class="observations-box">
-                ${diveLog.observations || 'Faena realizada normal, buzos sin novedad.'}
-            </div>
-        </div>
-    </div>
-
-    <div class="signatures">
-        <div class="signature-box">
-            <div class="signature-area">
-                <!-- Firma Encargado de Centro -->
-            </div>
-            <div class="signature-line">
-                <div class="signature-label">Nombre y Cargo</div>
-                <div class="signature-name">ENCARGADO DE CENTRO</div>
-            </div>
-        </div>
-        
-        <div class="signature-box">
-            <div class="signature-area">
-                ${hasSignature && diveLog.signature_url ? 
-                  `<img src="${diveLog.signature_url}" style="max-height: 70px; max-width: 150px;" alt="Firma Digital"/>` : 
-                  '<!-- Firma y Timbre -->'
-                }
-            </div>
-            <div class="signature-line">
-                <div class="signature-label">Nombre y Cargo</div>
-                <div class="signature-name">SUPERVISOR DE BUCEO</div>
-                ${hasSignature ? `
-                    <div class="digital-signature">
-                        <div class="digital-signature-text">✓ FIRMADO DIGITALMENTE</div>
-                        <div style="font-size: 8px; color: #15803d;">Código: DL-${diveLog.id?.slice(0, 8).toUpperCase()}</div>
-                    </div>
-                ` : ''}
-            </div>
-        </div>
-    </div>
-
-    <div class="footer">
-        Este documento contiene información confidencial de Aerocam SPA. 
-        Queda prohibida su reproducción, distribución o transformación sin autorización expresa.
-    </div>
-</body>
-</html>`;
-
-  // Use Puppeteer to convert HTML to PDF
-  try {
-    const response = await fetch('https://api.htmlcsstoimage.com/v1/image', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + Deno.env.get('HTMLCSS_API_KEY') || ''
-      },
-      body: JSON.stringify({
-        html: htmlContent,
-        css: '',
-        google_fonts: 'Arial',
-        format: 'pdf',
-        width: 794,
-        height: 1123,
-        device_scale: 2
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`PDF generation service error: ${response.status}`);
-    }
-
-    const pdfBuffer = await response.arrayBuffer();
-    return new Uint8Array(pdfBuffer);
-  } catch (error) {
-    console.error('Error with external PDF service, trying alternative approach:', error);
-    
-    // Fallback: Use simple HTML to PDF conversion
-    // For now, we'll create a basic PDF structure manually
-    // This is a simplified approach - in production you might want to use a different PDF library
-    throw new Error('PDF generation failed: ' + error.message);
   }
 }
 
@@ -604,32 +182,184 @@ serve(async (req) => {
     const centerName = safeGet(diveLog, 'centers.name', 'sin-centro').replace(/[^a-zA-Z0-9]/g, '-');
     const filename = `bitacora-${centerName}-${dateStr}-${diveLog.id?.slice(-6) || 'unknown'}.pdf`;
 
-    let attachments = [];
+    let base64PDF = '';
     let pdfError = null;
-
-    // Try to generate PDF if requested
+    
     if (includePDF) {
       try {
-        console.log("Attempting to generate PDF...");
-        const hasSignature = !(!diveLog.signature_url);
-        const pdfBuffer = await generatePDFFromHTML(diveLog, hasSignature);
+        console.log("Starting PDF generation...");
         
-        // Convert Uint8Array to base64 for email attachment
-        const base64PDF = btoa(String.fromCharCode(...pdfBuffer));
+        // Safely get divers manifest
+        const diversManifest = Array.isArray(diveLog.divers_manifest) ? diveLog.divers_manifest : [];
+        console.log(`Processing ${diversManifest.length} divers in manifest`);
+
+        // Create PDF document with simplified structure
+        console.log("Creating PDF document structure...");
         
-        attachments = [{
-          filename: filename,
-          content: base64PDF,
-          content_type: 'application/pdf'
-        }];
+        // Create header elements
+        const headerTitle = React.createElement(Text, { style: pdfStyles.title }, 'AEROCAM SPA');
+        const headerSubtitle = React.createElement(Text, { style: pdfStyles.subtitle }, 'BITÁCORA DE BUCEO PROFESIONAL');
+        const headerContent = React.createElement(View, {}, headerTitle, headerSubtitle);
+        const headerSection = React.createElement(View, { style: pdfStyles.header }, headerContent);
+
+        // Create general info section
+        const generalInfoTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'INFORMACIÓN GENERAL');
         
-        console.log("PDF generated successfully");
+        const centerRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Centro:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'centers.name'))
+        );
+        
+        const dateRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Fecha:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeFormatDate(diveLog.log_date))
+        );
+        
+        const supervisorRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Supervisor:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'supervisor_name') || safeGet(diveLog, 'profiles.username'))
+        );
+        
+        const siteRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Punto de Buceo:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'dive_sites.name'))
+        );
+        
+        const boatRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Embarcación:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'boats.name'))
+        );
+
+        const generalInfoSection = React.createElement(View, { style: pdfStyles.section },
+          generalInfoTitle, centerRow, dateRow, supervisorRow, siteRow, boatRow
+        );
+
+        // Create times section
+        const timesTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'HORARIOS');
+        
+        const departureRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Hora Salida:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'departure_time'))
+        );
+        
+        const arrivalRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Hora Llegada:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'arrival_time'))
+        );
+
+        const timesSection = React.createElement(View, { style: pdfStyles.section },
+          timesTitle, departureRow, arrivalRow
+        );
+
+        // Create divers table
+        const diversTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'MANIFIESTO DE BUZOS');
+        
+        const tableHeaderCells = [
+          React.createElement(Text, { style: pdfStyles.tableCell }, 'Nombre'),
+          React.createElement(Text, { style: pdfStyles.tableCell }, 'Rol'),
+          React.createElement(Text, { style: pdfStyles.tableCell }, 'Licencia'),
+          React.createElement(Text, { style: pdfStyles.tableCell }, 'Profundidad')
+        ];
+        const tableHeader = React.createElement(View, { style: pdfStyles.tableHeader }, ...tableHeaderCells);
+
+        // Create table rows for divers
+        const tableRows = diversManifest.slice(0, 4).map((diver: any, index: number) => {
+          const cells = [
+            React.createElement(Text, { style: pdfStyles.tableCell }, safeGet(diver, 'name')),
+            React.createElement(Text, { style: pdfStyles.tableCell }, safeGet(diver, 'role')),
+            React.createElement(Text, { style: pdfStyles.tableCell }, safeGet(diver, 'license')),
+            React.createElement(Text, { style: pdfStyles.tableCell }, 
+              diver?.working_depth ? `${diver.working_depth}m` : 'N/A'
+            )
+          ];
+          return React.createElement(View, { style: pdfStyles.tableRow }, ...cells);
+        });
+
+        const diversTable = React.createElement(View, { style: pdfStyles.table },
+          diversTitle, tableHeader, ...tableRows
+        );
+
+        // Create observations section
+        const obsTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'OBSERVACIONES');
+        const obsText = React.createElement(Text, { style: { fontSize: 10, color: '#374151' } }, 
+          safeGet(diveLog, 'observations', 'Sin observaciones registradas')
+        );
+        const observationsSection = React.createElement(View, { style: pdfStyles.section }, obsTitle, obsText);
+
+        // Create footer
+        const footerText = React.createElement(Text, { style: pdfStyles.footer }, 
+          `Documento generado por Aerocam SPA - ID: ${diveLog.id?.slice(-8)?.toUpperCase() || 'N/A'}`
+        );
+
+        // Create first page
+        const page1 = React.createElement(Page, { size: 'A4', style: pdfStyles.page },
+          headerSection, generalInfoSection, timesSection, diversTable, observationsSection, footerText
+        );
+
+        // Create signature section for page 2
+        const signatureTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'FIRMA DIGITAL DEL SUPERVISOR');
+        
+        let signatureContent;
+        if (diveLog.signature_url) {
+          const signatureImg = React.createElement(Image, { 
+            style: pdfStyles.signatureImage, 
+            src: diveLog.signature_url 
+          });
+          const signedText = React.createElement(Text, { style: pdfStyles.signatureText }, 
+            `Firmado digitalmente el ${new Date().toLocaleDateString('es-ES')} por ${safeGet(diveLog, 'supervisor_name') || safeGet(diveLog, 'profiles.username', 'Supervisor')}`
+          );
+          const verificationCode = React.createElement(Text, { style: pdfStyles.signatureText }, 
+            `Código de verificación: DL-${diveLog.id?.slice(0, 8)?.toUpperCase() || 'N/A'}`
+          );
+          signatureContent = React.createElement(View, {}, signatureImg, signedText, verificationCode);
+        } else {
+          const noSignatureBox = React.createElement(View, { 
+            style: { height: 100, width: 200, backgroundColor: '#ffffff', border: 1, borderColor: '#d1d5db' } 
+          }, React.createElement(Text, { 
+            style: { textAlign: 'center', paddingTop: 40, color: '#9ca3af' } 
+          }, 'Pendiente de firma'));
+          signatureContent = noSignatureBox;
+        }
+
+        const signatureSection = React.createElement(View, { style: pdfStyles.signatureSection },
+          signatureTitle, signatureContent
+        );
+
+        // Create second page
+        const page2 = React.createElement(Page, { size: 'A4', style: pdfStyles.page }, signatureSection);
+
+        // Create final document
+        const pdfDocument = React.createElement(Document, {
+          title: `Bitácora de Buceo - ${safeGet(diveLog, 'centers.name', 'Centro')} - ${safeGet(diveLog, 'log_date', 'Sin fecha')}`,
+          author: "Aerocam SPA",
+          subject: "Bitácora de Buceo",
+          creator: "Sistema de Bitácoras Aerocam",
+          producer: "React-PDF"
+        }, page1, page2);
+        
+        console.log("PDF document structure created, generating blob...");
+        
+        // Generate PDF blob
+        const pdfBlob = await pdf(pdfDocument).toBlob();
+        
+        // Convert blob to base64
+        const arrayBuffer = await pdfBlob.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        // Convert to base64 string
+        const decoder = new TextDecoder('latin1');
+        const binaryString = decoder.decode(uint8Array);
+        base64PDF = btoa(binaryString);
+        
+        console.log("PDF generated successfully for email attachment");
       } catch (error) {
         console.error("Error generating PDF:", error);
-        pdfError = `Error al generar PDF: ${error.message}`;
+        pdfError = error.message;
+        // Continue without PDF attachment
+        console.log("Continuing email send without PDF attachment due to error");
       }
     }
-    
+
     // Generate email content
     console.log("Generating email content...");
     const emailBody = generateModernEmailHTML({
@@ -637,7 +367,7 @@ serve(async (req) => {
       recipientName,
       message,
       filename,
-      pdfError: pdfError || (attachments.length === 0 && includePDF ? "No se pudo generar el PDF. Puedes descargarlo desde la plataforma web." : null)
+      pdfError
     });
 
     // Prepare email payload
@@ -646,10 +376,14 @@ serve(async (req) => {
       to: [recipientEmail],
       subject: `📋 Bitácora de Buceo - ${safeGet(diveLog, 'centers.name', 'Centro')} - ${safeFormatDate(diveLog.log_date)}`,
       html: emailBody,
-      attachments: attachments
+      attachments: (includePDF && base64PDF) ? [{
+        filename: filename,
+        content: base64PDF,
+        content_type: "application/pdf"
+      }] : []
     };
 
-    console.log("Sending email with Resend...", { hasAttachments: attachments.length > 0 });
+    console.log("Sending email with Resend...");
     
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -675,7 +409,7 @@ serve(async (req) => {
       result,
       diveLogId,
       filename,
-      pdfGenerated: attachments.length > 0,
+      pdfGenerated: !!base64PDF,
       pdfError: pdfError
     }), {
       headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -703,10 +437,10 @@ function generateModernEmailHTML({ diveLog, recipientName, message, filename, pd
   const pdfWarning = pdfError ? `
     <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin: 16px 0;">
       <p style="color: #dc2626; margin: 0; font-size: 14px;">
-        ⚠️ ${pdfError}
+        ⚠️ No se pudo generar el PDF adjunto: ${pdfError}
       </p>
       <p style="color: #7f1d1d; margin: 8px 0 0 0; font-size: 12px;">
-        Puedes descargar el PDF desde la plataforma web visitando la bitácora directamente.
+        Puedes descargar el PDF desde la plataforma web.
       </p>
     </div>
   ` : '';
@@ -812,6 +546,17 @@ function generateModernEmailHTML({ diveLog, recipientName, message, filename, pd
             background: #fff3cd;
             color: #856404;
         }
+        .attachment-info {
+            background: #f8f9ff;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 24px 0;
+            text-align: center;
+        }
+        .attachment-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
         .footer {
             background: #f8f9fa;
             padding: 30px;
@@ -849,7 +594,7 @@ function generateModernEmailHTML({ diveLog, recipientName, message, filename, pd
             </div>
             
             <p style="color: #8e8e93; margin-bottom: 24px;">
-                Te compartimos los detalles de la bitácora de buceo ${pdfError ? 'solicitada' : 'con el PDF adjunto'}.
+                Te compartimos la bitácora de buceo solicitada. Encuentra todos los detalles importantes a continuación.
             </p>
             
             ${message ? `
@@ -910,10 +655,21 @@ function generateModernEmailHTML({ diveLog, recipientName, message, filename, pd
             </div>
             
             ${!pdfError ? `
-                <p style="color: #8e8e93; font-size: 14px; text-align: center; margin: 24px 0;">
-                    📎 El PDF de la bitácora está adjunto a este correo.
-                </p>
+                <div class="attachment-info">
+                    <div class="attachment-icon">📎</div>
+                    <p style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px;">
+                        Archivo Adjunto
+                    </p>
+                    <p style="color: #8e8e93; font-size: 14px; margin: 0;">
+                        ${filename}<br>
+                        <small>Bitácora completa en formato PDF</small>
+                    </p>
+                </div>
             ` : ''}
+            
+            <p style="color: #8e8e93; font-size: 14px; text-align: center; margin: 24px 0;">
+                Este documento contiene información profesional certificada por Aerocam SPA.
+            </p>
         </div>
         
         <div class="footer">
