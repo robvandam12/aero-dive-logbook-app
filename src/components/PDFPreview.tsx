@@ -5,7 +5,6 @@ import { useHtml2CanvasPDF } from "@/hooks/useHtml2CanvasPDF";
 import { usePDFPreview } from "@/hooks/usePDFPreview";
 import { PDFActionButtons } from "./pdf/PDFActionButtons";
 import { PDFPreviewDialog } from "./pdf/PDFPreviewDialog";
-import { PDFTemplateSelector } from "./pdf/PDFTemplateSelector";
 import { 
   createTempPDFContainer, 
   renderPDFComponent, 
@@ -21,7 +20,6 @@ interface PDFPreviewProps {
 
 export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps) => {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<'basic' | 'professional'>('professional');
   const printableRef = useRef<HTMLDivElement>(null);
   const { generatePDF, isExporting } = useHtml2CanvasPDF();
   const { isLoadingPreview, fullDiveLog, handlePreview } = usePDFPreview(diveLog);
@@ -32,7 +30,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
   };
 
   const handleDownload = async () => {
-    console.log("Download button clicked with template:", selectedTemplate);
+    console.log("Download button clicked");
     
     // Use the current preview data or the provided dive log
     const diveLogData = fullDiveLog || diveLog;
@@ -53,11 +51,11 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
     // Create a temporary container with proper React rendering
     console.log("Creating temporary React component for PDF generation");
     
-    const tempContainer = createTempPDFContainer(diveLogData, hasSignature, selectedTemplate);
+    const tempContainer = createTempPDFContainer(diveLogData, hasSignature);
     
     try {
-      // Render the React component with selected template
-      await renderPDFComponent(tempContainer, diveLogData, hasSignature, selectedTemplate);
+      // Render the React component
+      await renderPDFComponent(tempContainer, diveLogData, hasSignature);
 
       // Generate PDF
       const filename = generatePDFFilename(diveLogData);
@@ -78,20 +76,13 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
 
   return (
     <>
-      <div className="space-y-3">
-        <PDFTemplateSelector
-          selectedTemplate={selectedTemplate}
-          onTemplateChange={setSelectedTemplate}
-        />
-        
-        <PDFActionButtons
-          onPreview={handlePreviewClick}
-          onDownload={handleDownload}
-          isLoadingPreview={isLoadingPreview}
-          isExporting={isExporting}
-          hasValidData={hasValidData}
-        />
-      </div>
+      <PDFActionButtons
+        onPreview={handlePreviewClick}
+        onDownload={handleDownload}
+        isLoadingPreview={isLoadingPreview}
+        isExporting={isExporting}
+        hasValidData={hasValidData}
+      />
 
       <PDFPreviewDialog
         open={previewOpen}
@@ -99,7 +90,6 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
         diveLog={fullDiveLog || diveLog || null}
         hasSignature={hasSignature}
         printableRef={printableRef}
-        selectedTemplate={selectedTemplate}
       />
     </>
   );
