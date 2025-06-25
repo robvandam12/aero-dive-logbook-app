@@ -80,13 +80,20 @@ const SignDiveLogPage = () => {
         currentSignatureUrl: diveLog.signature_url 
       },
       {
-        onSuccess: async (updatedDiveLog) => {
+        onSuccess: async () => {
           setIsJustSigned(true);
           
-          // Generate PDF after signing using the full updated dive log data
+          // Create the updated dive log object with the new signature
+          const updatedDiveLogData = {
+            ...diveLog,
+            ...formData,
+            signature_url: signatureData, // Add the new signature
+          };
+          
+          // Generate PDF after signing using the updated dive log data
           try {
             console.log("Generating PDF after signing...");
-            await generatePDFBlob(updatedDiveLog, true);
+            await generatePDFBlob(updatedDiveLogData, true);
             console.log("PDF generated successfully after signing");
           } catch (error) {
             console.error("Error generating PDF after signing:", error);
