@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -65,7 +66,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
     console.log("Download button clicked");
     
     // Use the current preview data or the provided dive log
-    let diveLogData = fullDiveLog || diveLog;
+    const diveLogData = fullDiveLog || diveLog;
     
     if (!diveLogData) {
       console.log("No dive log data available for download");
@@ -85,6 +86,9 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
     }
   };
 
+  // Check if we have valid data to enable the download button
+  const hasValidData = !!(diveLog || fullDiveLog);
+
   return (
     <div className="flex gap-2">
       <Button 
@@ -102,7 +106,7 @@ export const PDFPreview = ({ diveLogId, hasSignature, diveLog }: PDFPreviewProps
         variant="outline" 
         size="sm" 
         onClick={handleDownload}
-        disabled={isExporting || !diveLog}
+        disabled={isExporting || !hasValidData}
         className="border-ocean-600 text-ocean-300 hover:bg-ocean-800"
       >
         <Download className="w-4 h-4 mr-2" />
