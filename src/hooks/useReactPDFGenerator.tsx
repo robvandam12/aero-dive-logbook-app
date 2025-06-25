@@ -1,13 +1,14 @@
-
 import { useCallback, useState } from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { useToast } from '@/hooks/use-toast';
 import { DiveLogWithFullDetails } from './useDiveLog';
 import { DiveLogPDFDocument } from '@/components/pdf/DiveLogPDFDocument';
+import { usePDFStorage } from './usePDFStorage';
 
 export const useReactPDFGenerator = () => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
+  const { uploadPDFToStorage } = usePDFStorage();
 
   const generatePDF = useCallback(async (
     diveLog: DiveLogWithFullDetails,
@@ -34,6 +35,10 @@ export const useReactPDFGenerator = () => {
         <DiveLogPDFDocument diveLog={diveLog} hasSignature={hasSignature} />
       ).toBlob();
 
+      // Upload PDF to Storage for email functionality
+      console.log("Uploading PDF to storage for email functionality...");
+      await uploadPDFToStorage(pdfBlob, diveLog.id);
+
       // Create filename if not provided
       const dateStr = diveLog.log_date ? new Date(diveLog.log_date).toISOString().split('T')[0] : 'sin-fecha';
       const centerName = diveLog.centers?.name ? diveLog.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
@@ -53,11 +58,11 @@ export const useReactPDFGenerator = () => {
       // Clean up
       URL.revokeObjectURL(url);
 
-      console.log("React-PDF generated successfully");
+      console.log("React-PDF generated and uploaded successfully");
 
       toast({
         title: "PDF generado",
-        description: "El archivo PDF se ha descargado correctamente.",
+        description: "El archivo PDF se ha descargado correctamente y está listo para enviar por email.",
       });
 
     } catch (error) {
@@ -70,7 +75,7 @@ export const useReactPDFGenerator = () => {
     } finally {
       setIsGenerating(false);
     }
-  }, [toast]);
+  }, [toast, uploadPDFToStorage]);
 
   const generatePDFBlob = useCallback(async (
     diveLog: DiveLogWithFullDetails,
@@ -82,21 +87,25 @@ export const useReactPDFGenerator = () => {
     }
 
     try {
-      console.log("Generating React-PDF blob for email...");
+      console.log("Generating React-PDF blob...");
       
       // Generate PDF blob using React-PDF
       const pdfBlob = await pdf(
         <DiveLogPDFDocument diveLog={diveLog} hasSignature={hasSignature} />
       ).toBlob();
 
-      console.log("React-PDF blob generated successfully");
+      // Also upload to storage for email functionality
+      console.log("Uploading PDF blob to storage...");
+      await uploadPDFToStorage(pdfBlob, diveLog.id);
+
+      console.log("React-PDF blob generated and uploaded successfully");
       return pdfBlob;
 
     } catch (error) {
       console.error("Error generating React-PDF blob:", error);
       return null;
     }
-  }, []);
+  }, [uploadPDFToStorage]);
 
   const generatePDFPreview = useCallback(async (
     diveLog: DiveLogWithFullDetails,
