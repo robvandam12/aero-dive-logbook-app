@@ -65,22 +65,20 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-gray-900 ocean-pattern">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-gray-900">
       <Header />
       
       <main className="container mx-auto px-6 py-8 space-y-8">
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <img 
-              src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
-              alt="Aerocam" 
-              className="w-12 h-12 object-contain"
-            />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#6555FF] to-purple-700 bg-clip-text text-transparent">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
+              <FileText className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
               Bienvenido al Sistema Aerocam
             </h1>
           </div>
-          <p className="text-xl text-ocean-300 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Gestiona tus bitácoras de buceo de manera profesional, segura y eficiente
           </p>
         </div>
@@ -94,50 +92,46 @@ const Index = () => {
         <DiveLogTable />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div onClick={() => handleQuickActionClick('/new-dive-log')} className="glass p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer ocean-shimmer">
+          <div onClick={() => handleQuickActionClick('/new-dive-log')} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="flex items-center space-x-4">
-              <div className="bg-gradient-to-r from-[#6555FF] to-purple-700 p-3 rounded-xl">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-3 rounded-xl">
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white">Nueva Bitácora</h3>
-                <p className="text-ocean-300 text-sm">Crear una nueva bitácora de buceo</p>
+                <p className="text-gray-300 text-sm">Crear una nueva bitácora de buceo</p>
               </div>
             </div>
           </div>
 
-          <div onClick={() => handleQuickActionClick('/dashboard')} className="glass p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer ocean-shimmer">
+          <div onClick={() => handleQuickActionClick('/dashboard')} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="flex items-center space-x-4">
               <div className="bg-gradient-to-r from-amber-600 to-amber-800 p-3 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white">Reportes</h3>
-                <p className="text-ocean-300 text-sm">Ver estadísticas y exportar datos</p>
+                <p className="text-gray-300 text-sm">Ver estadísticas y exportar datos</p>
               </div>
             </div>
           </div>
 
-          <div onClick={() => handleQuickActionClick('/dashboard')} className="glass p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer ocean-shimmer">
+          <div onClick={() => handleQuickActionClick('/dashboard')} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="flex items-center space-x-4">
               <div className="bg-gradient-to-r from-emerald-600 to-emerald-800 p-3 rounded-xl">
                 <Clock className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white">Pendientes</h3>
-                <p className="text-ocean-300 text-sm">Bitácoras por firmar y enviar</p>
+                <p className="text-gray-300 text-sm">Bitácoras por firmar y enviar</p>
               </div>
             </div>
           </div>
         </div>
 
-        <footer className="text-center text-ocean-400 text-sm py-8">
+        <footer className="text-center text-gray-400 text-sm py-8">
           <div className="flex items-center justify-center space-x-2 mb-2">
-            <img 
-              src="/lovable-uploads/69b45c89-8ef7-40b3-88e7-21a3e0d1cd98.png" 
-              alt="Aerocam" 
-              className="w-4 h-4 object-contain opacity-60"
-            />
+            <FileText className="w-4 h-4 opacity-60" />
             <p>© 2024 Aerocam App - Sistema de Gestión de Bitácoras de Buceo</p>
           </div>
         </footer>

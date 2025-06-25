@@ -21,27 +21,27 @@ const centerData = [
 export const DashboardChart = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <Card className="glass">
+      <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700">
         <CardHeader>
           <CardTitle className="text-white">Bitácoras por Mes</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#0c4a6e" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
               <XAxis 
                 dataKey="mes" 
-                stroke="#7dd3fc"
+                stroke="#94a3b8"
                 fontSize={12}
               />
               <YAxis 
-                stroke="#7dd3fc"
+                stroke="#94a3b8"
                 fontSize={12}
               />
               <Tooltip 
                 contentStyle={{
-                  backgroundColor: '#0c4a6e',
-                  border: '1px solid #0369a1',
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #475569',
                   borderRadius: '8px',
                   color: '#fff'
                 }}
@@ -49,17 +49,17 @@ export const DashboardChart = () => {
               <Line 
                 type="monotone" 
                 dataKey="bitacoras" 
-                stroke="#0ea5e9" 
+                stroke="#3b82f6" 
                 strokeWidth={3}
-                dot={{ fill: '#0ea5e9', strokeWidth: 2, r: 4 }}
+                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                 name="Total Bitácoras"
               />
               <Line 
                 type="monotone" 
                 dataKey="firmadas" 
-                stroke="#fbbf24" 
+                stroke="#f59e0b" 
                 strokeWidth={3}
-                dot={{ fill: '#fbbf24', strokeWidth: 2, r: 4 }}
+                dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
                 name="Firmadas"
               />
             </LineChart>
@@ -67,46 +67,40 @@ export const DashboardChart = () => {
         </CardContent>
       </Card>
 
-      <Card className="glass">
+      <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700">
         <CardHeader>
           <CardTitle className="text-white">Bitácoras por Centro</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={centerData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#0c4a6e" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
               <XAxis 
                 dataKey="centro" 
-                stroke="#7dd3fc"
+                stroke="#94a3b8"
                 fontSize={12}
                 angle={-45}
                 textAnchor="end"
                 height={80}
               />
               <YAxis 
-                stroke="#7dd3fc"
+                stroke="#94a3b8"
                 fontSize={12}
               />
               <Tooltip 
                 contentStyle={{
-                  backgroundColor: '#0c4a6e',
-                  border: '1px solid #0369a1',
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #475569',
                   borderRadius: '8px',
                   color: '#fff'
                 }}
               />
               <Bar 
                 dataKey="bitacoras" 
-                fill="url(#oceanGradient)"
+                fill="#3b82f6"
                 radius={[4, 4, 0, 0]}
                 name="Bitácoras"
               />
-              <defs>
-                <linearGradient id="oceanGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#0369a1" stopOpacity={0.7}/>
-                </linearGradient>
-              </defs>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

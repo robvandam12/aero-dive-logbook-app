@@ -24,22 +24,18 @@ export const StatsCard = ({
 }: StatsCardProps) => {
   const colorVariants = {
     ocean: {
-      gradient: 'from-ocean-600 to-ocean-800',
-      accent: 'text-ocean-400',
-      bg: 'bg-ocean-950/20'
+      accent: 'text-blue-400',
+      bg: 'bg-blue-950/20'
     },
     gold: {
-      gradient: 'from-gold-600 to-gold-800',
-      accent: 'text-gold-400',
-      bg: 'bg-gold-950/20'
+      accent: 'text-amber-400',
+      bg: 'bg-amber-950/20'
     },
     emerald: {
-      gradient: 'from-emerald-600 to-emerald-800',
       accent: 'text-emerald-400',
       bg: 'bg-emerald-950/20'
     },
     rose: {
-      gradient: 'from-rose-600 to-rose-800',
       accent: 'text-rose-400',
       bg: 'bg-rose-950/20'
     }
@@ -48,11 +44,11 @@ export const StatsCard = ({
   const variant = colorVariants[color];
 
   return (
-    <Card className="glass ocean-shimmer hover:scale-105 transition-all duration-300">
+    <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700 hover:scale-105 transition-all duration-300">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">
+            <p className="text-sm font-medium text-gray-400">
               {title}
             </p>
             <div className="flex items-baseline space-x-2">
@@ -68,7 +64,7 @@ export const StatsCard = ({
               )}
             </div>
             {description && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-400">
                 {description}
               </p>
             )}
