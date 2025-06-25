@@ -22,7 +22,7 @@ const pdfStyles = StyleSheet.create({
     fontFamily: 'Helvetica',
     fontSize: 10,
     paddingTop: 30,
-    paddingLeft: 40,
+    paddingLeft: 40,	
     paddingRight: 40,
     paddingBottom: 30,
     backgroundColor: '#ffffff',
@@ -112,6 +112,26 @@ const pdfStyles = StyleSheet.create({
   },
 });
 
+// Helper function to safely get data
+function safeGet(obj: any, path: string, fallback: string = 'N/A'): string {
+  try {
+    const value = path.split('.').reduce((current, key) => current?.[key], obj);
+    return value?.toString() || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+// Helper function to safely format date
+function safeFormatDate(date: string | null): string {
+  if (!date) return 'N/A';
+  try {
+    return new Date(date).toLocaleDateString('es-ES');
+  } catch {
+    return 'N/A';
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -126,7 +146,7 @@ serve(async (req) => {
 
   try {
     const { diveLogId, recipientEmail, recipientName, message, includePDF = true } = await req.json();
-    console.log("Sending dive log email:", { diveLogId, recipientEmail, includePDF });
+    console.log("Starting email send process:", { diveLogId, recipientEmail, includePDF });
 
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY no configurado");
@@ -137,6 +157,7 @@ serve(async (req) => {
     }
 
     // Fetch dive log with complete data
+    console.log("Fetching dive log data...");
     const { data: diveLog, error: diveLogError } = await supabase
       .from('dive_logs')
       .select(`
@@ -150,128 +171,175 @@ serve(async (req) => {
       .single();
 
     if (diveLogError || !diveLog) {
+      console.error("Error fetching dive log:", diveLogError);
       throw new Error("No se pudo obtener la bitácora: " + (diveLogError?.message || 'Bitácora no encontrada'));
     }
 
+    console.log("Dive log data fetched successfully");
+
     // Generate filename
     const dateStr = diveLog.log_date ? new Date(diveLog.log_date).toISOString().split('T')[0] : 'sin-fecha';
-    const centerName = diveLog.centers?.name ? diveLog.centers.name.replace(/[^a-zA-Z0-9]/g, '-') : 'sin-centro';
-    const filename = `bitacora-${centerName}-${dateStr}-${diveLog.id.slice(-6)}.pdf`;
+    const centerName = safeGet(diveLog, 'centers.name', 'sin-centro').replace(/[^a-zA-Z0-9]/g, '-');
+    const filename = `bitacora-${centerName}-${dateStr}-${diveLog.id?.slice(-6) || 'unknown'}.pdf`;
 
     let base64PDF = '';
+    let pdfError = null;
     
     if (includePDF) {
       try {
-        console.log("Generating PDF for email attachment...");
+        console.log("Starting PDF generation...");
         
-        // Generate PDF manually without using complex React components
+        // Safely get divers manifest
         const diversManifest = Array.isArray(diveLog.divers_manifest) ? diveLog.divers_manifest : [];
+        console.log(`Processing ${diversManifest.length} divers in manifest`);
 
+        // Create PDF document with simplified structure
+        console.log("Creating PDF document structure...");
+        
+        // Create header elements
+        const headerTitle = React.createElement(Text, { style: pdfStyles.title }, 'AEROCAM SPA');
+        const headerSubtitle = React.createElement(Text, { style: pdfStyles.subtitle }, 'BITÁCORA DE BUCEO PROFESIONAL');
+        const headerContent = React.createElement(View, {}, headerTitle, headerSubtitle);
+        const headerSection = React.createElement(View, { style: pdfStyles.header }, headerContent);
+
+        // Create general info section
+        const generalInfoTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'INFORMACIÓN GENERAL');
+        
+        const centerRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Centro:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'centers.name'))
+        );
+        
+        const dateRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Fecha:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeFormatDate(diveLog.log_date))
+        );
+        
+        const supervisorRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Supervisor:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'supervisor_name') || safeGet(diveLog, 'profiles.username'))
+        );
+        
+        const siteRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Punto de Buceo:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'dive_sites.name'))
+        );
+        
+        const boatRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Embarcación:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'boats.name'))
+        );
+
+        const generalInfoSection = React.createElement(View, { style: pdfStyles.section },
+          generalInfoTitle, centerRow, dateRow, supervisorRow, siteRow, boatRow
+        );
+
+        // Create times section
+        const timesTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'HORARIOS');
+        
+        const departureRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Hora Salida:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'departure_time'))
+        );
+        
+        const arrivalRow = React.createElement(View, { style: pdfStyles.row },
+          React.createElement(Text, { style: pdfStyles.label }, 'Hora Llegada:'),
+          React.createElement(Text, { style: pdfStyles.value }, safeGet(diveLog, 'arrival_time'))
+        );
+
+        const timesSection = React.createElement(View, { style: pdfStyles.section },
+          timesTitle, departureRow, arrivalRow
+        );
+
+        // Create divers table
+        const diversTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'MANIFIESTO DE BUZOS');
+        
+        const tableHeaderCells = [
+          React.createElement(Text, { style: pdfStyles.tableCell }, 'Nombre'),
+          React.createElement(Text, { style: pdfStyles.tableCell }, 'Rol'),
+          React.createElement(Text, { style: pdfStyles.tableCell }, 'Licencia'),
+          React.createElement(Text, { style: pdfStyles.tableCell }, 'Profundidad')
+        ];
+        const tableHeader = React.createElement(View, { style: pdfStyles.tableHeader }, ...tableHeaderCells);
+
+        // Create table rows for divers
+        const tableRows = diversManifest.slice(0, 4).map((diver: any, index: number) => {
+          const cells = [
+            React.createElement(Text, { style: pdfStyles.tableCell }, safeGet(diver, 'name')),
+            React.createElement(Text, { style: pdfStyles.tableCell }, safeGet(diver, 'role')),
+            React.createElement(Text, { style: pdfStyles.tableCell }, safeGet(diver, 'license')),
+            React.createElement(Text, { style: pdfStyles.tableCell }, 
+              diver?.working_depth ? `${diver.working_depth}m` : 'N/A'
+            )
+          ];
+          return React.createElement(View, { style: pdfStyles.tableRow }, ...cells);
+        });
+
+        const diversTable = React.createElement(View, { style: pdfStyles.table },
+          diversTitle, tableHeader, ...tableRows
+        );
+
+        // Create observations section
+        const obsTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'OBSERVACIONES');
+        const obsText = React.createElement(Text, { style: { fontSize: 10, color: '#374151' } }, 
+          safeGet(diveLog, 'observations', 'Sin observaciones registradas')
+        );
+        const observationsSection = React.createElement(View, { style: pdfStyles.section }, obsTitle, obsText);
+
+        // Create footer
+        const footerText = React.createElement(Text, { style: pdfStyles.footer }, 
+          `Documento generado por Aerocam SPA - ID: ${diveLog.id?.slice(-8)?.toUpperCase() || 'N/A'}`
+        );
+
+        // Create first page
+        const page1 = React.createElement(Page, { size: 'A4', style: pdfStyles.page },
+          headerSection, generalInfoSection, timesSection, diversTable, observationsSection, footerText
+        );
+
+        // Create signature section for page 2
+        const signatureTitle = React.createElement(Text, { style: pdfStyles.sectionTitle }, 'FIRMA DIGITAL DEL SUPERVISOR');
+        
+        let signatureContent;
+        if (diveLog.signature_url) {
+          const signatureImg = React.createElement(Image, { 
+            style: pdfStyles.signatureImage, 
+            src: diveLog.signature_url 
+          });
+          const signedText = React.createElement(Text, { style: pdfStyles.signatureText }, 
+            `Firmado digitalmente el ${new Date().toLocaleDateString('es-ES')} por ${safeGet(diveLog, 'supervisor_name') || safeGet(diveLog, 'profiles.username', 'Supervisor')}`
+          );
+          const verificationCode = React.createElement(Text, { style: pdfStyles.signatureText }, 
+            `Código de verificación: DL-${diveLog.id?.slice(0, 8)?.toUpperCase() || 'N/A'}`
+          );
+          signatureContent = React.createElement(View, {}, signatureImg, signedText, verificationCode);
+        } else {
+          const noSignatureBox = React.createElement(View, { 
+            style: { height: 100, width: 200, backgroundColor: '#ffffff', border: 1, borderColor: '#d1d5db' } 
+          }, React.createElement(Text, { 
+            style: { textAlign: 'center', paddingTop: 40, color: '#9ca3af' } 
+          }, 'Pendiente de firma'));
+          signatureContent = noSignatureBox;
+        }
+
+        const signatureSection = React.createElement(View, { style: pdfStyles.signatureSection },
+          signatureTitle, signatureContent
+        );
+
+        // Create second page
+        const page2 = React.createElement(Page, { size: 'A4', style: pdfStyles.page }, signatureSection);
+
+        // Create final document
         const pdfDocument = React.createElement(Document, {
-          title: `Bitácora de Buceo - ${diveLog.centers?.name || 'Centro'} - ${diveLog.log_date || 'Sin fecha'}`,
+          title: `Bitácora de Buceo - ${safeGet(diveLog, 'centers.name', 'Centro')} - ${safeGet(diveLog, 'log_date', 'Sin fecha')}`,
           author: "Aerocam SPA",
           subject: "Bitácora de Buceo",
           creator: "Sistema de Bitácoras Aerocam",
           producer: "React-PDF"
-        }, [
-          // Page 1
-          React.createElement(Page, { key: 'page1', size: 'A4', style: pdfStyles.page }, [
-            React.createElement(View, { key: 'header', style: pdfStyles.header }, [
-              React.createElement(View, { key: 'headerContent' }, [
-                React.createElement(Text, { key: 'title', style: pdfStyles.title }, 'AEROCAM SPA'),
-                React.createElement(Text, { key: 'subtitle', style: pdfStyles.subtitle }, 'BITÁCORA DE BUCEO PROFESIONAL')
-              ])
-            ]),
-
-            React.createElement(View, { key: 'generalInfo', style: pdfStyles.section }, [
-              React.createElement(Text, { key: 'sectionTitle', style: pdfStyles.sectionTitle }, 'INFORMACIÓN GENERAL'),
-              React.createElement(View, { key: 'row1', style: pdfStyles.row }, [
-                React.createElement(Text, { key: 'label1', style: pdfStyles.label }, 'Centro:'),
-                React.createElement(Text, { key: 'value1', style: pdfStyles.value }, diveLog.centers?.name || 'N/A')
-              ]),
-              React.createElement(View, { key: 'row2', style: pdfStyles.row }, [
-                React.createElement(Text, { key: 'label2', style: pdfStyles.label }, 'Fecha:'),
-                React.createElement(Text, { key: 'value2', style: pdfStyles.value }, diveLog.log_date ? new Date(diveLog.log_date).toLocaleDateString('es-ES') : 'N/A')
-              ]),
-              React.createElement(View, { key: 'row3', style: pdfStyles.row }, [
-                React.createElement(Text, { key: 'label3', style: pdfStyles.label }, 'Supervisor:'),
-                React.createElement(Text, { key: 'value3', style: pdfStyles.value }, diveLog.supervisor_name || diveLog.profiles?.username || 'N/A')
-              ]),
-              React.createElement(View, { key: 'row4', style: pdfStyles.row }, [
-                React.createElement(Text, { key: 'label4', style: pdfStyles.label }, 'Punto de Buceo:'),
-                React.createElement(Text, { key: 'value4', style: pdfStyles.value }, diveLog.dive_sites?.name || 'N/A')
-              ]),
-              React.createElement(View, { key: 'row5', style: pdfStyles.row }, [
-                React.createElement(Text, { key: 'label5', style: pdfStyles.label }, 'Embarcación:'),
-                React.createElement(Text, { key: 'value5', style: pdfStyles.value }, diveLog.boats?.name || 'N/A')
-              ])
-            ]),
-
-            React.createElement(View, { key: 'timesInfo', style: pdfStyles.section }, [
-              React.createElement(Text, { key: 'sectionTitle2', style: pdfStyles.sectionTitle }, 'HORARIOS'),
-              React.createElement(View, { key: 'row6', style: pdfStyles.row }, [
-                React.createElement(Text, { key: 'label6', style: pdfStyles.label }, 'Hora Salida:'),
-                React.createElement(Text, { key: 'value6', style: pdfStyles.value }, diveLog.departure_time || 'N/A')
-              ]),
-              React.createElement(View, { key: 'row7', style: pdfStyles.row }, [
-                React.createElement(Text, { key: 'label7', style: pdfStyles.label }, 'Hora Llegada:'),
-                React.createElement(Text, { key: 'value7', style: pdfStyles.value }, diveLog.arrival_time || 'N/A')
-              ])
-            ]),
-
-            React.createElement(View, { key: 'diversTable', style: pdfStyles.table }, [
-              React.createElement(Text, { key: 'diversTitle', style: pdfStyles.sectionTitle }, 'MANIFIESTO DE BUZOS'),
-              React.createElement(View, { key: 'tableHeader', style: pdfStyles.tableHeader }, [
-                React.createElement(Text, { key: 'th1', style: pdfStyles.tableCell }, 'Nombre'),
-                React.createElement(Text, { key: 'th2', style: pdfStyles.tableCell }, 'Rol'),
-                React.createElement(Text, { key: 'th3', style: pdfStyles.tableCell }, 'Licencia'),
-                React.createElement(Text, { key: 'th4', style: pdfStyles.tableCell }, 'Profundidad')
-              ]),
-              ...diversManifest.map((diver: any, index: number) => 
-                React.createElement(View, { key: `diver-${index}`, style: pdfStyles.tableRow }, [
-                  React.createElement(Text, { key: `name-${index}`, style: pdfStyles.tableCell }, diver.name || 'N/A'),
-                  React.createElement(Text, { key: `role-${index}`, style: pdfStyles.tableCell }, diver.role || 'N/A'),
-                  React.createElement(Text, { key: `license-${index}`, style: pdfStyles.tableCell }, diver.license || 'N/A'),
-                  React.createElement(Text, { key: `depth-${index}`, style: pdfStyles.tableCell }, diver.working_depth ? `${diver.working_depth}m` : 'N/A')
-                ])
-              )
-            ]),
-
-            React.createElement(View, { key: 'observations', style: pdfStyles.section }, [
-              React.createElement(Text, { key: 'obsTitle', style: pdfStyles.sectionTitle }, 'OBSERVACIONES'),
-              React.createElement(Text, { key: 'obsText', style: { fontSize: 10, color: '#374151' } }, diveLog.observations || 'Sin observaciones registradas')
-            ]),
-
-            React.createElement(Text, { key: 'footer', style: pdfStyles.footer }, `Documento generado por Aerocam SPA - ID: ${diveLog.id?.slice(-8)?.toUpperCase() || 'N/A'}`)
-          ]),
-
-          // Page 2 - Signature
-          React.createElement(Page, { key: 'page2', size: 'A4', style: pdfStyles.page }, [
-            React.createElement(View, { key: 'signatureSection', style: pdfStyles.signatureSection }, [
-              React.createElement(Text, { key: 'signatureTitle', style: pdfStyles.sectionTitle }, 'FIRMA DIGITAL DEL SUPERVISOR'),
-              
-              diveLog.signature_url ? 
-                React.createElement(View, { key: 'signatureContainer' }, [
-                  React.createElement(Image, { 
-                    key: 'signatureImg', 
-                    style: pdfStyles.signatureImage, 
-                    src: diveLog.signature_url 
-                  }),
-                  React.createElement(Text, { key: 'signedText', style: pdfStyles.signatureText }, 
-                    `Firmado digitalmente el ${new Date().toLocaleDateString('es-ES')} por ${diveLog.supervisor_name || diveLog.profiles?.username || 'Supervisor'}`
-                  ),
-                  React.createElement(Text, { key: 'verificationCode', style: pdfStyles.signatureText }, 
-                    `Código de verificación: DL-${diveLog.id?.slice(0, 8)?.toUpperCase() || 'N/A'}`
-                  )
-                ]) :
-                React.createElement(View, { key: 'noSignature', style: { height: 100, width: 200, backgroundColor: '#ffffff', border: 1, borderColor: '#d1d5db' } }, [
-                  React.createElement(Text, { key: 'pendingText', style: { textAlign: 'center', paddingTop: 40, color: '#9ca3af' } }, 'Pendiente de firma')
-                ])
-            ])
-          ])
-        ]);
+        }, page1, page2);
         
-        // Use pdf().toBlob() for Deno compatibility
+        console.log("PDF document structure created, generating blob...");
+        
+        // Generate PDF blob
         const pdfBlob = await pdf(pdfDocument).toBlob();
         
         // Convert blob to base64
@@ -283,28 +351,32 @@ serve(async (req) => {
         const binaryString = decoder.decode(uint8Array);
         base64PDF = btoa(binaryString);
         
-        console.log("PDF generated successfully for email");
-      } catch (pdfError) {
-        console.error("Error generating PDF:", pdfError);
-        throw new Error("Error generando PDF: " + pdfError.message);
+        console.log("PDF generated successfully for email attachment");
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        pdfError = error.message;
+        // Continue without PDF attachment
+        console.log("Continuing email send without PDF attachment due to error");
       }
     }
 
-    // Modern iOS-style email content
+    // Generate email content
+    console.log("Generating email content...");
     const emailBody = generateModernEmailHTML({
       diveLog,
       recipientName,
       message,
-      filename
+      filename,
+      pdfError
     });
 
-    // Prepare email
+    // Prepare email payload
     const emailPayload = {
       from: "Aerocam SPA <noreply@resend.dev>",
       to: [recipientEmail],
-      subject: `📋 Bitácora de Buceo - ${diveLog.centers?.name || 'Centro'} - ${diveLog.log_date || 'Sin fecha'}`,
+      subject: `📋 Bitácora de Buceo - ${safeGet(diveLog, 'centers.name', 'Centro')} - ${safeFormatDate(diveLog.log_date)}`,
       html: emailBody,
-      attachments: includePDF && base64PDF ? [{
+      attachments: (includePDF && base64PDF) ? [{
         filename: filename,
         content: base64PDF,
         content_type: "application/pdf"
@@ -336,7 +408,9 @@ serve(async (req) => {
       success: true, 
       result,
       diveLogId,
-      filename
+      filename,
+      pdfGenerated: !!base64PDF,
+      pdfError: pdfError
     }), {
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
@@ -356,9 +430,20 @@ serve(async (req) => {
   }
 });
 
-function generateModernEmailHTML({ diveLog, recipientName, message, filename }: any) {
+function generateModernEmailHTML({ diveLog, recipientName, message, filename, pdfError }: any) {
   const diversManifest = Array.isArray(diveLog.divers_manifest) ? diveLog.divers_manifest : [];
   const totalDivers = diversManifest.length;
+  
+  const pdfWarning = pdfError ? `
+    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin: 16px 0;">
+      <p style="color: #dc2626; margin: 0; font-size: 14px;">
+        ⚠️ No se pudo generar el PDF adjunto: ${pdfError}
+      </p>
+      <p style="color: #7f1d1d; margin: 8px 0 0 0; font-size: 12px;">
+        Puedes descargar el PDF desde la plataforma web.
+      </p>
+    </div>
+  ` : '';
   
   return `
 <!DOCTYPE html>
@@ -518,6 +603,8 @@ function generateModernEmailHTML({ diveLog, recipientName, message, filename }: 
                 </div>
             ` : ''}
             
+            ${pdfWarning}
+            
             <div class="dive-info">
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #1a1a1a; margin-bottom: 8px; font-size: 18px;">📋 Detalles de la Bitácora</h3>
@@ -525,12 +612,12 @@ function generateModernEmailHTML({ diveLog, recipientName, message, filename }: 
                 
                 <div class="info-row">
                     <span class="info-label">🏢 Centro</span>
-                    <span class="info-value">${diveLog.centers?.name || 'No especificado'}</span>
+                    <span class="info-value">${safeGet(diveLog, 'centers.name', 'No especificado')}</span>
                 </div>
                 
                 <div class="info-row">
                     <span class="info-label">📅 Fecha</span>
-                    <span class="info-value">${diveLog.log_date ? new Date(diveLog.log_date).toLocaleDateString('es-ES', { 
+                    <span class="info-value">${safeFormatDate(diveLog.log_date) !== 'N/A' ? new Date(diveLog.log_date).toLocaleDateString('es-ES', { 
                       year: 'numeric', 
                       month: 'long', 
                       day: 'numeric' 
@@ -539,12 +626,12 @@ function generateModernEmailHTML({ diveLog, recipientName, message, filename }: 
                 
                 <div class="info-row">
                     <span class="info-label">🏊‍♂️ Supervisor</span>
-                    <span class="info-value">${diveLog.supervisor_name || diveLog.profiles?.username || 'No especificado'}</span>
+                    <span class="info-value">${safeGet(diveLog, 'supervisor_name', 'No especificado') || safeGet(diveLog, 'profiles.username', 'No especificado')}</span>
                 </div>
                 
                 <div class="info-row">
                     <span class="info-label">🌊 Punto de Buceo</span>
-                    <span class="info-value">${diveLog.dive_sites?.name || 'No especificado'}</span>
+                    <span class="info-value">${safeGet(diveLog, 'dive_sites.name', 'No especificado')}</span>
                 </div>
                 
                 <div class="info-row">
@@ -554,7 +641,7 @@ function generateModernEmailHTML({ diveLog, recipientName, message, filename }: 
                 
                 <div class="info-row">
                     <span class="info-label">🆔 ID Bitácora</span>
-                    <span class="info-value">#${diveLog.id.slice(-8).toUpperCase()}</span>
+                    <span class="info-value">#${diveLog.id?.slice(-8)?.toUpperCase() || 'N/A'}</span>
                 </div>
                 
                 <div class="info-row">
@@ -567,16 +654,18 @@ function generateModernEmailHTML({ diveLog, recipientName, message, filename }: 
                 </div>
             </div>
             
-            <div class="attachment-info">
-                <div class="attachment-icon">📎</div>
-                <p style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px;">
-                    Archivo Adjunto
-                </p>
-                <p style="color: #8e8e93; font-size: 14px; margin: 0;">
-                    ${filename}<br>
-                    <small>Bitácora completa en formato PDF</small>
-                </p>
-            </div>
+            ${!pdfError ? `
+                <div class="attachment-info">
+                    <div class="attachment-icon">📎</div>
+                    <p style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px;">
+                        Archivo Adjunto
+                    </p>
+                    <p style="color: #8e8e93; font-size: 14px; margin: 0;">
+                        ${filename}<br>
+                        <small>Bitácora completa en formato PDF</small>
+                    </p>
+                </div>
+            ` : ''}
             
             <p style="color: #8e8e93; font-size: 14px; text-align: center; margin: 24px 0;">
                 Este documento contiene información profesional certificada por Aerocam SPA.
