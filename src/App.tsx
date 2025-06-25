@@ -32,14 +32,12 @@ function App() {
           <LoadingProvider>
             <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-gray-900">
               <Routes>
-                {/* Redirect root to dashboard */}
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <Navigate to="/dashboard" replace />
-                  </ProtectedRoute>
-                } />
+                {/* Public landing page */}
+                <Route path="/" element={<Index />} />
                 <Route path="/landing" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                
+                {/* Protected routes */}
                 <Route path="/settings" element={
                   <ProtectedRoute>
                     <ProtectedLayout>

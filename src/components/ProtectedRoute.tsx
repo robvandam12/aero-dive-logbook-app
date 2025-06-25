@@ -13,9 +13,17 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { data: profile, isLoading: profileLoading } = useUserProfile();
 
+  console.log("ProtectedRoute - Auth state:", { 
+    user: !!user, 
+    authLoading, 
+    profileLoading,
+    profile: profile?.role 
+  });
+
   const loading = authLoading || profileLoading;
 
   if (loading) {
+    console.log("ProtectedRoute - Loading state, showing skeleton");
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-gray-900">
         <div className="flex min-h-screen w-full">
@@ -33,13 +41,16 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   if (!user) {
+    console.log("ProtectedRoute - No user, redirecting to auth");
     return <Navigate to="/auth" replace />;
   }
 
   if (requiredRole && profile?.role !== requiredRole) {
+    console.log("ProtectedRoute - Insufficient role, redirecting to dashboard");
     return <Navigate to="/dashboard" replace />;
   }
 
+  console.log("ProtectedRoute - Auth success, rendering children");
   return <>{children}</>;
 };
 

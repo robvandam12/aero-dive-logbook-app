@@ -12,7 +12,9 @@ import { useAuth } from "@/contexts/AuthProvider";
 const Index = () => {
   const { data: stats, isLoading } = useIndexStats();
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, user } = useAuth();
+
+  console.log("Index page - Auth state:", { session: !!session, user: !!user });
 
   const handleQuickActionClick = (path: string) => {
     if (session) {
@@ -63,7 +65,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-hero-gradient ocean-pattern">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-gray-900 ocean-pattern">
       <Header />
       
       <main className="container mx-auto px-6 py-8 space-y-8">
@@ -106,7 +108,7 @@ const Index = () => {
 
           <div onClick={() => handleQuickActionClick('/dashboard')} className="glass p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer ocean-shimmer">
             <div className="flex items-center space-x-4">
-              <div className="bg-gold-gradient p-3 rounded-xl">
+              <div className="bg-gradient-to-r from-amber-600 to-amber-800 p-3 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
