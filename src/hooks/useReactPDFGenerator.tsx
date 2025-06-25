@@ -57,7 +57,7 @@ export const useReactPDFGenerator = () => {
 
       toast({
         title: "PDF generado",
-        description: "El archivo PDF se ha descargado correctamente con React-PDF.",
+        description: "El archivo PDF se ha descargado correctamente.",
       });
 
     } catch (error) {
@@ -71,6 +71,32 @@ export const useReactPDFGenerator = () => {
       setIsGenerating(false);
     }
   }, [toast]);
+
+  const generatePDFBlob = useCallback(async (
+    diveLog: DiveLogWithFullDetails,
+    hasSignature: boolean = false
+  ): Promise<Blob | null> => {
+    if (!diveLog) {
+      console.error("Missing dive log data for PDF blob generation");
+      return null;
+    }
+
+    try {
+      console.log("Generating React-PDF blob for email...");
+      
+      // Generate PDF blob using React-PDF
+      const pdfBlob = await pdf(
+        <DiveLogPDFDocument diveLog={diveLog} hasSignature={hasSignature} />
+      ).toBlob();
+
+      console.log("React-PDF blob generated successfully");
+      return pdfBlob;
+
+    } catch (error) {
+      console.error("Error generating React-PDF blob:", error);
+      return null;
+    }
+  }, []);
 
   const generatePDFPreview = useCallback(async (
     diveLog: DiveLogWithFullDetails,
@@ -103,6 +129,7 @@ export const useReactPDFGenerator = () => {
 
   return {
     generatePDF,
+    generatePDFBlob,
     generatePDFPreview,
     isGenerating
   };

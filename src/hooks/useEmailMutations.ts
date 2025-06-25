@@ -1,4 +1,3 @@
-
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -50,14 +49,14 @@ export const useSendDiveLogEmail = () => {
     },
     onSuccess: () => {
       toast({
-        title: "Correo enviado",
-        description: "La bitácora ha sido enviada por correo exitosamente.",
+        title: "📧 Correo enviado",
+        description: "La bitácora ha sido enviada por correo exitosamente con el PDF adjunto.",
       });
     },
     onError: (error: any) => {
       console.error('Email mutation error:', error);
       toast({
-        title: "Error al enviar correo",
+        title: "❌ Error al enviar correo",
         description: error.message,
         variant: "destructive",
       });
