@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import React from "https://esm.sh/react@18.2.0";
-import { renderToStream } from "https://esm.sh/@react-pdf/renderer@4.3.0";
+import { pdf } from "https://esm.sh/@react-pdf/renderer@4.3.0";
 import { Document, Page, Text, View, StyleSheet, Image } from "https://esm.sh/@react-pdf/renderer@4.3.0";
 
 const corsHeaders = {
@@ -273,34 +273,22 @@ serve(async (req) => {
       try {
         console.log("Generating React-PDF for email attachment...");
         
-        // Generate PDF using React-PDF
+        // Generate PDF using React-PDF with pdf().toBlob() for Deno compatibility
         const pdfDocument = React.createElement(DiveLogPDFDocument, { 
           diveLog, 
           hasSignature: !!diveLog.signature_url 
         });
         
-        const stream = await renderToStream(pdfDocument);
-        const chunks: Uint8Array[] = [];
+        // Use pdf().toBlob() instead of renderToStream for Deno compatibility
+        const pdfBlob = await pdf(pdfDocument).toBlob();
         
-        const reader = stream.getReader();
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
-        }
+        // Convert blob to base64
+        const arrayBuffer = await pdfBlob.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
         
-        // Combine all chunks into a single buffer
-        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-        const pdfBuffer = new Uint8Array(totalLength);
-        let offset = 0;
-        for (const chunk of chunks) {
-          pdfBuffer.set(chunk, offset);
-          offset += chunk.length;
-        }
-        
-        // Convert to base64
+        // Convert to base64 string
         const decoder = new TextDecoder('latin1');
-        const binaryString = decoder.decode(pdfBuffer);
+        const binaryString = decoder.decode(uint8Array);
         base64PDF = btoa(binaryString);
         
         console.log("React-PDF generated successfully for email");
